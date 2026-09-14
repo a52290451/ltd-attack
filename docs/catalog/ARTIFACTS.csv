@@ -1,0 +1,102 @@
+artifact_id,artifact_type,path,environment,exists,producer,related_experiment,verified,result_source,notes
+ART-001,checkpoint,vectores/resultados/ds_best_multimodal_transformer_vec_5000.pth,zeus,UNKNOWN,VP1_Transformers.py,MICRO-001,false,UNVERIFIED,Legacy Micro checkpoint
+ART-002,encoder,vectores/resultados/ds_label_encoder_vec_5000.joblib,zeus,UNKNOWN,VP1_Transformers.py,MICRO-001,false,UNVERIFIED,Legacy label encoder
+ART-003,mapping,vectores/resultados/ds_class_mapping_vec_5000.joblib,zeus,UNKNOWN,VP1_Transformers.py,MICRO-001,false,UNVERIFIED,Legacy class mapping
+ART-004,result,vectores/resultados/ds_resultado_final.txt_5000,zeus,UNKNOWN,VP1_Transformers.py,MICRO-001,false,UNVERIFIED,Legacy text result
+ART-005,checkpoint,vectores/resultados/d_best_multimodal_transformer_vec_3000.pth,zeus,UNKNOWN,VP2_Transformers_directions.py,MICRO-001,false,UNVERIFIED,Name is direction-only despite multimodal wording
+ART-006,encoder,vectores/resultados/d_label_encoder_vec_3000.joblib,zeus,UNKNOWN,VP2_Transformers_directions.py,MICRO-001,false,UNVERIFIED,Legacy encoder
+ART-007,mapping,vectores/resultados/d_class_mapping_vec_3000.joblib,zeus,UNKNOWN,VP2_Transformers_directions.py,MICRO-001,false,UNVERIFIED,Legacy class mapping
+ART-008,checkpoint,vectores/resultados/ds3_best_multimodal_transformer_vec_3000.pth,zeus,UNKNOWN,vectores/VP1_Transformers_dir_size.py,MICRO-002,false,UNVERIFIED,Current Micro checkpoint
+ART-009,encoder,vectores/resultados/ds3_label_encoder_vec_3000.joblib,zeus,UNKNOWN,vectores/VP1_Transformers_dir_size.py,MICRO-002,false,UNVERIFIED,Shared by v2 hybrids
+ART-010,mapping,vectores/resultados/_ds3_class_mapping_vec_3000.joblib,zeus,UNKNOWN,vectores/VP1_Transformers_dir_size.py,MICRO-002,false,UNVERIFIED,Class mapping filename includes leading underscore in code
+ART-011,scaler,vectores/resultados/ds3_minmax_scaler_vec_3000.joblib,zeus,UNKNOWN,vectores/VP1_Transformers_dir_size.py,MICRO-002,false,UNVERIFIED,Train-only min/max scaler
+ART-012,result,vectores/resultados/ds3_resultado_final_3000.txt,zeus,UNKNOWN,vectores/VP1_Transformers_dir_size.py,MICRO-002,false,UNVERIFIED,Final Micro text result
+ART-013,checkpoint,resultados/best_model_45F.pth,zeus,UNKNOWN,EXP1_Train_45F_Invariantes.py,MACRO-001,false,UNVERIFIED,Relative location depends on execution directory
+ART-014,scaler,resultados/scaler_45.joblib,zeus,UNKNOWN,EXP1_Train_45F_Invariantes.py,MACRO-001,false,UNVERIFIED,Legacy Macro scaler
+ART-015,encoder,resultados/le_45.joblib,zeus,UNKNOWN,EXP1_Train_45F_Invariantes.py,MACRO-001,false,UNVERIFIED,Legacy Macro encoder
+ART-016,feature_list,resultados/features_45_list.joblib,zeus,UNKNOWN,EXP1_Train_45F_Invariantes.py,MACRO-001,false,UNVERIFIED,Selected feature list
+ART-017,checkpoint,features/resultados/best_model_invariantes.pth,zeus,UNKNOWN,features/EXP1_Train_Invariantes.py,MACRO-002,false,UNVERIFIED,Current Macro checkpoint
+ART-018,scaler,features/resultados/scaler_invariantes.joblib,zeus,UNKNOWN,features/EXP1_Train_Invariantes.py,MACRO-002,false,UNVERIFIED,Current Macro scaler
+ART-019,encoder,features/resultados/le_invariantes.joblib,zeus,UNKNOWN,features/EXP1_Train_Invariantes.py,MACRO-002,false,UNVERIFIED,Current Macro encoder
+ART-020,feature_list,features/resultados/features_list.joblib,zeus,UNKNOWN,features/EXP1_Train_Invariantes.py,MACRO-002,false,UNVERIFIED,Current feature list
+ART-021,checkpoint,resultados_40F3000V/best_model_hibrido_neutro.pth,zeus,UNKNOWN,EXP2_Train_45F3000V_Neutro.py,HYB-001,false,UNVERIFIED,Trainer-relative older hybrid checkpoint; evaluator references sibling vectores_features path
+ART-022,scaler,resultados_40F3000V/scaler_hibrido_neutro.joblib,zeus,UNKNOWN,EXP2_Train_45F3000V_Neutro.py,HYB-001,false,UNVERIFIED,Older hybrid scaler
+ART-023,encoder,resultados_40F3000V/le_hibrido_neutro.joblib,zeus,UNKNOWN,EXP2_Train_45F3000V_Neutro.py,HYB-001,false,UNVERIFIED,Older hybrid encoder
+ART-024,checkpoint,resultados_40F3000V_IncF/best_model_hibrido_inclinado_45F.pth,zeus,UNKNOWN,EXP3_Train_45F3000V_InclinadoF.py,HYB-002,false,UNVERIFIED,Older feature-biased checkpoint
+ART-025,checkpoint,vectores_features_v2/resultados_94F3000V_Neutro/best_model_hibrido_neutro.pth,zeus,UNKNOWN,v2 EXP2 trainer,HYB-003,false,UNVERIFIED,Current neutral hybrid checkpoint
+ART-026,scaler,vectores_features_v2/resultados_94F3000V_Neutro/scaler_hibrido_neutro.joblib,zeus,UNKNOWN,v2 EXP2 trainer,HYB-003,false,UNVERIFIED,Current train-only feature scaler
+ART-027,encoder,vectores_features_v2/resultados_94F3000V_Neutro/le_hibrido_neutro.joblib,zeus,UNKNOWN,v2 EXP2 trainer,HYB-003,false,UNVERIFIED,Current hybrid encoder
+ART-028,figure,vectores_features_v2/resultados_94F3000V/G17_Matriz_Drift_Hibrido_Neutro.png,zeus,UNKNOWN,v2 EXP2 evaluator,HYB-003,false,UNVERIFIED,Expected evaluation figure
+ART-029,checkpoint,vectores_features_v2/resultados_94F3000V_IncF/best_model_hibrido_inclinadoF.pth,zeus,UNKNOWN,v2 EXP3 trainer,HYB-004,false,UNVERIFIED,Feature-biased checkpoint
+ART-030,scaler,vectores_features_v2/resultados_94F3000V_IncF/scaler_hibrido_incF.joblib,zeus,UNKNOWN,v2 EXP3 trainer,HYB-004,false,UNVERIFIED,Feature-biased scaler
+ART-031,encoder,vectores_features_v2/resultados_94F3000V_IncF/le_hibrido_incF.joblib,zeus,UNKNOWN,v2 EXP3 trainer,HYB-004,false,UNVERIFIED,Feature-biased encoder
+ART-032,checkpoint,vectores_features_v2/resultados_94F3000V_IncV/best_model_hibrido_inclinado_vec.pth,zeus,UNKNOWN,v2 EXP4 trainer,HYB-005,false,UNVERIFIED,Vector-biased pretraining checkpoint
+ART-033,scaler,vectores_features_v2/resultados_94F3000V_IncV/scaler_hibrido_incV.joblib,zeus,UNKNOWN,v2 EXP4 trainer,HYB-005,false,UNVERIFIED,Vector-biased scaler
+ART-034,encoder,vectores_features_v2/resultados_94F3000V_IncV/le_hibrido_incV.joblib,zeus,UNKNOWN,v2 EXP4 trainer,HYB-005,false,UNVERIFIED,Vector-biased encoder
+ART-035,checkpoint,vectores_features_v2/resultados_94F3000V_CrossAttn/best_model_crossattn.pth,zeus,UNKNOWN,v2 EXP5 trainer,HYB-006,false,UNVERIFIED,Cross-Attention checkpoint
+ART-036,scaler,vectores_features_v2/resultados_94F3000V_CrossAttn/scaler_crossattn.joblib,zeus,UNKNOWN,v2 EXP5 trainer,HYB-006,false,UNVERIFIED,Cross-Attention scaler
+ART-037,encoder,vectores_features_v2/resultados_94F3000V_CrossAttn/le_crossattn.joblib,zeus,UNKNOWN,v2 EXP5 trainer,HYB-006,false,UNVERIFIED,Cross-Attention encoder
+ART-038,checkpoint,mega_best_model_robust_3000.pth,zeus,UNKNOWN,VF1_Trans_dir_size_feat.py,HYB-LEGACY-001,false,UNVERIFIED,Legacy Mega Hybrid v1 checkpoint
+ART-039,checkpoint,vectores_features_v2/resultados_DML_IncV/best_model_dml_incV.pth,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,Hybrid DML checkpoint
+ART-040,scaler,vectores_features_v2/resultados_DML_IncV/scaler_dml_incV.joblib,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,DML scaler
+ART-041,encoder,vectores_features_v2/resultados_DML_IncV/le_dml_incV.joblib,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,DML encoder
+ART-042,embeddings,vectores_features_v2/resultados_DML_IncV/embeddings_train.npy,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,Training embeddings
+ART-043,labels,vectores_features_v2/resultados_DML_IncV/labels_train.npy,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,Training labels
+ART-044,embeddings,vectores_features_v2/resultados_DML_IncV/embeddings_test.npy,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,Historical tail embeddings
+ART-045,labels,vectores_features_v2/resultados_DML_IncV/labels_test.npy,zeus,UNKNOWN,v2 EXP6 trainer,DML-001,false,UNVERIFIED,Historical tail labels
+ART-046,checkpoint,vectores_features_v2/resultados_EXP7_Transfer_DML/best_model_dml_transfer.pth,zeus,UNKNOWN,v2 EXP7 trainer,DML-002,false,UNVERIFIED,Transfer DML checkpoint
+ART-047,scaler,vectores_features_v2/resultados_EXP7_Transfer_DML/scaler_dml_transfer.joblib,zeus,UNKNOWN,v2 EXP7 trainer,DML-002,false,UNVERIFIED,Transfer scaler
+ART-048,encoder,vectores_features_v2/resultados_EXP7_Transfer_DML/le_dml_transfer.joblib,zeus,UNKNOWN,v2 EXP7 trainer,DML-002,false,UNVERIFIED,Transfer encoder
+ART-049,checkpoint,deep_metric_learning/resultados/modelo_dml_pesos.pth,zeus,UNKNOWN,deep_metric_learning/fase4_entrenamiento.py,DML-003,false,UNVERIFIED,Phased DML checkpoint
+ART-050,tensor,deep_metric_learning/resultados/X_train.npy,zeus,UNKNOWN,deep_metric_learning/fase2_dataloader.py,DML-003,false,UNVERIFIED,Training tensor
+ART-051,tensor,deep_metric_learning/resultados/X_val.npy,zeus,UNKNOWN,deep_metric_learning/fase2_dataloader.py,DML-003,false,UNVERIFIED,Validation tensor
+ART-052,labels,deep_metric_learning/resultados/y_train.npy,zeus,UNKNOWN,deep_metric_learning/fase2_dataloader.py,DML-003,false,UNVERIFIED,Training labels
+ART-053,labels,deep_metric_learning/resultados/y_val.npy,zeus,UNKNOWN,deep_metric_learning/fase2_dataloader.py,DML-003,false,UNVERIFIED,Validation labels
+ART-054,embeddings,deep_metric_learning/resultados/embeddings_train.npy,zeus,UNKNOWN,deep_metric_learning/fase4_entrenamiento.py,DML-003,false,UNVERIFIED,Training embeddings
+ART-055,embeddings,deep_metric_learning/resultados/embeddings_val.npy,zeus,UNKNOWN,deep_metric_learning/fase4_entrenamiento.py,DML-003,false,UNVERIFIED,Validation embeddings
+ART-056,result,deep_metric_learning/resultados/reporte_evaluacion_drift.csv,zeus,UNKNOWN,deep_metric_learning/fase5_evaluacion.py,DML-003,false,UNVERIFIED,Future evaluation report
+ART-057,checkpoint,output/transformers_final/best_global_encoder_robust_v2.pth,zeus,UNKNOWN,VF5_Evaluar_ConceptDrift_Features.py,MACRO-002,false,UNVERIFIED,Alternative Macro checkpoint reference
+ART-058,scaler,output/transformers_final/x_scaler_robust.joblib,zeus,UNKNOWN,VF5_Evaluar_ConceptDrift_Features.py,MACRO-002,false,UNVERIFIED,Alternative Macro scaler
+ART-059,encoder,output/transformers_final/x_label_encoder_robust.joblib,zeus,UNKNOWN,VF5_Evaluar_ConceptDrift_Features.py,MACRO-002,false,UNVERIFIED,Alternative Macro encoder
+ART-060,feature_list,output/transformers_final/x_features_list.joblib,zeus,UNKNOWN,VF5_Evaluar_ConceptDrift_Features.py,MACRO-002,false,UNVERIFIED,Alternative feature list
+ART-061,feature_list,vectores_features/resultados_analisis/features_invariantes_seguras.txt,zeus,UNKNOWN,older feature diagnostics,FEAT-001,false,UNVERIFIED,45-feature generation
+ART-062,feature_list,vectores_features/resultados_analisis/new_features_invariantes_seguras.txt,zeus,UNKNOWN,concept_drift/Reduccion_Features.py,FEAT-001,false,UNVERIFIED,Current feature list expected by v2
+ART-063,result,vectores_features/resultados_analisis/ks_test_results_CLEAN_PARITY_<timestamp>.csv,zeus,UNKNOWN,concept_drift/Reduccion_Features.py,FEAT-001,false,UNVERIFIED,Timestamped feature parity report
+ART-064,result,vectores_features/resultados_analisis/reporte_ks_drift_<timestamp>.csv,zeus,UNKNOWN,VF6_Analisis_Covariate_Shift.py,FEAT-001,false,UNVERIFIED,Timestamped drift report
+ART-065,figure,graficas_tesis_finales/G_Final_*.png,zeus,UNKNOWN,Graficas/GEN_Resultados_Finales.py,DIAG-001,false,hardcoded,Final synthesis uses manually entered accuracies
+ART-066,figure,Graficas/*.png,local,TRUE,diagnostic scripts,DIAG-001,false,UNVERIFIED,Existing PNGs include drift PCA correlation KDE and final thesis plots
+ART-067,figure,vectores_features_v2/resultados_94F3000V_IncF/G18_Matriz_Drift_Hibrido_InclinadoF.png,zeus,UNKNOWN,v2 EXP3 evaluator,HYB-004,false,UNVERIFIED,Expected evaluation figure
+ART-068,figure,vectores_features_v2/resultados_94F3000V_IncV/G19_Matriz_Drift_Hibrido_InclinadoV.png,zeus,UNKNOWN,v2 EXP4 evaluator,HYB-005,false,UNVERIFIED,Expected evaluation figure
+ART-069,figure,vectores_features_v2/resultados_94F3000V_CrossAttn/G20_Matriz_Drift_CrossAttention.png,zeus,UNKNOWN,v2 EXP5 evaluator,HYB-006,false,UNVERIFIED,Expected evaluation figure
+ART-070,result,vectores_features_v2/resultados_DML_IncV/resultado_drift_DML_IncV.txt,zeus,UNKNOWN,concept_drift/EXP6_Evaluar_DML_InclinadoV.py,DML-001,false,UNVERIFIED,Expected DML drift report
+ART-071,result,vectores_features_v2/resultados_EXP7_Transfer_DML/accuracy_EXP7_Transfer_DML.txt,zeus,UNKNOWN,concept_drift/EXP7_Evaluar_Transfer_DML.py,DML-002,false,UNVERIFIED,Expected transfer accuracy report
+ART-072,config,credentials_qwen.json,local,TRUE,repository root,UNASSIGNED,false,UNVERIFIED,Potentially sensitive Zeus/Qwen configuration; not used by research pipeline
+ART-073,scaler,resultados_40F3000V_IncF/scaler_45_inclinado.joblib,zeus,UNKNOWN,EXP3_Train_45F3000V_InclinadoF.py,HYB-002,false,UNVERIFIED,Older feature-biased scaler
+ART-074,encoder,resultados_40F3000V_IncF/le_45_inclinado.joblib,zeus,UNKNOWN,EXP3_Train_45F3000V_InclinadoF.py,HYB-002,false,UNVERIFIED,Older feature-biased encoder
+ART-075,checkpoint,resultados/mega_best_model_robust_3000.pth,zeus,UNKNOWN,VF1_Trans_dir_size_feat.py,HYB-LEGACY-001,false,UNVERIFIED,Trainer-relative Legacy Mega Hybrid checkpoint
+ART-076,scaler,resultados/mega_scaler_robust_3000.joblib,zeus,UNKNOWN,VF1_Trans_dir_size_feat.py,HYB-LEGACY-001,false,UNVERIFIED,Legacy Mega Hybrid scaler
+ART-077,encoder,resultados/mega_label_encoder_robust_3000.joblib,zeus,UNKNOWN,VF1_Trans_dir_size_feat.py,HYB-LEGACY-001,false,UNVERIFIED,Legacy Mega Hybrid encoder
+ART-078,feature_list,resultados/mega_features_list_robust_3000.joblib,zeus,UNKNOWN,VF1_Trans_dir_size_feat.py,HYB-LEGACY-001,false,UNVERIFIED,Legacy Mega Hybrid feature list
+ART-079,checkpoint,output/best_custom_mlp.pth,zeus,UNKNOWN,P2_MLP_prueba.py,PROTO-001,false,UNVERIFIED,MLP prototype checkpoint
+ART-080,scaler,output/custom_scaler.joblib,zeus,UNKNOWN,P2_MLP_prueba.py,PROTO-001,false,UNVERIFIED,MLP prototype scaler
+ART-081,encoder,output/custom_label_encoder.joblib,zeus,UNKNOWN,P2_MLP_prueba.py,PROTO-001,false,UNVERIFIED,MLP prototype encoder
+ART-082,encoder,output/tabnet/label_encoder.joblib,zeus,UNKNOWN,P3_TabNET_prueba.py,PROTO-002,false,UNVERIFIED,TabNet prototype encoder
+ART-083,checkpoint,output/transformer/ft_transformer_best_maestras.pth,zeus,UNKNOWN,P4_Transformers_prueba.py,PROTO-003,false,UNVERIFIED,Additional tabular Transformer prototype checkpoint
+ART-084,encoder,output/transformer/label_encoder_maestras.joblib,zeus,UNKNOWN,P4_Transformers_prueba.py,PROTO-003,false,UNVERIFIED,Additional tabular Transformer prototype encoder
+ART-085,checkpoint,estado_del_arte/resultados/best_df_cnn.pth,zeus,UNKNOWN,estado_del_arte/SOTA_02_DeepFingerprinting_CNN.py,SOTA-002,false,UNVERIFIED,State-of-art CNN checkpoint
+ART-086,checkpoint,estado_del_arte/resultados/best_rimmer_lstm.pth,zeus,UNKNOWN,estado_del_arte/SOTA_03_Rimmer_LSTM.py,SOTA-003,false,UNVERIFIED,State-of-art LSTM checkpoint
+ART-087,result,vectores/resultados/ds3_ablacion_resultado_solo_vectores.txt,zeus,UNKNOWN,vectores/VP_Evaluar_ConceptDrift_Vectores.py,MICRO-002,false,UNVERIFIED,Micro drift report
+ART-088,result,vectores/resultados/ablacion_resultado_solo_vectores.txt,zeus,UNKNOWN,VF3_Evaluar_ConceptDrift_Vectores.py,MICRO-001,false,UNVERIFIED,Legacy Micro ablation report
+ART-089,figure,vectores_features_v2/resultados_94F3000V_IncF/G18_Matriz_Drift_Hibrido_InclinadoF.png,zeus,UNKNOWN,concept_drift/EXP3_Evaluar_94F3000V_InclinadoF.py,HYB-004,false,UNVERIFIED,Feature-biased drift figure
+ART-090,figure,vectores_features_v2/resultados_94F3000V_IncV/G19_Matriz_Drift_Hibrido_InclinadoV.png,zeus,UNKNOWN,concept_drift/EXP4_Evaluar_94F3000V_InclinadoV.py,HYB-005,false,UNVERIFIED,Vector-biased drift figure
+ART-091,figure,vectores_features_v2/resultados_94F3000V_CrossAttn/G20_Matriz_Drift_CrossAttention.png,zeus,UNKNOWN,concept_drift/EXP5_Evaluar_94F3000V_CrossAttention.py,HYB-006,false,UNVERIFIED,Cross-Attention drift figure
+ART-092,figure,vectores/resultados/VF3_G1_Huella_Secuencial.jpg,zeus,UNKNOWN,vectores/VP_Evaluar_ConceptDrift_Vectores.py,MICRO-002,false,UNVERIFIED,Micro drift visualization
+ART-093,figure,vectores/resultados/VF3_G2_Matriz_Dispersion.jpg,zeus,UNKNOWN,vectores/VP_Evaluar_ConceptDrift_Vectores.py,MICRO-002,false,UNVERIFIED,Micro drift visualization
+ART-094,figure,vectores/resultados/VF3_G3_Colapso_Latente.jpg,zeus,UNKNOWN,vectores/VP_Evaluar_ConceptDrift_Vectores.py,MICRO-002,false,UNVERIFIED,Micro drift visualization
+ART-095,figure,vectores_features_v2/resultados_DML_IncV/G21_Curvas_Convergencia_MultiTarea.png,zeus,UNKNOWN,v2 EXP6,DML-001,false,UNVERIFIED,Current DML convergence figure
+ART-096,figure,vectores_features_v2/resultados_DML_IncV/G22_Matriz_Drift_DML_IncV.png,zeus,UNKNOWN,concept_drift/EXP6_Evaluar_DML_InclinadoV.py,DML-001,false,UNVERIFIED,Current DML drift figure
+ART-097,figure,deep_metric_learning/resultados/G3_A_Curvas_Convergencia.png,zeus,UNKNOWN,deep_metric_learning/fase4_entrenamiento.py,DML-003,false,UNVERIFIED,Phased DML convergence plot
+ART-098,figure,deep_metric_learning/resultados/G3_B_Topologia_Latente_UMAP.png,zeus,UNKNOWN,deep_metric_learning/fase4_entrenamiento.py,DML-003,false,UNVERIFIED,Phased DML latent UMAP plot
+ART-099,figure,deep_metric_learning/resultados/G4_A_Matriz_Confusion_Final.png,zeus,UNKNOWN,deep_metric_learning/fase5_evaluacion.py,DML-003,false,UNVERIFIED,Future DML confusion matrix
+ART-100,figure,deep_metric_learning/resultados/G4_B_Contraste_Rendimiento.png,zeus,UNKNOWN,deep_metric_learning/fase5_evaluacion.py,DML-003,false,UNVERIFIED,DML contrast plot
+ART-102,figure,vectores_features_v2/resultados_EXP7_Transfer_DML/G22_Matriz_Drift_Transfer_DML.png,zeus,UNKNOWN,concept_drift/EXP7_Evaluar_Transfer_DML.py,DML-002,false,UNVERIFIED,Transfer DML drift figure
