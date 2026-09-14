@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ML
+*.pth
+*.pt
+*.ckpt
+*.joblib
+
+# Data
+*.pcap
+*.pcapng
+
+# Large generated datasets
+output/
+results/
+checkpoints/
+
+# macOS
+.DS_Store
+
+# Secrets
+credentials*.json
+.env
