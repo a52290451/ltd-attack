@@ -1,0 +1,42 @@
+# LTD-Attack — migration plan
+
+This plan is the approval point for the physical reorganization. It is intentionally limited to path changes and directory markers; source contents, historical experiments, imports, and data are not refactored.
+
+## Invariants
+
+- Every tracked source or documentation file is moved with `git mv`.
+- No tracked file is deleted or duplicated.
+- Large local datasets and all external/Zeus artifacts stay at their current paths.
+- Local figures and other result files stay in place until the Zeus reconciliation.
+- Duplicate historical files keep separate provenance subdirectories under `legacy/`.
+- `docs/migration/LOCAL_MIGRATION.csv` records every move and every retained local data/artifact path.
+
+## Planned moves
+
+| Batch | Scope | Destination | Rationale |
+|---|---|---|---|
+| Data | Root preprocessing and mapping scripts | `src/data/` | Active data-ingestion and temporal aggregation code. |
+| Features | `features/*.py`, README, and current feature reduction | `src/features/` | Active Macro feature engineering. |
+| Micro current | `vectores/VP1_Transformers_dir_size.py` | `src/models/micro/` | MICRO-002 active model implementation. |
+| Macro current | Current `features/EXP1_Train*`, `EXP2_XGBoost*` | `src/models/macro/` | Active Macro model implementations. |
+| Hybrid current | `vectores_features_v2/EXP2`–`EXP5` | `src/models/hybrid/` | Current Hybrid model experiments. |
+| DML current | `vectores_features_v2/EXP6`–`EXP7` | `src/models/dml/` | Current integrated DML experiments. |
+| SOTA current | `estado_del_arte/SOTA_*`, README | `src/models/sota/` | Current SOTA comparison line. |
+| Evaluation current | Current vector, feature, and concept-drift evaluators | `src/evaluation/` | Evaluation code separated from model implementations. |
+| Launchers | Existing `run_*.sh` | `scripts/preprocess`, `scripts/train`, `scripts/evaluate` | Operational entry points separated from source. |
+| Diagnostics | Current integrity, drift, and visualization runners | `scripts/diagnostics/` | Non-model analysis entry points. |
+| Legacy Micro/Macro/Hybrid/DML | Historical model and evaluation scripts | Matching `legacy/<family>/` | Historical lineage retained; provenance subdirectories avoid collisions. |
+| Legacy Hybrid root evaluator | `EXP2_Evaluar_45F3000V_Neutro.py` | `legacy/hybrid/45F/root/` | HYB-001 historical evaluator; kept separate from its duplicate provenance copy. |
+| Legacy diagnostics/prototypes | Exploratory scripts and hardcoded-result plotting | `legacy/diagnostics/` or `legacy/prototypes/` | Explicitly non-active research history. |
+
+## Deliberately retained in place
+
+`01_all_features.csv`, `final_vectors_sites.csv`, `05_01_daily_embeddings_maestras.csv`, `06_all_site_embeddings_maestras.csv`, `site_dictionary.csv`, and all tracked PNG figures remain at their current paths. They are recorded with `action=retain-local-artifact` in the migration manifest. External checkpoints and result paths referenced by scripts are not local files and are not moved.
+
+## Execution order
+
+1. Create the target directory skeleton and this plan.
+2. Execute the approved path changes using `git mv`, in the batches above.
+3. Write the final migration CSV and repository structure document.
+4. Search moved files for stale relative paths/imports without refactoring them.
+5. Verify Git has no deleted files, then report `git status` and `git diff --stat`.

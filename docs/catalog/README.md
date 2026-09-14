@@ -44,6 +44,8 @@ Ningún experimento se marca por encima de `R2` en ausencia de checkpoint, confi
 - `ARTIFACTS.csv`: checkpoints, scalers, encoders, resultados y figuras, incluidos los esperados en Zeus.
 - `LEGACY.md`: generaciones históricas, duplicaciones y candidatos a código obsoleto.
 
+La reorganización física y la retención temporal de datasets/artefactos locales se auditan en `docs/migration/LOCAL_MIGRATION.csv` y `docs/migration/REPOSITORY_STRUCTURE.md`.
+
 ## Catalog integrity rules
 
 - experiment status usa únicamente R0-R5

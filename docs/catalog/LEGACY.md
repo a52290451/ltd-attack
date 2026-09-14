@@ -52,4 +52,4 @@ Incluye 'EXP2_Train_45F3000V_Neutro.py', 'EXP3_Train_45F3000V_InclinadoF.py' y '
 
 ## Regla de conservación
 
-No se ha eliminado, movido ni modificado ningún elemento histórico. Antes de cualquier reorganización debe localizarse en Zeus la pareja código–dataset–checkpoint–log correspondiente y confirmar si el resultado tiene valor científico o únicamente valor exploratorio.
+No se ha eliminado ni modificado ningún elemento histórico. La reorganización física conserva cada copia mediante `git mv`; el origen y destino de cada movimiento están en `docs/migration/LOCAL_MIGRATION.csv`. Antes de reorganizar resultados o checkpoints debe localizarse en Zeus la pareja código–dataset–checkpoint–log correspondiente y confirmar si el resultado tiene valor científico o únicamente valor exploratorio.
