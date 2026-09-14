@@ -33,6 +33,7 @@ import pandas as pd                         # Manejo de dataframes / CSV
 from scapy.all import PcapReader, IP, TCP   # type: ignore
 from tqdm import tqdm                       # type: ignore
 import math                                 # Funciones matemáticas básicas
+from src.utils.paths import data_path, result_path
 
 # Estadísticas avanzadas: skew, kurtosis (asimetría y curtosis)
 try:
@@ -1050,8 +1051,8 @@ def find_pcaps(site_pcaps_dir: Path):
 def main():
     ap = argparse.ArgumentParser(description="Filtrar PCAPs por puertos TCP y extraer features (130).")
     ap.add_argument('--pcap-root', required=True, help='Directorio raíz (ej: /datos) que contiene categorías.')
-    ap.add_argument('--outdir', default='vectors_output', help='Directorio de salida CSV.')
-    ap.add_argument('--logdir', default='filter_logs', help='Directorio de logs por pcap.')
+    ap.add_argument('--outdir', default=str(data_path('generated', 'preprocessed')), help='Directorio de salida CSV.')
+    ap.add_argument('--logdir', default=str(result_path('diagnostics', 'preprocess_logs')), help='Directorio de logs por pcap.')
     ap.add_argument('--max-packets', type=int, default=0, help='Limitar lectura a N paquetes por pcap (0 = full).')
     ap.add_argument('--min-fraction', type=float, default=0.2, help='Fracción de la media de packets por sitio.')
     ap.add_argument('--min-abs', type=int, default=0, help='Umbral absoluto mínimo de paquetes.')

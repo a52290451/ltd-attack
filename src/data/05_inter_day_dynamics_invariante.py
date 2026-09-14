@@ -33,6 +33,7 @@ import torch.nn.functional as F
 import pandas as pd
 import numpy as np
 import os
+from src.utils.paths import data_path
 
 # =============================================================================
 # DEFINICIÓN DEL MODELO
@@ -99,10 +100,11 @@ if __name__ == "__main__":
     print(f"🚀 Iniciando Fase 5 (Variante Set-Based) en: {device}")
 
     # Rutas de archivos
-    #INPUT_CSV = "output/preprocessed/05_01_daily_embeddings_maestras.csv"
-    #INPUT_CSV = "output/preprocessed/05_02_daily_embeddings_robust.csv"
-    INPUT_CSV = "output/preprocessed/05_03_daily_embeddings_all.csv"
-    OUTPUT_DIR = "output/preprocessed/"
+    # Historical alternatives retained; selection remains unchanged.
+    #INPUT_CSV = data_path("generated", "preprocessed", "05_01_daily_embeddings_maestras.csv")
+    #INPUT_CSV = data_path("generated", "preprocessed", "05_02_daily_embeddings_robust.csv")
+    INPUT_CSV = data_path("generated", "preprocessed", "05_03_daily_embeddings_all.csv")
+    OUTPUT_DIR = data_path("generated", "preprocessed")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # --- Carga de Datos ---

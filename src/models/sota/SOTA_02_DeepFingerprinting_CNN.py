@@ -26,14 +26,14 @@ RESUMEN ACADÉMICO / METODOLOGIA:
       en las rutas de Tor que alteran la firma espacial de los paquetes.
 
 ENTRADAS:
-    - ../../output/CLEAN_final_vectors_sites.csv (Pasado / Entrenamiento)
-    - ../../output/CLEAN_final_vectors_sites_concept_drift.csv (Futuro / Concept Drift)
-    - ../vectores/resultados/ds3_label_encoder_vec_3000.joblib (LabelEncoder de 65 clases)
+    - data_path('historical', 'CLEAN_final_vectors_sites.csv') (Pasado / Entrenamiento)
+    - data_path('historical', 'CLEAN_final_vectors_sites_concept_drift.csv') (Futuro / Concept Drift)
+    - artifact_path('ds3_label_encoder_vec_3000.joblib') (LabelEncoder de 65 clases)
 
 SALIDAS:
-    - ./resultados/log_SOTA_02_DF_[timestamp].txt
-    - ./resultados/best_df_cnn.pth (mejores pesos del modelo)
-    - ./resultados/G_SOTA_02_DF_Curvas_[timestamp].png (curvas de entrenamiento)
+    - result_path('sota')/log_SOTA_02_DF_[timestamp].txt
+    - result_path('sota')/best_df_cnn.pth (mejores pesos del modelo)
+    - result_path('sota')/G_SOTA_02_DF_Curvas_[timestamp].png (curvas de entrenamiento)
 =========================================================================================
 """
 
@@ -60,6 +60,7 @@ import os
 import sys
 import datetime
 import joblib
+from src.utils.paths import data_path, artifact_path, result_path
 
 # =============================================================================
 # 1. SISTEMA DE LOGGER DUAL (Consola + Archivo)
@@ -82,13 +83,13 @@ class Logger(object):
 # =============================================================================
 # 2. CONFIGURACION DE RUTAS Y DIRECTORIOS
 # =============================================================================
-DIR_DATA = '../../output/'
+DIR_DATA = data_path('historical')
 TRAIN_VECTORS_CSV = os.path.join(DIR_DATA, 'CLEAN_final_vectors_sites.csv')
 FUT_VECTORS_CSV = os.path.join(DIR_DATA, 'CLEAN_final_vectors_sites_concept_drift.csv')
 
-LABEL_ENCODER_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+LABEL_ENCODER_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
-SAVE_DIR = './resultados'
+SAVE_DIR = result_path('sota')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -35,14 +35,15 @@ import matplotlib
 matplotlib.use('Agg') # Modo headless para evitar errores en servidores sin interfaz gráfica
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src.utils.paths import data_path, artifact_path, result_path
 
 # --- 1. RUTAS DE LOS DATOS Y DICCIONARIOS ---
-HISTORIC_CSV = '../../output/CLEAN_final_features_sites.csv'
-FUTURE_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
-SAVE_DIR = '../vectores_features/resultados_analisis'
+HISTORIC_CSV = data_path('historical', 'CLEAN_final_features_sites.csv')
+FUTURE_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
+SAVE_DIR = result_path('macro', 'resultados_analisis')
 
 # [!] RUTA CRÍTICA: Ajusta esta ruta si tu archivo .joblib de vectores está en otra carpeta
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

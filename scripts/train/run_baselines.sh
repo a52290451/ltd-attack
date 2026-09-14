@@ -16,13 +16,13 @@
 set -euo pipefail
 
 MODE="${1:-all}"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PYTHON="${PYTHON:-python3}"
 
-echo "Directorio de trabajo: $SCRIPT_DIR"
+echo "Directorio del proyecto: $PROJECT_ROOT"
 echo "Modo: $MODE"
 
-cd "$SCRIPT_DIR"
+cd "$PROJECT_ROOT"
 
 case "$MODE" in
   train)
@@ -30,22 +30,22 @@ case "$MODE" in
     echo "=============================================="
     echo "  ENTRENANDO BASELINE MULTIMODAL 3000 (VP1)"
     echo "=============================================="
-    $PYTHON VP1_Transformers_dir_size.py
+    "$PYTHON" -m src.models.micro.VP1_Transformers_dir_size
     ;;
   test)
     echo ""
     echo "=============================================="
     echo "  EVALUANDO CONCEPT DRIFT + AUTOPSIA (VP_Eval)"
     echo "=============================================="
-    $PYTHON VP_Evaluar_ConceptDrift_Vectores.py
+    "$PYTHON" -m src.evaluation.VP_Evaluar_ConceptDrift_Vectores
     ;;
   all)
     echo ""
     echo "=============================================="
     echo "  PIPELINE COMPLETO: TRAIN + TEST + DRIFT"
     echo "=============================================="
-    $PYTHON VP1_Transformers_dir_size.py
-    $PYTHON VP_Evaluar_ConceptDrift_Vectores.py
+    "$PYTHON" -m src.models.micro.VP1_Transformers_dir_size
+    "$PYTHON" -m src.evaluation.VP_Evaluar_ConceptDrift_Vectores
     ;;
   *)
     echo "Uso: $0 [train|test|all]"

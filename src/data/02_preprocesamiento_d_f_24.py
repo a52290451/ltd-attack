@@ -82,6 +82,7 @@ import os
 import matplotlib # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 import seaborn as sns # type: ignore
+from src.utils.paths import data_path, result_path
 
 # =============================================================================
 # =============================================================================  
@@ -94,9 +95,9 @@ try:
 except: 
     pass  
 
-FILE_PATH_FEATURES = 'output/final_features_sites.csv'  
-OUTPUT_DIR = 'output/graficos_finales_masivos/' # Directorio de gráficos
-OUTPUT_DIR_PRE = 'output/preprocessed/'         # Directorio CSVs preprocesados
+FILE_PATH_FEATURES = data_path('historical', 'final_features_sites.csv')
+OUTPUT_DIR = result_path('diagnostics', 'graficos_finales_masivos')
+OUTPUT_DIR_PRE = data_path('generated', 'preprocessed')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR_PRE, exist_ok=True)
 

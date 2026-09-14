@@ -21,10 +21,10 @@ OBJETIVOS PRINCIPALES:
        archivos de texto para análisis comparativo posterior.
 
 ENTRADAS REQUERIDAS:
-    - INPUT_CSV : '../../output/CLEAN_final_vectors_sites.csv' 
+    - INPUT_CSV : data_path('historical', 'CLEAN_final_vectors_sites.csv')
       (Requiere las columnas 'site_label', 'direction_vector' y 'size_vector').
 
-SALIDAS (Guardadas en ./resultados):
+SALIDAS (Guardadas bajo result_path('micro')):
     - Pesos del modelo   : ds3_best_multimodal_transformer_vec_3000.pth
     - Codificador        : ds3_label_encoder_vec_3000.joblib
     - Mapeo de clases    : _ds3_class_mapping_vec_3000.joblib
@@ -56,14 +56,15 @@ import ast
 import time
 import os
 import joblib
+from src.utils.paths import data_path, result_path
 
 # --- 1. CONFIGURACIÓN ---
 print("\n" + "═"*60)
 print("-- INICIANDO EXPERIMENTO: TRANSFORMER DE VECTORES DE DIRECCIÓN (v2.0)")
 print("═"*60)
 
-INPUT_CSV = '../../output/CLEAN_final_vectors_sites.csv'
-SAVE_DIR = './resultados'
+INPUT_CSV = data_path('historical', 'CLEAN_final_vectors_sites.csv')
+SAVE_DIR = result_path('micro')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 MAX_LEN = 3000 

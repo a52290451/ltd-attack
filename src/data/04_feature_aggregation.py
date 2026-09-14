@@ -68,6 +68,7 @@ import torch.nn as nn   # type: ignore
 import pandas as pd
 import numpy as np
 import os
+from src.utils.paths import data_path
 
 class SetAttentionBlock(nn.Module):
     """
@@ -195,10 +196,11 @@ class FeatureAggregationEncoder(nn.Module):
 
 if __name__ == "__main__":
 
-    #INPUT_EMB_CSV = "output/preprocessed/04_01_hourly_embeddings_maestras.csv"
-    #INPUT_EMB_CSV = "output/preprocessed/04_02_hourly_embeddings_robust.csv"
-    INPUT_EMB_CSV = "output/preprocessed/04_03_hourly_embeddings_all.csv"
-    OUTPUT_DIR = "output/preprocessed/"
+    # Historical alternatives retained; selection remains unchanged.
+    #INPUT_EMB_CSV = data_path("generated", "preprocessed", "04_01_hourly_embeddings_maestras.csv")
+    #INPUT_EMB_CSV = data_path("generated", "preprocessed", "04_02_hourly_embeddings_robust.csv")
+    INPUT_EMB_CSV = data_path("generated", "preprocessed", "04_03_hourly_embeddings_all.csv")
+    OUTPUT_DIR = data_path("generated", "preprocessed")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # --- Configuración de dispositivo (GPU si está disponible) ---

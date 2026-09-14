@@ -41,6 +41,7 @@ import joblib
 import sys
 import datetime
 import re
+from src.utils.paths import data_path, artifact_path, result_path
 
 class Logger(object):
     def __init__(self, filepath):
@@ -55,13 +56,13 @@ class Logger(object):
         self.log.flush()
 
 # --- 1. CONFIGURACIÓN DE RUTAS ---
-FEATURES_LIST_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+FEATURES_LIST_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
-VECTORS_DRIFT_CSV = '../../output/CLEAN_final_vectors_sites_concept_drift.csv'
-FEATURES_DRIFT_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
+VECTORS_DRIFT_CSV = data_path('historical', 'CLEAN_final_vectors_sites_concept_drift.csv')
+FEATURES_DRIFT_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
 
-SAVE_DIR = '../vectores_features_v2/resultados_94F3000V_CrossAttn'
+SAVE_DIR = result_path('hybrid', 'resultados_94F3000V_CrossAttn')
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 sys.stdout = Logger(os.path.join(SAVE_DIR, f"log_eval_EXP5_CrossAttn_{timestamp}.txt"))

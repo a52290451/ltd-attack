@@ -1,12 +1,13 @@
 import pandas as pd
 import os
+from src.utils.paths import data_path
 
 # Rutas de los archivos
 files_to_check = {
-    "Vectores (Pasado)": "../../output/final_vectors_sites.csv",
-    "Metadatos/Features (Pasado)": "../../output/final_features_sites.csv",
-    "Vectores (Futuro)": "../../output/final_vectors_sites_concept_drift.csv",
-    "Metadatos/Features (Futuro)": "../../output/final_features_sites_concept_drift.csv"
+    "Vectores (Pasado)": data_path("historical", "final_vectors_sites.csv"),
+    "Metadatos/Features (Pasado)": data_path("historical", "final_features_sites.csv"),
+    "Vectores (Futuro)": data_path("historical", "final_vectors_sites_concept_drift.csv"),
+    "Metadatos/Features (Futuro)": data_path("historical", "final_features_sites_concept_drift.csv")
 }
 
 print("\n" + "="*80)

@@ -32,9 +32,9 @@
        Dropout para la predicción de la clase.
 
 ⚙️ ENTRADAS:
-    - ../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt
-    - '../../output/CLEAN_final_features_sites.csv'
-    - [!] '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+    - result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
+    - data_path('historical', 'CLEAN_final_features_sites.csv')
+    - [!] artifact_path('ds3_label_encoder_vec_3000.joblib')
 ========================================================================================
 """
 
@@ -56,6 +56,7 @@ import matplotlib
 matplotlib.use('Agg')  # Modo headless para evitar problemas gráficos en servidores
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src.utils.paths import data_path, artifact_path, result_path
 
 
 class Logger(object):
@@ -72,12 +73,12 @@ class Logger(object):
 
 
 # --- 1. CONFIGURACIÓN DE ENTORNO Y RUTAS ---
-FEATURES_LIST_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
-HISTORIC_FEATURES_CSV = '../../output/CLEAN_final_features_sites.csv'
-SAVE_DIR = './resultados'
+FEATURES_LIST_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
+HISTORIC_FEATURES_CSV = data_path('historical', 'CLEAN_final_features_sites.csv')
+SAVE_DIR = result_path('macro')
 
 # [!] RUTA DEL DICCIONARIO DE VECTORES PARA EL FILTRO DE PARIDAD
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -19,7 +19,7 @@
       Stage 2 (EXP7): Congelar encoder → entrenar proyector DML con SupCon Loss.
 
     [!] CONFIGURACIÓN:
-    - Pesos pre-entrenados: ./resultados_94F3000V_IncV/best_model_hibrido_inclinado_vec.pth
+    - Pesos pre-entrenados: result_path('hybrid', 'resultados_94F3000V_IncV', ...)
     - Épocas: 30 (solo se entrena la cabeza de proyección)
     - Sin Modality Dropout (la red ya sabe extraer features)
     - AMP bfloat16 + GradScaler + inference_mode + pin_memory
@@ -51,6 +51,7 @@ import joblib
 import sys
 import datetime
 import re
+from src.utils.paths import data_path, artifact_path, result_path
 
 
 class Logger(object):
@@ -67,15 +68,15 @@ class Logger(object):
 
 
 # --- 1. CONFIGURACIÓN DE RUTAS Y PARÁMETROS ---
-FEATURES_LIST_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
-HISTORIC_FEATURES_CSV = '../../output/CLEAN_final_features_sites.csv'
-CACHED_VECTORS_CSV = '../../output/cached_vectors_with_dates.csv'
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+FEATURES_LIST_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
+HISTORIC_FEATURES_CSV = data_path('historical', 'CLEAN_final_features_sites.csv')
+CACHED_VECTORS_CSV = data_path('historical', 'cached_vectors_with_dates.csv')
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
 # Ruta exacta de los pesos pre-entrenados del EXP4
-PRETRAINED_PATH = './resultados_94F3000V_IncV/best_model_hibrido_inclinado_vec.pth'
+PRETRAINED_PATH = result_path('hybrid', 'resultados_94F3000V_IncV', 'best_model_hibrido_inclinado_vec.pth')
 
-SAVE_DIR = './resultados_EXP7_Transfer_DML'
+SAVE_DIR = result_path('dml', 'resultados_EXP7_Transfer_DML')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

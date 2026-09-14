@@ -2,7 +2,7 @@
 # =============================================================================
 # 🛡️ Estado del Arte — Script de Ejecución
 # =============================================================================
-# 📂 DIRECTORIO: estado_del_arte/
+# 📂 DIRECTORIO: src/models/sota/
 # 📄 ARCHIVO:    run_estado_del_arte.sh
 # 📅 FECHA:      20 de Julio, 2026
 #
@@ -20,7 +20,7 @@
 #       ./run_estado_del_arte.sh
 #
 # 📋 SALIDA:
-#    Los resultados se guardarán en el directorio estado_del_arte/resultados/
+#    Los resultados se guardarán bajo results/sota/
 #    - SVM: log_SOTA_01_CUMUL_[timestamp].txt, G_SOTA_01_CUMUL_Drift_[timestamp].png
 #    - CNN: log_SOTA_02_DF_[timestamp].txt, best_df_cnn.pth, G_SOTA_02_DF_Curvas_[timestamp].png
 #    - LSTM: log_SOTA_03_LSTM_[timestamp].txt, best_rimmer_lstm.pth, G_SOTA_03_LSTM_Curvas_[timestamp].png
@@ -30,8 +30,9 @@ echo "════════════════════════�
 echo "🛡️  Estado del Arte — Baselines SOTA 01 (SVM) + SOTA 02 (CNN) + SOTA 03 (LSTM)"
 echo "═══════════════════════════════════════════════════════════════════"
 
-# Cambiar al directorio del script
-cd "$(dirname "$0")"
+# Resolver el proyecto independientemente del cwd del llamador.
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$PROJECT_ROOT"
 
 # Verificar dependencias
 echo ""
@@ -59,7 +60,7 @@ echo ""
 echo "🚀 [1/3] Iniciando SOTA_01_CUMUL_SVM.py (Baseline Clásico — SVM)..."
 echo "═══════════════════════════════════════════════════════════════════"
 
-python3 SOTA_01_CUMUL_SVM.py
+python3 -m src.models.sota.SOTA_01_CUMUL_SVM
 
 EXIT_CODE_1=$?
 
@@ -79,7 +80,7 @@ echo ""
 echo "🚀 [2/3] Iniciando SOTA_02_DeepFingerprinting_CNN.py (Baseline DL — CNN)..."
 echo "═══════════════════════════════════════════════════════════════════"
 
-python3 SOTA_02_DeepFingerprinting_CNN.py
+python3 -m src.models.sota.SOTA_02_DeepFingerprinting_CNN
 
 EXIT_CODE_2=$?
 
@@ -99,7 +100,7 @@ echo ""
 echo "🚀 [3/3] Iniciando SOTA_03_Rimmer_LSTM.py (Baseline Temporal — LSTM)..."
 echo "═══════════════════════════════════════════════════════════════════"
 
-python3 SOTA_03_Rimmer_LSTM.py
+python3 -m src.models.sota.SOTA_03_Rimmer_LSTM
 
 EXIT_CODE_3=$?
 
@@ -127,8 +128,8 @@ else
 fi
 
 echo ""
-echo "📁 Resultados guardados en: ./resultados/"
-ls -lh resultados/ 2>/dev/null
+echo "📁 Resultados guardados bajo: results/sota/"
+ls -lh results/sota/ 2>/dev/null
 
 echo "═══════════════════════════════════════════════════════════════════"
 echo "🛡️  Estado del Arte — Ejecución Completada"

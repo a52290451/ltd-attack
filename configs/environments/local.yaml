@@ -1,0 +1,4 @@
+# Repository-relative paths for local execution.
+data_root: data/local
+artifact_root: artifacts
+result_root: results

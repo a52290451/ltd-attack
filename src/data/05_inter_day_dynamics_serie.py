@@ -62,6 +62,7 @@ import torch.nn.functional as F
 import pandas as pd
 import numpy as np
 import os
+from src.utils.paths import data_path
 
 class PositionalEncoding(nn.Module):
     """
@@ -314,10 +315,11 @@ if __name__ == "__main__":
     print(f"🚀 Usando dispositivo: {device}")
     
     # --- Configuración de rutas ---
-    #INPUT_DAILY_CSV = "output/preprocessed/05_01_daily_embeddings_maestras.csv"
-    #INPUT_DAILY_CSV = "output/preprocessed/05_02_daily_embeddings_robust.csv"
-    INPUT_DAILY_CSV = "output/preprocessed/05_03_daily_embeddings_all.csv"
-    OUTPUT_DIR = "output/preprocessed/"
+    # Historical alternatives retained; selection remains unchanged.
+    #INPUT_DAILY_CSV = data_path("generated", "preprocessed", "05_01_daily_embeddings_maestras.csv")
+    #INPUT_DAILY_CSV = data_path("generated", "preprocessed", "05_02_daily_embeddings_robust.csv")
+    INPUT_DAILY_CSV = data_path("generated", "preprocessed", "05_03_daily_embeddings_all.csv")
+    OUTPUT_DIR = data_path("generated", "preprocessed")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # --- Carga del CSV de embeddings diarios ---
@@ -372,4 +374,3 @@ if __name__ == "__main__":
     print("\nInter-Day Dynamics finalizada")
     print("Archivo generado:", output_csv)
     print("Dimensiones finales:", df_sites.shape)
-

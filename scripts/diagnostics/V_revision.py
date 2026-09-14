@@ -17,8 +17,8 @@ OBJETIVOS PRINCIPALES:
        de vectores, pero que fallaron en la de features, o viceversa).
 
 ENTRADAS REQUERIDAS:
-    - VECTORS_CSV  : '../../output/final_vectors_sites.csv'
-    - FEATURES_CSV : '../../output/final_features_sites.csv'
+    - VECTORS_CSV  : data_path('historical', 'final_vectors_sites.csv')
+    - FEATURES_CSV : data_path('historical', 'final_features_sites.csv')
 
 SALIDAS:
     - Reporte de validación en consola que incluye:
@@ -36,10 +36,11 @@ METADATOS:
 
 import pandas as pd
 import numpy as np
+from src.utils.paths import data_path
 
 # --- RUTAS ---
-VECTORS_CSV = '../../output/final_vectors_sites.csv'
-FEATURES_CSV = '../../output/final_features_sites.csv'
+VECTORS_CSV = data_path('historical', 'final_vectors_sites.csv')
+FEATURES_CSV = data_path('historical', 'final_features_sites.csv')
 
 print("🔍" + "═"*50)
 print("AUDITORÍA DE INTEGRIDAD: VECTORES VS FEATURES")

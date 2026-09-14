@@ -29,10 +29,10 @@
     Parámetros: C=1.0, gamma='scale'.
 
 ⚙️ ENTRADAS:
-    - ../../output/CLEAN_final_features_sites.csv (Pasado)
-    - ../../output/CLEAN_final_features_sites_concept_drift.csv (Futuro)
-    - ../vectores/resultados/ds3_label_encoder_vec_3000.joblib
-    - ../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt
+    - data_path('historical', 'CLEAN_final_features_sites.csv') (Pasado)
+    - data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv') (Futuro)
+    - artifact_path('ds3_label_encoder_vec_3000.joblib')
+    - result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
 =======================================================================================
 """
 
@@ -49,23 +49,24 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from src.utils.paths import data_path, artifact_path, result_path
 
 # ---------------------------------------------------------------------------------------
 # 1. CONFIGURACIÓN DE ENTORNO Y RUTAS
 # ---------------------------------------------------------------------------------------
 
 # Rutas a los datasets de features purificadas
-HISTORIC_CSV = '../../output/CLEAN_final_features_sites.csv'
-DRIFT_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
+HISTORIC_CSV = data_path('historical', 'CLEAN_final_features_sites.csv')
+DRIFT_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
 
 # Ruta al LabelEncoder de vectores (filtro de paridad de 65 clases)
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
 # Ruta a la lista de 94 características invariantes
-FEATURES_LIST_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
+FEATURES_LIST_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
 
 # Directorio de resultados
-SAVE_DIR = './resultados'
+SAVE_DIR = result_path('sota')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # Configuración del Logger dual (consola + archivo)

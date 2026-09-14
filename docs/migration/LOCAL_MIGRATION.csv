@@ -174,3 +174,4 @@
 "vectores","N/A","DIRECTORY","NONE","rmdir-empty","Directorio antiguo vacío verificado después de mover todo su contenido.","true","2"
 "vectores_features_v2","N/A","DIRECTORY","NONE","rmdir-empty","Directorio antiguo vacío verificado después de mover todo su contenido.","true","2"
 "Vectores-24h","N/A","DIRECTORY","NONE","rmdir-empty","Directorio antiguo vacío verificado después de mover todo su contenido.","true","2"
+".DS_Store","docs/migration/.DS_Store","LOCAL_METADATA","NONE","mv","Retirar metadatos locales no trackeados de la raíz sin eliminar información ni tocar legacy.","true","3"

@@ -37,14 +37,14 @@ RESUMEN ACADEMICO / METODOLOGIA:
       del cambio de ruteo, el contenido mutado genera firmas irreconocibles.
 
 ENTRADAS:
-    - ../../output/CLEAN_final_vectors_sites.csv (Pasado / Entrenamiento)
-    - ../../output/CLEAN_final_vectors_sites_concept_drift.csv (Futuro / Concept Drift)
-    - ../vectores/resultados/ds3_label_encoder_vec_3000.joblib (LabelEncoder)
-    - ../vectores/resultados/ds3_best_multimodal_transformer_vec_3000.pth (Pesos SOTA)
+    - data_path('historical', 'CLEAN_final_vectors_sites.csv') (Pasado / Entrenamiento)
+    - data_path('historical', 'CLEAN_final_vectors_sites_concept_drift.csv') (Futuro / Concept Drift)
+    - artifact_path('ds3_label_encoder_vec_3000.joblib') (LabelEncoder)
+    - artifact_path('ds3_best_multimodal_transformer_vec_3000.pth') (Pesos SOTA)
 
 SALIDAS:
-    - ./resultados_auditoria_forense/G23_Auditoria_Network_vs_Content_Drift.png
-    - ./resultados_auditoria_forense/reporte_DIA_01_Aislamiento.txt
+    - result_path('diagnostics', 'resultados_auditoria_forense')/G23_Auditoria_Network_vs_Content_Drift.png
+    - result_path('diagnostics', 'resultados_auditoria_forense')/reporte_DIA_01_Aislamiento.txt
 =========================================================================================
 """
 import matplotlib
@@ -66,6 +66,7 @@ import os
 import joblib
 import sys
 import datetime
+from src.utils.paths import data_path, artifact_path, result_path
 
 
 # ==========================================================================
@@ -89,14 +90,14 @@ class Logger(object):
 # ==========================================================================
 # 1. CONFIGURACION DE RUTAS Y DIRECTORIOS
 # ==========================================================================
-DIR_DATA = '../../output/'
+DIR_DATA = data_path('historical')
 TRAIN_VECTORS_CSV = os.path.join(DIR_DATA, 'CLEAN_final_vectors_sites.csv')
 FUT_VECTORS_CSV = os.path.join(DIR_DATA, 'CLEAN_final_vectors_sites_concept_drift.csv')
 
-LABEL_ENCODER_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
-MODEL_WEIGHTS_PATH = '../vectores/resultados/ds3_best_multimodal_transformer_vec_3000.pth'
+LABEL_ENCODER_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
+MODEL_WEIGHTS_PATH = artifact_path('ds3_best_multimodal_transformer_vec_3000.pth')
 
-SAVE_DIR = './resultados_auditoria_forense'
+SAVE_DIR = result_path('diagnostics', 'resultados_auditoria_forense')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

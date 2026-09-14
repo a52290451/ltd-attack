@@ -20,12 +20,13 @@ import matplotlib
 matplotlib.use('Agg') # Backend seguro para servidores SSH
 
 import os
+from src.utils.paths import result_path
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- 1. DIRECTORIO DE SALIDA ---
-SAVE_DIR = './resultados_globales'
+SAVE_DIR = result_path('diagnostics', 'resultados_globales')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 print("\n" + "═"*70)

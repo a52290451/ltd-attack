@@ -45,6 +45,7 @@ import joblib
 import sys
 import datetime
 import re
+from src.utils.paths import data_path, result_path
 
 
 class Logger(object):
@@ -61,12 +62,12 @@ class Logger(object):
 
 
 # --- 1. CONFIGURACIÓN DE RUTAS ---
-FEATURES_LIST_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
+FEATURES_LIST_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
 
-VECTORS_DRIFT_CSV = '../../output/CLEAN_final_vectors_sites_concept_drift.csv'
-FEATURES_DRIFT_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
+VECTORS_DRIFT_CSV = data_path('historical', 'CLEAN_final_vectors_sites_concept_drift.csv')
+FEATURES_DRIFT_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
 
-TRAIN_RESULTS_DIR = '../vectores_features_v2/resultados_EXP7_Transfer_DML'
+TRAIN_RESULTS_DIR = result_path('dml', 'resultados_EXP7_Transfer_DML')
 SAVE_DIR = TRAIN_RESULTS_DIR  # Guardamos en la misma carpeta de resultados del EXP7
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

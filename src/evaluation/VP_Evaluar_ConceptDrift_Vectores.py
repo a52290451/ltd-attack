@@ -20,7 +20,7 @@ CAPACIDADES UNIFICADAS:
     1. Inferencia con torch.inference_mode() + autocast bfloat16 (alto rendimiento).
     2. Extracción simultánea de logits (Accuracy) y features latentes (UMAP).
     3. Reporte de métricas → ds3_ablacion_resultado_solo_vectores.txt
-    4. Evidencia visual (3 gráficas) → ../vectores/resultados/
+    4. Evidencia visual (3 gráficas) → result_path('micro')
         - G1: Huella Secuencial (Direction Barcode)
         - G2: Matriz de Confusión (Heatmap)
         - G3: Colapso del Espacio Latente (UMAP)
@@ -48,6 +48,7 @@ import sys
 import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src.utils.paths import data_path, artifact_path, result_path
 
 try:
     import umap
@@ -77,10 +78,10 @@ class Logger(object):
 # ==========================================================================
 # 1. CONFIGURACIÓN DE RUTAS
 # ==========================================================================
-DIR_DATA = '../../output/'
+DIR_DATA = data_path('historical')
 TRAIN_VECTORS_CSV = os.path.join(DIR_DATA, 'CLEAN_final_vectors_sites.csv')
 FUT_VECTORS_CSV = os.path.join(DIR_DATA, 'CLEAN_final_vectors_sites_concept_drift.csv')
-SAVE_DIR = '../vectores/resultados/'
+SAVE_DIR = result_path('micro')
 
 MODEL_WEIGHTS = "ds3_best_multimodal_transformer_vec_3000.pth"
 LABEL_ENCODER = "ds3_label_encoder_vec_3000.joblib"
@@ -374,7 +375,7 @@ print(f"📄 Reporte guardado en: ds3_ablacion_resultado_solo_vectores.txt")
 print("\n🎨 Generando evidencias gráficas de autopsia...")
 
 # Directorio de salida para gráficas
-vis_dir = os.path.join(SAVE_DIR)  # ../vectores/resultados/
+vis_dir = os.path.join(SAVE_DIR)
 os.makedirs(vis_dir, exist_ok=True)
 
 common_sites = np.intersect1d(lbl_past, lbl_fut_strat)

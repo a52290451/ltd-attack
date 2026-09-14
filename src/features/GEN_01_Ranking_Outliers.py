@@ -33,14 +33,15 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import os
 import joblib
+from src.utils.paths import data_path, artifact_path, result_path
 
 # --- 1. RUTAS DE ENTRADA Y DICCIONARIOS ---
-CLEAN_PAST_CSV = '../../output/CLEAN_final_features_sites.csv'
-CLEAN_DRIFT_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
-FEATURES_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
+CLEAN_PAST_CSV = data_path('historical', 'CLEAN_final_features_sites.csv')
+CLEAN_DRIFT_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
+FEATURES_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
 
-SAVE_DIR = './graficas_tesis'
+SAVE_DIR = result_path('features', 'graficas_tesis')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 print("\n" + "═"*70)

@@ -1,11 +1,12 @@
 import pandas as pd
 import json
 import os
+from src.utils.paths import data_path
 
 # --- Configuración ---
 # Usamos el archivo de la Fase 1 o el original donde estén ambos datos
-INPUT_RAW_CSV = "output/final_features_sites.csv" 
-OUTPUT_DIR = "output/reference/"
+INPUT_RAW_CSV = data_path("historical", "final_features_sites.csv")
+OUTPUT_DIR = data_path("generated", "reference")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def generate_site_mapping(csv_path):

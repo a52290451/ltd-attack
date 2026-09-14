@@ -37,13 +37,14 @@ import os
 import joblib
 import re
 import sys
+from src.utils.paths import data_path, artifact_path, result_path
 
 # --- 1. RUTAS Y DICCIONARIOS ---
-FEATURES_LIST_TXT = '../vectores_features/resultados_analisis/new_features_invariantes_seguras.txt'
-HISTORIC_CSV = '../../output/CLEAN_final_features_sites.csv'
-DRIFT_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
-VECTOR_LE_PATH = '../vectores/resultados/ds3_label_encoder_vec_3000.joblib'
-SAVE_DIR = './graficas_tesis'
+FEATURES_LIST_TXT = result_path('macro', 'resultados_analisis', 'new_features_invariantes_seguras.txt')
+HISTORIC_CSV = data_path('historical', 'CLEAN_final_features_sites.csv')
+DRIFT_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
+VECTOR_LE_PATH = artifact_path('ds3_label_encoder_vec_3000.joblib')
+SAVE_DIR = result_path('features', 'graficas_tesis')
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 

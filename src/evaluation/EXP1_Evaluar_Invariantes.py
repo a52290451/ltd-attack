@@ -26,8 +26,8 @@
     Confusión) para auditar la dispersión de las predicciones en el espacio latente.
 
 ⚙️ ENTRADAS:
-    - '../../output/CLEAN_final_features_sites_concept_drift.csv' (Futuro Purificado)
-    - Diccionarios, scaler y pesos (.pth) ubicados en: ./resultados/
+    - data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv') (Futuro Purificado)
+    - Diccionarios, scaler y pesos (.pth) ubicados bajo result_path('macro')
 ========================================================================================
 """
 
@@ -47,6 +47,7 @@ import matplotlib
 matplotlib.use('Agg')  # Entorno Headless
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src.utils.paths import data_path, result_path
 
 
 class Logger(object):
@@ -63,8 +64,8 @@ class Logger(object):
 
 
 # --- 1. CONFIGURACIÓN DE RUTAS ---
-DRIFT_FEATURES_CSV = '../../output/CLEAN_final_features_sites_concept_drift.csv'
-SAVE_DIR = './resultados'
+DRIFT_FEATURES_CSV = data_path('historical', 'CLEAN_final_features_sites_concept_drift.csv')
+SAVE_DIR = result_path('macro')
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 sys.stdout = Logger(os.path.join(SAVE_DIR, f"log_eval_EXP1_{timestamp}.txt"))

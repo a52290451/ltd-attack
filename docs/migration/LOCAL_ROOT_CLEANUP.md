@@ -60,3 +60,9 @@ outside the repository. `.gitignore` now also covers `.env.*` and `secrets/`.
 No imports, relative paths, experiment logic, datasets, figures, historical
 code, or checkpoint contents were modified. The known path follow-up remains
 documented in `docs/migration/PENDING_PATHS.md`.
+
+## Limpieza posterior de Fase 3
+
+Un `.DS_Store` no trackeado que había reaparecido en la raíz fue movido a
+`docs/migration/.DS_Store` sin inspeccionar su contenido.
+El movimiento quedó registrado como fase 3 en `LOCAL_MIGRATION.csv`.

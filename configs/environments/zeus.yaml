@@ -1,0 +1,5 @@
+# Known Zeus storage roots. Keep these values overridable only by selecting
+# this environment; no local Zeus data is copied by the repository.
+data_root: /home/bsierra/ltd-storage/datasets
+artifact_root: /home/bsierra/ltd-storage/artifacts
+result_root: /home/bsierra/ltd-storage/results

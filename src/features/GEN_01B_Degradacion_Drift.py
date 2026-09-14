@@ -26,9 +26,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from src.utils.paths import result_path
 
 # --- 1. RUTAS Y DIRECTORIOS ---
-SAVE_DIR = './graficas_tesis'
+SAVE_DIR = result_path('features', 'graficas_tesis')
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 print("\n" + "═"*70)
