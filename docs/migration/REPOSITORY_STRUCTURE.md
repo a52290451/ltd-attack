@@ -26,6 +26,7 @@ scripts/
 configs/                        # Dataset, experiment, and environment configuration space
 experiments/                    # Experiment metadata and reproduction records
 data/manifests/                 # Data manifests, not data payloads
+data/local/historical/          # Local datasets retained outside active source
 artifacts/manifests/            # Artifact manifests, including external Zeus paths
 results/                        # Reserved for reconciled results
 legacy/                         # Immutable historical source organized by family
@@ -48,7 +49,7 @@ The `legacy/` tree contains the earlier `d_*`/`ds2_*` Micro models, 45F/30V/40F 
 
 ## Data and artifact policy
 
-Large local CSV datasets, local figures, and any locally present result/checkpoint files are not mixed into `src/`. They remain temporarily at their original locations until reconciliation with Zeus. Their status and physical paths are recorded in `docs/migration/LOCAL_MIGRATION.csv`; external paths remain additionally catalogued in `docs/catalog/ARTIFACTS.csv`.
+Large local CSV datasets are stored under `data/local/historical/`, which is ignored for future additions. Local figures are stored under `results/historical/` with provenance subdirectories. Any locally present result/checkpoint files remain outside `src/` until reconciliation with Zeus. Their status and physical paths are recorded in `docs/migration/LOCAL_MIGRATION.csv`; external paths remain additionally catalogued in `docs/catalog/ARTIFACTS.csv`.
 
 ## Pending path/import work
 

@@ -19,9 +19,17 @@ output/
 results/
 checkpoints/
 
+# Local datasets (manifests and documentation remain trackable)
+data/local/*
+!data/local/
+!data/local/manifests/
+!data/local/manifests/README.md
+
 # macOS
 .DS_Store
 
 # Secrets
 credentials*.json
 .env
+.env.*
+secrets/

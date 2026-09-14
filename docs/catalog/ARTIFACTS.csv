@@ -64,7 +64,7 @@ ART-062,feature_list,vectores_features/resultados_analisis/new_features_invarian
 ART-063,result,vectores_features/resultados_analisis/ks_test_results_CLEAN_PARITY_<timestamp>.csv,zeus,UNKNOWN,src/features/Reduccion_Features.py,FEAT-001,false,UNVERIFIED,Timestamped feature parity report
 ART-064,result,vectores_features/resultados_analisis/reporte_ks_drift_<timestamp>.csv,zeus,UNKNOWN,legacy/diagnostics/root/VF6_Analisis_Covariate_Shift.py,FEAT-001,false,UNVERIFIED,Timestamped drift report
 ART-065,figure,graficas_tesis_finales/G_Final_*.png,zeus,UNKNOWN,legacy/diagnostics/Graficas/GEN_Resultados_Finales.py,DIAG-001,false,hardcoded,Final synthesis uses manually entered accuracies
-ART-066,figure,Graficas/*.png,local,TRUE,diagnostic scripts,DIAG-001,false,UNVERIFIED,Existing PNGs include drift PCA correlation KDE and final thesis plots
+ART-066,figure,results/historical/diagnostics/Graficas/*.png,local,TRUE,diagnostic scripts,DIAG-001,false,UNVERIFIED,Existing PNGs include drift PCA correlation KDE and final thesis plots
 ART-067,figure,vectores_features_v2/resultados_94F3000V_IncF/G18_Matriz_Drift_Hibrido_InclinadoF.png,zeus,UNKNOWN,v2 EXP3 evaluator,HYB-004,false,UNVERIFIED,Expected evaluation figure
 ART-068,figure,vectores_features_v2/resultados_94F3000V_IncV/G19_Matriz_Drift_Hibrido_InclinadoV.png,zeus,UNKNOWN,v2 EXP4 evaluator,HYB-005,false,UNVERIFIED,Expected evaluation figure
 ART-069,figure,vectores_features_v2/resultados_94F3000V_CrossAttn/G20_Matriz_Drift_CrossAttention.png,zeus,UNKNOWN,v2 EXP5 evaluator,HYB-006,false,UNVERIFIED,Expected evaluation figure
