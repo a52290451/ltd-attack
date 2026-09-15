@@ -1,0 +1,49 @@
+experiment_id: MICRO-002-R
+family: MICRO
+purpose: historical_reproduction
+
+dataset:
+  historical: CLEAN_final_vectors_sites.csv
+  future: CLEAN_final_vectors_sites_concept_drift.csv
+
+filtering:
+  exclude_labels:
+    - 5
+    - 49
+  minimum_class_fraction: 0.5
+
+representation:
+  direction: true
+  size: true
+  time: false
+  sequence_length: 3000
+
+split:
+  strategy: random_stratified
+  train_fraction: 0.8
+  random_state: 42
+
+training:
+  batch_size: 32
+  epochs: 100
+  optimizer: AdamW
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  label_smoothing: 0.1
+
+scheduler:
+  name: CosineAnnealingWarmRestarts
+  T_0: 15
+  T_mult: 2
+
+expected:
+  classes: 65
+  historical_total: 72603
+  historical_test: 14521
+  future_total: 18543
+  historical_accuracy: 0.9645
+  future_accuracy: 0.2321
+
+methodological_status:
+  canonical: false
+  reason: historical random split reproduction
