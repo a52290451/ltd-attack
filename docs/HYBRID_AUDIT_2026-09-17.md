@@ -81,3 +81,25 @@ Important:
 3. Compare current clean reproductions with older strong generations.
 4. Identify architectural/data/preprocessing changes responsible for regression.
 5. Correct DML preprocessing before considering DML canonical.
+
+## Canonical decision — future-information contamination
+
+The early high-performing 94F runs (approximately 37–43% future accuracy)
+are retained only as historical exploratory evidence.
+
+There is evidence/suspicion that this experimental generation used
+Concept Drift information during model/weight selection.
+
+Therefore:
+
+- they MUST NOT be used as canonical benchmark results;
+- they MUST NOT be used to select hyperparameters for new models;
+- they MUST NOT be compared as clean holdout performance;
+- they remain useful only as exploratory evidence that some fusion
+  configurations may contain useful signal.
+
+All new HYB runs must:
+- train exclusively on Historical;
+- select checkpoints exclusively using Historical validation;
+- fit preprocessing exclusively on Historical train;
+- access Future only after the model is completely frozen.
