@@ -1,15 +1,15 @@
 experiment_id,family,model,feature_set,historical_metric,historical_accuracy,future_accuracy,drop_pp,retention,status,notes
-MICRO-002-R,MICRO,CNN1D+Transformer,direction+size_3000,test,0.9594,0.2297,0.7297,0.2394,VERIFIED,"Corrected future evaluator; 65 classes; 18543 future samples"
-MICRO-002-R-LEGACY-EVAL,MICRO,CNN1D+Transformer,direction+size_3000,test,0.9594,0.2483,0.7111,0.2588,VERIFIED_LEGACY,"Historical evaluator behavior reproduced"
-MACRO-002-R,MACRO,GlobalSiteEncoder,94F,validation,0.8676,0.1534,0.7142,0.1768,VERIFIED,"94 invariant features; temporal hourly profile"
-SOTA-001-R,SOTA,CUMUL+SVM,CUMUL_features,training,0.6345,0.2515,0.3830,0.3964,PARTIAL,"Historical metric is training accuracy; needs comparable holdout"
-SOTA-002-R,SOTA,Deep_Fingerprinting,CNN_direction,validation,0.9317,0.3485,0.5832,0.3740,VERIFIED,"Strongest reproduced future baseline so far"
-SOTA-003-R,SOTA,Rimmer_LSTM,direction_sequence,validation,0.8422,0.0949,0.7473,0.1127,VERIFIED,"Strong degradation under drift"
-HYB45-001,HISTORICAL_HYBRID,45F_neutral,45F+3000V,validation,0.9570,0.3006,0.6564,0.3141,HISTORICAL_UNVERIFIED,"Historical reported result; reproduction pending"
-HYB45-002,HISTORICAL_HYBRID,45F_micro_biased,45F+3000V,validation,0.9642,0.3498,0.6144,0.3628,HISTORICAL_UNVERIFIED,"Historical reported best hybrid; reproduction pending"
-HYB-003,HYBRID,94F_neutral,94F+3000V,,,,,PENDING_REPRODUCTION,"Artifact exists"
-HYB-004,HYBRID,94F_feature_biased,94F+3000V,,,,,PENDING_REPRODUCTION,"Artifact exists"
-HYB-005,HYBRID,94F_micro_biased,94F+3000V,,,,,PENDING_REPRODUCTION,"Artifact exists"
-HYB-006,HYBRID,94F_cross_attention,94F+3000V,,,,,PENDING_REPRODUCTION,"Artifact exists; historical 34.98 reference not verified for this generation"
-DML-001,DML,Hybrid_DML,94F+3000V,,,,,PENDING_REPRODUCTION,"Artifact exists"
-DML-002,DML,Transfer_DML,94F+3000V,,,,,PENDING_REPRODUCTION,"Artifact exists"
+MICRO-002-R,MICRO,CNN1D+Transformer,direction+size_3000,test,0.9594,0.2297,0.7297,0.2394,VERIFIED,Corrected future evaluator; 65 classes; 18543 future samples
+MICRO-002-R-LEGACY-EVAL,MICRO,CNN1D+Transformer,direction+size_3000,test,0.9594,0.2483,0.7111,0.2588,VERIFIED_LEGACY,Historical evaluator behavior reproduced
+MACRO-002-R,MACRO,GlobalSiteEncoder,94F,validation,0.8676,0.1534,0.7142,0.1768,VERIFIED,94 invariant features; temporal hourly profile
+SOTA-001-R,SOTA,CUMUL+SVM,CUMUL_features,training,0.6345,0.2515,0.3830,0.3964,PARTIAL,Historical metric is training accuracy; needs comparable holdout
+SOTA-002-R,SOTA,Deep_Fingerprinting,CNN_direction,validation,0.9317,0.3485,0.5832,0.3740,VERIFIED,Strongest reproduced future baseline so far
+SOTA-003-R,SOTA,Rimmer_LSTM,direction_sequence,validation,0.8422,0.0949,0.7473,0.1127,VERIFIED,Strong degradation under drift
+HYB45-001,HISTORICAL_HYBRID,45F_neutral,45F+3000V,validation,0.9570,0.3006,0.6564,0.3141,HISTORICAL_UNVERIFIED,Trainer exists; scaler fitted before split; reported 30.06 future
+HYB45-002,HISTORICAL_HYBRID,45F_micro_biased_EXP4,45F+3000V,validation,0.9642,0.3498,0.6144,0.3628,HISTORICAL_UNVERIFIED,Historical 34.98 candidate corresponds to EXP4 InclinadoV; evaluator exists but trainer not found in current legacy/45F
+HYB-003,HYBRID,94F_neutral,94F+3000V,,,,,PENDING_REPRODUCTION,Artifact exists,Historical strong run 96.02/37.02; later run 69.99/13.72 with NaNs; clean reproduction required
+HYB-004,HYBRID,94F_feature_biased,94F+3000V,,,,,PENDING_REPRODUCTION,Artifact exists,Historical future runs include 29.42 and 20.37; clean reproduction required
+HYB-005,HYBRID,94F_micro_biased,94F+3000V,,,,,PENDING_REPRODUCTION,Artifact exists,Historical runs include 95.15/41.38 and later 87.08/21.78; clean reproduction required
+HYB-006,HYBRID,94F_cross_attention,94F+3000V,,,,,PENDING_REPRODUCTION,Artifact exists; historical 34.98 reference not verified for this generation,Historical runs include 95.02/40.65 and later 94.69/29.69; clean reproduction required
+DML-001,DML,Hybrid_DML,94F+3000V,,,,,PENDING_REPRODUCTION,Artifact exists,Joint CE+SupCon; scaler fitted before split; historical future 8.33 detected
+DML-002,DML,Transfer_DML,94F+3000V,,,,,PENDING_REPRODUCTION,Artifact exists,Transfer SupCon from HYB-005; historical generations 95.40/43.37 and 82.76/23.24; scaler leakage remains
