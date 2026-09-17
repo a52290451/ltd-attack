@@ -1,0 +1,6 @@
+feature_set_id,type,count,status,description
+MICRO-3000,sequence,3000,ACTIVE,"Packet direction + packet size; maximum 3000 packets"
+MACRO-230,statistical,230,LEGACY,"Large historical statistical feature pool"
+MACRO-45,statistical,45,CANDIDATE,"Historical invariant feature subset associated with 30.06/34.98 hybrid experiments"
+MACRO-79,statistical,79,HISTORICAL,"Signal-processing/purified features"
+MACRO-94,statistical,94,ACTIVE,"Current invariant Macro feature set used by MACRO-002 and current hybrids"
