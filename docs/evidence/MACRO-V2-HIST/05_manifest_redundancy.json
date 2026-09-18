@@ -1,0 +1,70 @@
+{
+  "feature_set_id": "MACRO-V2-HIST",
+  "stage": "05_redundancy",
+  "created_at_utc": "2026-09-18T21:05:09.984535+00:00",
+  "git_commit": "5cb1daef3ce47e209af38c8bc076c98bd2655132",
+  "historical_dataset": {
+    "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+    "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+  },
+  "split_assignments": {
+    "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+    "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+  },
+  "candidate_features": {
+    "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/00_candidate_features_nonconstant.txt",
+    "sha256": "c633556be66e515bbcd5ce7e3486cb9ad73ec647fd2e301db6b1c2da77911d1c",
+    "count": 311
+  },
+  "data_policy": {
+    "development_splits_used": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "spaces": {
+    "sample_level": {
+      "rows": 57916,
+      "metrics": [
+        "Spearman",
+        "Pearson"
+      ]
+    },
+    "longitudinal": {
+      "representation": "median per site and temporal split",
+      "profiles": 195,
+      "metric": "Spearman"
+    }
+  },
+  "canonical_rule": {
+    "sample_abs_spearman_min": 0.95,
+    "longitudinal_abs_spearman_min": 0.95,
+    "sign_consistency_required": true,
+    "joint_similarity": "min(abs(sample Spearman), abs(longitudinal Spearman))",
+    "clustering": "complete linkage",
+    "distance": "1 - joint_similarity"
+  },
+  "sensitivity_thresholds": [
+    0.9,
+    0.95,
+    0.98,
+    0.99
+  ],
+  "results": {
+    "strong_pair_count": 2701,
+    "clusters": 148,
+    "redundant_clusters": 47,
+    "singletons": 101,
+    "features_in_redundant_clusters": 210,
+    "largest_cluster": 43,
+    "effective_feature_count_if_one_per_cluster": 148
+  },
+  "selection_policy": {
+    "feature_removed_in_stage_05": false,
+    "cluster_representative_selected": false,
+    "representative_selection_deferred_to": "06_select_features.py"
+  }
+}

@@ -470,3 +470,57 @@ Hallazgos:
 
 No se selecciona todavía ninguna feature.
 
+
+---
+
+## F6.5 — Redundancia dual-space Historical-only
+
+Stage:
+05_redundancy
+
+Datos:
+DEV_EARLY + DEV_MIDDLE + DEV_LATE.
+
+Prohibidos:
+- INTERNAL_TEST
+- Future
+
+Espacios analizados:
+1. 57,916 capturas DEV.
+2. 195 perfiles longitudinales site-period.
+
+Regla canónica de redundancia:
+- |Spearman sample| >= 0.95
+- |Spearman longitudinal| >= 0.95
+- signo consistente
+- clustering complete-linkage.
+
+Resultados:
+- 311 features iniciales.
+- 2,701 pares con redundancia fuerte.
+- 148 clusters efectivos.
+- 47 clusters redundantes.
+- 101 singletons.
+- 210 features pertenecen a clusters redundantes.
+- cluster máximo: 43 features.
+- reducción potencial a un representante por cluster: 52.4%.
+
+Hallazgo principal:
+Muchas features inicialmente interpretadas como señales distintas resultan
+altamente redundantes tanto por captura como longitudinalmente.
+
+El cluster principal agrupa, entre otras:
+- packet/trace length;
+- cumulative descriptors;
+- n-gram counts/windows/sparsity;
+- sizes_sum;
+- size histograms;
+- spectral_energy_low/mid/high.
+
+Se identificaron además numerosas equivalencias exactas o casi exactas,
+incluyendo median/p50, varias definiciones de duración, cumulative last/max,
+packet counts y possible n-gram windows.
+
+Stage 05 no elimina ni selecciona ninguna feature.
+La selección del representante de cada cluster se difiere a Stage 06.
+

@@ -1,0 +1,5 @@
+threshold,n_clusters,redundant_clusters,singletons,features_in_redundant_clusters,largest_cluster,effective_feature_count_if_one_per_cluster
+0.9,131,41,90,221,53,131
+0.95,148,47,101,210,43,148
+0.98,173,44,129,182,26,173
+0.99,192,33,159,152,20,192
