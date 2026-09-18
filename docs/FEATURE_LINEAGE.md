@@ -350,3 +350,64 @@ un fingerprint longitudinal útil.
 
 No se selecciona todavía ninguna feature.
 
+
+---
+
+## F6.3 — Estabilidad temporal Historical-only
+
+Stage:
+03_temporal_stability
+
+Datos:
+DEV_EARLY + DEV_MIDDLE + DEV_LATE.
+
+Prohibidos:
+- INTERNAL_TEST
+- Future
+
+Metodología:
+- balanceo por sitio;
+- KS ponderado;
+- Wasserstein normalizada por escala robusta;
+- desplazamiento normalizado de mediana.
+
+Comparaciones:
+- Early vs Middle
+- Middle vs Late
+- Early vs Late
+
+El ranking utiliza el peor drift observado entre periodos.
+
+Hallazgos:
+
+1. Las features más estables no coinciden necesariamente con las más
+   discriminativas.
+
+2. Varias features del antiguo MACRO-94 son extremadamente estables pero
+   presentan muy poca capacidad discriminativa.
+
+3. sizes_sum:
+   rank discriminabilidad = 1
+   rank estabilidad = 196.
+   Es un fingerprint potente pero temporalmente menos robusto.
+
+4. ngrams_2_sparsity:
+   rank discriminabilidad = 3
+   rank estabilidad = 49.
+
+5. ngrams_3_sparsity:
+   rank discriminabilidad = 21
+   rank estabilidad = 46.
+
+6. ngrams_4_sparsity:
+   rank discriminabilidad = 26
+   rank estabilidad = 48.
+
+7. spectral_energy_low/mid/high combinan alta discriminación con
+   estabilidad temporal intermedia-alta.
+
+8. Existe fuerte redundancia entre contadores de paquetes, longitudes,
+   ventanas posibles y ocurrencias de n-grams.
+
+No se selecciona ninguna feature todavía.
+
