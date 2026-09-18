@@ -1,0 +1,37 @@
+{
+  "feature_set_id": "MACRO-V2-HIST",
+  "stage": "01_temporal_split",
+  "created_at_utc": "2026-09-18T19:35:18.239061+00:00",
+  "future_used": false,
+  "split_strategy": "global chronological dates; 80% development / 20% untouched internal test; development divided into chronological thirds",
+  "git_commit": "68b5b55e7efad1b42380c69c8a9454bd248d64be",
+  "dataset": {
+    "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+    "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "rows": 72603,
+    "sites": 65,
+    "dates": 52
+  },
+  "splits": {
+    "DEV_EARLY": {
+      "dates": 14,
+      "first": "2025-11-18",
+      "last": "2025-12-01"
+    },
+    "DEV_MIDDLE": {
+      "dates": 14,
+      "first": "2025-12-02",
+      "last": "2025-12-15"
+    },
+    "DEV_LATE": {
+      "dates": 13,
+      "first": "2025-12-16",
+      "last": "2025-12-28"
+    },
+    "INTERNAL_TEST": {
+      "dates": 11,
+      "first": "2025-12-29",
+      "last": "2026-01-08"
+    }
+  }
+}

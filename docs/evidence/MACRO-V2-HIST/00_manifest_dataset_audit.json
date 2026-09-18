@@ -1,0 +1,26 @@
+{
+  "feature_set_id": "MACRO-V2-HIST",
+  "stage": "00_dataset_audit",
+  "created_at_utc": "2026-09-18T19:29:47.880300+00:00",
+  "future_used": false,
+  "git_commit": "68b5b55e7efad1b42380c69c8a9454bd248d64be",
+  "dataset": {
+    "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+    "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "rows_after_65_site_filter": 72603,
+    "sites": 65,
+    "first_date": "2025-11-18",
+    "last_date": "2026-01-08",
+    "calendar_dates": 52
+  },
+  "label_encoder": {
+    "path": "/home/bsierra/ltd-storage/artifacts/micro/MICRO-002-R/ds3_label_encoder_vec_3000.joblib",
+    "sha256": "f373925b181e9700bc350a13d2f95875cec7492be66ab221fc8402de26a0013b",
+    "classes": 65
+  },
+  "features": {
+    "numeric_candidates": 320,
+    "nonconstant_candidates": 311,
+    "zero_variance_candidates": 9
+  }
+}

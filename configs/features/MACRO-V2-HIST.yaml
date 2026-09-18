@@ -1,0 +1,39 @@
+feature_set_id: MACRO-V2-HIST
+version: 1
+
+principle:
+  historical_only: true
+  future_allowed: false
+  future_role: final_external_evaluation_only
+
+dataset:
+  source: CLEAN_final_features_sites.csv
+  site_population_source: MICRO-002-R_label_encoder
+  expected_sites: 65
+
+temporal_protocol:
+  ordering: chronological
+  development_fraction: 0.80
+  internal_test_fraction: 0.20
+
+  development_subperiods:
+    - DEV_EARLY
+    - DEV_MIDDLE
+    - DEV_LATE
+
+feature_selection:
+  fixed_number_of_features: false
+
+  objectives:
+    - discriminability_between_sites
+    - temporal_stability
+    - per_site_persistence
+    - low_redundancy
+
+prohibited_information:
+  - future_dataset
+  - future_accuracy
+  - future_feature_statistics
+  - future_ks
+  - future_psi
+  - future_distribution
