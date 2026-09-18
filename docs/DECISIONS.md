@@ -85,3 +85,49 @@ Los stages 02-06 no pueden utilizar INTERNAL_TEST.
 
 El Future externo no participa en ninguna etapa de ingeniería o selección.
 
+
+---
+
+## 2026-09-18 — Stage 06A: representantes y uso de Pareto
+
+Se valida Stage 06A.
+
+Resultados:
+- 311 features originales.
+- 148 clusters redundantes/no redundantes.
+- 148 representantes, uno por cluster.
+- 18 Pareto fronts.
+- Pareto Front 1 contiene 16 features.
+
+La selección de representantes queda congelada con la regla:
+
+1. maximizar min(D,T,P);
+2. maximizar media geométrica;
+3. maximizar media aritmética;
+4. minimizar imbalance max-min;
+5. desempate alfabético.
+
+Decisión metodológica:
+
+Los Pareto fronts NO se utilizarán directamente como conjuntos acumulativos
+para Stage 06B.
+
+Motivo:
+un frente no dominado puede contener soluciones extremadamente buenas en
+un único eje pero muy débiles en los demás.
+
+Ejemplo:
+burst_size_p25 pertenece a Pareto Front 1 debido a su alta estabilidad,
+pero presenta discriminabilidad muy baja.
+
+Pareto se conserva como análisis de trade-off multiobjetivo.
+
+Para la validación temporal 06B se construirán conjuntos anidados de los
+148 representantes ordenados por robustez:
+
+primary = min(D,T,P)
+secondary = geometric_mean(D,T,P)
+tertiary = arithmetic_mean(D,T,P)
+
+INTERNAL_TEST y Future permanecen cerrados.
+

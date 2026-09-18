@@ -524,3 +524,44 @@ packet counts y possible n-gram windows.
 Stage 05 no elimina ni selecciona ninguna feature.
 La selección del representante de cada cluster se difiere a Stage 06.
 
+
+---
+
+## F6.6 — Representantes multiobjetivo y Pareto
+
+Stage:
+06A_cluster_representatives_pareto
+
+Entradas:
+artefactos Historical DEV de stages 02-05.
+
+Resultados:
+- 148 clusters.
+- 148 representantes.
+- 18 Pareto fronts.
+- Pareto Front 1: 16 variables.
+
+Mejores representantes por robustez:
+
+1. cumul_interp_out_diffs_p90
+   D=0.8092 T=0.7653 P=0.8288
+   min=0.7653
+
+2. ngrams_4_sparsity
+   D=0.9041 T=0.7519 P=0.7986
+   min=0.7519
+
+El representante del cluster principal de 43 variables es
+ngrams_4_sparsity.
+
+Interpretación de Pareto:
+
+Pareto Front 1 contiene tanto soluciones equilibradas como soluciones
+extremas de un único objetivo. Por ello los fronts se conservan para
+describir trade-offs, pero no se usarán directamente como subsets
+acumulativos de features.
+
+El número final de variables aún no está seleccionado.
+
+INTERNAL_TEST y Future permanecen cerrados.
+

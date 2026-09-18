@@ -1,0 +1,70 @@
+{
+  "feature_set_id": "MACRO-V2-HIST",
+  "stage": "06A_cluster_representatives_pareto",
+  "created_at_utc": "2026-09-18T21:22:12.952925+00:00",
+  "git_commit": "dab01bd2136d2f2f1d300849f80d34d9010849a5",
+  "input_artifacts": {
+    "discriminability": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/02_discriminability_summary.csv",
+      "sha256": "ecb50abf858eb1d494fc86980fda9b3062241e77da3d11b7a43e9b2bf5ce5655"
+    },
+    "temporal_stability": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/03_temporal_stability_summary.csv",
+      "sha256": "3efd2d492ba65491d45d25023535774b306c96233ed476cc21ed196d05a74029"
+    },
+    "site_persistence": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/04_site_persistence_summary.csv",
+      "sha256": "7b20d27067c2df0ce11888050d868b594ab5450e6d0930ea5482b3afea4b8dc2"
+    },
+    "redundancy_clusters": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/05_redundancy_clusters.csv",
+      "sha256": "1278d42e986affc98979b39c80abfcd1b0b9ebec42f06fb1d73ea50ea48f92a3"
+    }
+  },
+  "data_policy": {
+    "source": "DEV-derived Stage 02-05 artifacts only",
+    "raw_internal_test_loaded": false,
+    "internal_test_metrics_used": false,
+    "external_future_used": false
+  },
+  "objectives": {
+    "D": "score_min",
+    "T": "temporal_stability_score",
+    "P": "site_persistence_score",
+    "direction": "maximize all"
+  },
+  "cluster_representative_rule": {
+    "primary": "maximize min(D,T,P)",
+    "tie_break_1": "maximize geometric mean(D,T,P)",
+    "tie_break_2": "maximize arithmetic mean(D,T,P)",
+    "tie_break_3": "minimize max(D,T,P)-min(D,T,P)",
+    "tie_break_4": "feature name ascending for deterministic reproducibility",
+    "weights_used": false
+  },
+  "pareto_rule": {
+    "dominance": "A dominates B if A is no worse in D,T,P and strictly better in at least one objective",
+    "objectives": [
+      "D",
+      "T",
+      "P"
+    ],
+    "weights_used": false,
+    "fronts": 18
+  },
+  "results": {
+    "input_features": 311,
+    "redundancy_clusters": 148,
+    "cluster_representatives": 148,
+    "singleton_representatives": 101,
+    "redundant_cluster_representatives": 47,
+    "redundant_nonrepresentatives": 163,
+    "pareto_fronts": 18,
+    "pareto_front_1_features": 16
+  },
+  "selection_status": {
+    "final_feature_set_frozen": false,
+    "final_feature_count_selected": false,
+    "internal_test_opened": false,
+    "next_stage": "06B DEV-only temporal model validation"
+  }
+}
