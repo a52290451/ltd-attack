@@ -1,0 +1,59 @@
+{
+  "feature_set_id": "MACRO-V2-HIST",
+  "stage": "04_site_persistence",
+  "created_at_utc": "2026-09-18T20:37:40.381045+00:00",
+  "git_commit": "2b5b10b842ff3aaf5a3e60f9bf0699cc2d82081d",
+  "historical_dataset": {
+    "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+    "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+  },
+  "split_assignments": {
+    "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+    "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+  },
+  "candidate_features": {
+    "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/00_candidate_features_nonconstant.txt",
+    "sha256": "c633556be66e515bbcd5ce7e3486cb9ad73ec647fd2e301db6b1c2da77911d1c",
+    "count": 311
+  },
+  "data_policy": {
+    "development_splits_used": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "site_representation": {
+    "aggregation": "median per site and temporal split",
+    "expected_sites": 65,
+    "minimum_samples_per_site_split": 168
+  },
+  "comparisons": [
+    [
+      "DEV_EARLY",
+      "DEV_MIDDLE"
+    ],
+    [
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    [
+      "DEV_EARLY",
+      "DEV_LATE"
+    ]
+  ],
+  "metrics": {
+    "spearman_rho": "rank consistency of site median fingerprints",
+    "site_shift_normalized": "absolute same-site median shift divided by robust pooled site-median scale",
+    "identity_mrr": "mean reciprocal rank of the same site when retrieving target-period site medians",
+    "identity_top1_top5": "same-site retrieval accuracy using single-feature median fingerprints",
+    "drift_to_separation": "same-site temporal distance divided by median distance to other sites"
+  },
+  "ranking": {
+    "temporal_aggregation": "worst pairwise behavior",
+    "score": "mean percentile of worst Spearman, worst MRR, inverse P90 normalized same-site shift, and inverse P90 drift/separation",
+    "fixed_feature_count": false
+  }
+}

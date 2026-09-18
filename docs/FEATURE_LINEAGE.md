@@ -411,3 +411,62 @@ Hallazgos:
 
 No se selecciona ninguna feature todavía.
 
+
+---
+
+## F6.4 — Persistencia longitudinal por sitio
+
+Stage:
+04_site_persistence
+
+Datos:
+DEV_EARLY + DEV_MIDDLE + DEV_LATE.
+
+Prohibidos:
+- INTERNAL_TEST
+- Future
+
+Representación:
+mediana de cada feature por sitio y periodo temporal.
+
+Métricas:
+- Spearman entre fingerprints de sitios;
+- desplazamiento normalizado intra-site;
+- Mean Reciprocal Rank para recuperación de identidad;
+- Top-1 / Top-5 de identidad;
+- ratio temporal drift / inter-site separation.
+
+Hallazgos:
+
+1. Las features longitudinalmente persistentes no coinciden necesariamente
+   con las simplemente estables a nivel global.
+
+2. ngrams_3_min_count obtiene rank 1 en persistencia:
+   Spearman worst = 0.9829,
+   MRR worst = 0.4006,
+   Top-5 worst = 72.31%.
+
+3. ngrams_4_sparsity presenta una combinación especialmente interesante:
+   discriminabilidad rank 26,
+   estabilidad rank 48,
+   persistencia rank 18.
+
+4. cumul_interp_out_diffs_p90 presenta uno de los perfiles más equilibrados:
+   D = 0.8092,
+   T = 0.7653,
+   P = 0.8288,
+   DTP mínimo = 0.7653.
+
+5. Las características espectrales mantienen alta discriminabilidad y
+   persistencia/estabilidad intermedias.
+
+6. Varias features relacionadas con longitud total, packet count,
+   possible windows y total n-gram occurrences presentan resultados casi
+   idénticos, confirmando redundancia estructural.
+
+7. Las características con drift/separation > 1 presentan desplazamiento
+   temporal comparable o superior a su separación entre sitios y son
+   candidatas débiles para fingerprint longitudinal.
+
+No se selecciona todavía ninguna feature.
+
