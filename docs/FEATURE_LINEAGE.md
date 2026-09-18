@@ -289,3 +289,64 @@ Los stages 02-06 pueden usar exclusivamente DEV_EARLY, DEV_MIDDLE y DEV_LATE.
 INTERNAL_TEST permanece oculto hasta stage 07.
 Future permanece fuera de toda la pipeline de selección.
 
+
+---
+
+## F6.2 — Discriminabilidad Historical-only
+
+Stage:
+02_discriminability
+
+Universo:
+311 features no constantes.
+
+Datos utilizados:
+DEV_EARLY + DEV_MIDDLE + DEV_LATE.
+
+Datos prohibidos:
+- INTERNAL_TEST
+- Future
+
+Métricas:
+- Mutual Information normalizada por entropía de clase.
+- Eta squared entre sitios.
+- Kruskal-Wallis epsilon squared.
+
+Ranking:
+Cada métrica se transforma en rango percentil por periodo.
+El score de cada periodo es la media de los tres percentiles.
+
+Criterio primario de ranking:
+mínimo score obtenido entre DEV_EARLY, DEV_MIDDLE y DEV_LATE.
+
+Esto favorece características consistentemente discriminativas en el tiempo.
+
+Hallazgos principales:
+
+1. sizes_sum ocupa el primer lugar y mantiene alta discriminabilidad
+   en los tres periodos.
+
+2. Varias features relacionadas con packet count / trace length /
+   n-gram windows presentan métricas casi idénticas, indicando fuerte
+   redundancia estructural.
+
+3. spectral_energy_low/mid/high presentan elevada discriminabilidad y
+   deben ser analizadas especialmente en estabilidad temporal.
+
+4. Varias características seleccionadas por MACRO-94 debido a estabilidad
+   Historical/Future resultan prácticamente no discriminativas.
+
+Ejemplos:
+- sizes_min: rank 305/311
+- ngrams_3_unique: rank 306/311
+- burst_durations_p25: rank 307/311
+- ngrams_2_unique: rank 308/311
+- burst_size_p25: rank 309/311
+- sizes_p25: rank 310/311
+
+Conclusión:
+La estabilidad marginal de distribución no es suficiente para construir
+un fingerprint longitudinal útil.
+
+No se selecciona todavía ninguna feature.
+
