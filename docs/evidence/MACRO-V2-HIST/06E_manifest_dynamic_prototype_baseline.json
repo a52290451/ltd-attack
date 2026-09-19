@@ -1,0 +1,70 @@
+{
+  "feature_set_id": "MACRO-V2-BASE-128",
+  "stage": "06E_dynamic_prototype_baseline",
+  "created_at_utc": "2026-09-19T21:26:40.135138+00:00",
+  "git_commit": "bf3b957efd56320d90d4b84ee6dd82acafd5dc6d",
+  "environment": {
+    "sklearn": "1.7.2"
+  },
+  "inputs": {
+    "historical_dataset": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "daily_profiles": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06C_daily_base_profiles.csv",
+      "sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053"
+    },
+    "frozen_base_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+      "count": 128
+    },
+    "temporal_assignments": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+      "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+    }
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "test_observations_used_to_update_history": false,
+    "query_true_label_used_to_choose_prototype": false,
+    "query_scored_against_all_65_candidates": true
+  },
+  "query_unit": "single_capture",
+  "date_source": "pcap_name",
+  "distance_metric": "euclidean",
+  "distance_metric_selection": "Euclidean frozen after 06D, where it consistently exceeded cosine similarity.",
+  "prototype_methods": [
+    "static_capture_median",
+    "all_days_median",
+    "recent_7_days_median",
+    "recent_3_days_median",
+    "last_day",
+    "linear_trend"
+  ],
+  "temporal_folds": [
+    {
+      "fold": "A_EARLY_TO_MIDDLE",
+      "train_splits": [
+        "DEV_EARLY"
+      ],
+      "test_split": "DEV_MIDDLE"
+    },
+    {
+      "fold": "B_EARLY_MIDDLE_TO_LATE",
+      "train_splits": [
+        "DEV_EARLY",
+        "DEV_MIDDLE"
+      ],
+      "test_split": "DEV_LATE"
+    }
+  ],
+  "interpretation": {
+    "purpose": "test whether recency or explicit temporal trend improves candidate matching over static historical prototypes",
+    "no_learned_temporal_encoder": true,
+    "next_stage": "if temporal conditioning adds signal, proceed to learned candidate-conditioned temporal encoder and fusion with BASE-128"
+  }
+}

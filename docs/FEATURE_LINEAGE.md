@@ -695,3 +695,54 @@ Siguiente etapa:
 06E — evaluar prototypes sensibles a recencia y tendencia temporal sobre
 queries de captura individual.
 
+
+---
+
+## F6.10 — Dynamic / Recency Prototype Baseline
+
+Stage:
+06E_dynamic_prototype_baseline
+
+Objetivo:
+evaluar si recencia o tendencia temporal mejoran el matching de una
+captura individual frente al prototype histórico estático.
+
+Unidad de consulta:
+single capture.
+
+Métrica de distancia:
+Euclidean, congelada después de 06D.
+
+Fold A — DEV_EARLY -> DEV_MIDDLE:
+- static Macro-F1: 0.2049
+- recent-7 Macro-F1: 0.2002
+- recent-3 Macro-F1: 0.1974
+- last-day Macro-F1: 0.1792
+- linear-trend Macro-F1: 0.1852
+
+Fold B — DEV_EARLY+DEV_MIDDLE -> DEV_LATE:
+- static Macro-F1: 0.2224
+- recent-7 Macro-F1: 0.2498
+- recent-3 Macro-F1: 0.2288
+- last-day Macro-F1: 0.2160
+- linear-trend Macro-F1: 0.2404
+
+En Fold B, recent-7 mejora frente a static:
+- Accuracy: +0.0300
+- Macro-F1: +0.0274
+- Top-5: +0.0155
+- MRR: +0.0271
+- mean true rank: 8.72 -> 7.22
+
+Interpretación:
+la recencia contiene señal, pero las reglas manuales no son
+consistentemente superiores entre folds. Esto justifica evaluar un
+encoder temporal aprendido capaz de utilizar la secuencia completa sin
+reducirla previamente a una mediana o tendencia lineal.
+
+INTERNAL_TEST permanece cerrado.
+Future-B permanece cerrado.
+
+Siguiente etapa:
+07A — Candidate-Conditioned Temporal Encoder.
+
