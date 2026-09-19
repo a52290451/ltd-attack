@@ -1,0 +1,87 @@
+{
+  "feature_set_id": "MACRO-V2-BASE-128",
+  "stage": "06D_longitudinal_prototype_baseline",
+  "created_at_utc": "2026-09-19T21:08:54.908971+00:00",
+  "git_commit": "4a612b20edd1b075266fa924142f04bfbd883fb1",
+  "environment": {
+    "sklearn": "1.7.2"
+  },
+  "inputs": {
+    "historical_dataset": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "daily_profiles": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06C_daily_base_profiles.csv",
+      "sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053"
+    },
+    "frozen_base_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+      "count": 128
+    },
+    "temporal_assignments": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+      "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+    }
+  },
+  "data_policy": {
+    "development_splits_used": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "query_true_label_used_to_choose_prototype": false,
+    "query_scored_against_all_65_candidates": true
+  },
+  "preprocessing": {
+    "imputation": "feature median fitted only on fold training captures",
+    "scaling": "StandardScaler fitted only on fold training captures"
+  },
+  "prototype_types": {
+    "capture_median": "coordinate-wise median of standardized training captures for each site",
+    "daily_balanced_median": "coordinate-wise median of standardized site-day BASE profiles for each site; each observed day contributes one profile"
+  },
+  "distance_metrics": [
+    "cosine",
+    "euclidean"
+  ],
+  "query_types": [
+    "capture",
+    "daily_profile"
+  ],
+  "temporal_folds": [
+    {
+      "fold": "A_EARLY_TO_MIDDLE",
+      "train_splits": [
+        "DEV_EARLY"
+      ],
+      "test_split": "DEV_MIDDLE"
+    },
+    {
+      "fold": "B_EARLY_MIDDLE_TO_LATE",
+      "train_splits": [
+        "DEV_EARLY",
+        "DEV_MIDDLE"
+      ],
+      "test_split": "DEV_LATE"
+    }
+  ],
+  "metrics": [
+    "accuracy",
+    "macro_f1",
+    "top5_accuracy",
+    "mrr",
+    "mean_true_rank",
+    "median_true_rank"
+  ],
+  "interpretation": {
+    "purpose": "diagnostic baseline for candidate-conditioned longitudinal matching",
+    "not_final_architecture": true,
+    "no_model_training": true,
+    "no_new_feature_selection": true,
+    "next_stage": "use 06D evidence to decide whether to build a learned Inter-Day Encoder / Cross-Attention model"
+  }
+}

@@ -640,3 +640,58 @@ No se realizó nueva selección de features.
 INTERNAL_TEST permanece cerrado.
 Future-B permanece cerrado.
 
+
+---
+
+## F6.9 — Historical Prototype Baseline
+
+Stage:
+06D_longitudinal_prototype_baseline
+
+Objetivo:
+evaluar si el contexto histórico de los sitios contiene señal útil para
+identificar observaciones temporalmente posteriores.
+
+Evaluación:
+- Fold A: DEV_EARLY -> DEV_MIDDLE
+- Fold B: DEV_EARLY + DEV_MIDDLE -> DEV_LATE
+- 65 prototypes candidatos por query
+- sin uso de la etiqueta real para seleccionar contexto
+- INTERNAL_TEST cerrado
+- Future-B cerrado
+
+Mejor configuración para capturas individuales:
+capture_median + Euclidean.
+
+Fold A:
+- Accuracy: 0.2104
+- Macro-F1: 0.2049
+- Top-5: 0.5372
+- MRR: 0.3634
+
+Fold B:
+- Accuracy: 0.2261
+- Macro-F1: 0.2224
+- Top-5: 0.5904
+- MRR: 0.3919
+
+Para perfiles diarios, la identidad del sitio es considerablemente más
+fuerte, alcanzando en Fold B:
+- Accuracy: 0.6663
+- Macro-F1: 0.6428
+- Top-5: 0.8864
+- MRR: 0.7674
+
+Sin embargo, daily_profile corresponde a una unidad de consulta agregada
+y no es directamente comparable con el ataque de captura individual.
+
+daily_balanced_median fue consistentemente inferior a capture_median.
+
+Interpretación:
+el contexto histórico contiene señal discriminativa, pero una agregación
+orderless mediante mediana no modela dinámica longitudinal explícita.
+
+Siguiente etapa:
+06E — evaluar prototypes sensibles a recencia y tendencia temporal sobre
+queries de captura individual.
+
