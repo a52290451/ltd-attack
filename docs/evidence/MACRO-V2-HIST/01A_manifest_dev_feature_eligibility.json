@@ -1,0 +1,50 @@
+{
+  "feature_set_id": "MACRO-V2-HIST",
+  "stage": "01A_dev_feature_eligibility",
+  "created_at_utc": "2026-09-18T21:29:58.631485+00:00",
+  "git_commit": "6aa2342b183fb3a072094894a87c49cd04dd4473",
+  "historical_dataset": {
+    "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+    "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+  },
+  "structural_candidate_source": {
+    "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/00_candidate_features_audit.csv",
+    "sha256": "87c7c5d718448a80b16b8f0ca6156112106fd7a686c44b4ad5934e03254cca33",
+    "column_used": "feature",
+    "full_historical_statistics_used": false,
+    "count": 320
+  },
+  "split_assignments": {
+    "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+    "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+  },
+  "eligibility_rule": {
+    "finite_count_min": 2,
+    "nunique_finite_min": 2,
+    "missingness_threshold": null,
+    "variance_used_for_decision": false
+  },
+  "data_policy": {
+    "development_splits_used": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "dev_rows": 57916,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "results": {
+    "structural_candidates": 320,
+    "dev_only_eligible": 311,
+    "legacy_nonconstant_count": 311,
+    "set_equal_to_legacy": true,
+    "ordered_equal_to_legacy": true,
+    "legacy_only_features": [],
+    "dev_only_features": []
+  },
+  "interpretation": {
+    "if_set_equal": "The previous 311-feature universe is retrospectively equivalent to DEV-only eligibility; downstream Stages 02-06A need not be recomputed.",
+    "if_set_differs": "The previous universe was affected by full-Historical eligibility and Stages 02-06A must be recomputed from the DEV-only list."
+  }
+}

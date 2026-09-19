@@ -131,3 +131,37 @@ tertiary = arithmetic_mean(D,T,P)
 
 INTERNAL_TEST y Future permanecen cerrados.
 
+
+---
+
+## 2026-09-18 — Compuerta 01A: elegibilidad DEV-only
+
+Se auditó retrospectivamente el universo de features utilizado en stages
+02-06A para comprobar si la determinación original de features no constantes,
+realizada sobre todo Historical, había permitido que INTERNAL_TEST afectara
+la selección de candidatas.
+
+Resultado:
+
+- candidatos estructurales: 320
+- nonconstant Historical-wide: 311
+- elegibles calculadas exclusivamente sobre DEV: 311
+- diferencia legacy-only: 0
+- diferencia DEV-only-only: 0
+- igualdad de conjuntos: True
+- igualdad de orden: True
+
+Conclusión:
+
+El uso descriptivo inicial de todo Historical no produjo ningún cambio en
+el universo de 311 features utilizado por stages 02-06A.
+
+Por tanto, los resultados de stages 02-06A permanecen válidos y no requieren
+recomputación.
+
+A partir de esta auditoría, la lista canónica de elegibilidad es:
+
+01A_candidate_features_dev_eligible.txt
+
+INTERNAL_TEST y Future permanecen cerrados.
+
