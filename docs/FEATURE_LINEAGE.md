@@ -565,3 +565,39 @@ El número final de variables aún no está seleccionado.
 
 INTERNAL_TEST y Future permanecen cerrados.
 
+
+---
+
+## F6.7 — Freeze MACRO-V2-BASE-128
+
+Stages:
+06B_dev_model_selection
+06B_R1_dev_model_selection
+
+Entrada:
+148 representantes no redundantes de Stage 06A.
+
+Evaluación:
+- EARLY -> MIDDLE;
+- EARLY+MIDDLE -> LATE;
+- Logistic Regression;
+- Random Forest;
+- XGBoost.
+
+La curva predictiva temporal alcanza una meseta entre 128 y 148 features.
+
+06B-R1 elimina la incertidumbre de convergencia observada en Logistic
+Regression durante 06B:
+- max_iter=3000;
+- 0 ConvergenceWarnings en las 54 ejecuciones;
+- TOP-128 vuelve a ser seleccionado.
+
+Resultado congelado:
+
+MACRO-V2-BASE-128
+
+128 features provenientes de 128 dimensiones de redundancia distintas.
+
+INTERNAL_TEST no ha sido utilizado.
+Future-B no ha sido utilizado.
+

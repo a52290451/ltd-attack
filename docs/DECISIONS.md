@@ -165,3 +165,52 @@ A partir de esta auditoría, la lista canónica de elegibilidad es:
 
 INTERNAL_TEST y Future permanecen cerrados.
 
+
+---
+
+## 2026-09-19 — Freeze MACRO-V2-BASE-128
+
+Stage 06B-R1 verificó la selección del número de features con Logistic
+Regression plenamente convergida.
+
+Configuración de réplica:
+- mismo dataset DEV;
+- mismos folds temporales;
+- mismos subsets;
+- mismos modelos;
+- Logistic Regression max_iter: 3000;
+- detección explícita de ConvergenceWarning.
+
+Resultado:
+- 0 warnings de convergencia en 54 ejecuciones;
+- raw best subset: TOP-128;
+- canonical parsimonious subset: TOP-128.
+
+TOP-128:
+- primary temporal score: 0.681121;
+- secondary mean Macro-F1: 0.688291.
+
+TOP-148:
+- primary temporal score: 0.680922;
+- secondary mean Macro-F1: 0.687849.
+
+La réplica confirma la meseta observada en 06B y demuestra que la elección
+de TOP-128 no era consecuencia del límite de iteraciones de Logistic
+Regression.
+
+Decisión:
+
+MACRO-V2-BASE-128 queda congelado.
+
+Lista canónica:
+configs/features/MACRO-V2-BASE-128.txt
+
+No se modificarán las 128 features BASE como consecuencia de resultados
+posteriores obtenidos en INTERNAL_TEST o Future-B.
+
+INTERNAL_TEST permanece cerrado.
+Future-B permanece cerrado.
+
+El siguiente bloque construirá MACRO-V2-META exclusivamente con datos DEV
+y utilizando únicamente el BASE congelado.
+
