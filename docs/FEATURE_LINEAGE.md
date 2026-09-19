@@ -601,3 +601,42 @@ MACRO-V2-BASE-128
 INTERNAL_TEST no ha sido utilizado.
 Future-B no ha sido utilizado.
 
+
+---
+
+## F6.8 — Daily BASE Profiles
+
+Stage:
+06C_daily_base_profiles
+
+Entrada:
+MACRO-V2-BASE-128 congelado.
+
+Datos:
+DEV_EARLY + DEV_MIDDLE + DEV_LATE.
+
+Representación:
+cada sitio-día se representa mediante la mediana por feature de las
+capturas BASE-128 disponibles en ese día.
+
+Resultados:
+- 57,916 capturas DEV;
+- 65 sitios;
+- 41 fechas;
+- 2,653 perfiles site-day;
+- máximo teórico: 2,665 perfiles;
+- cobertura site-day aproximada: 99.55%;
+- 57 celdas BASE ausentes;
+- missingness: 0.0168%;
+- 0 perfiles diarios completamente ausentes.
+
+Cobertura temporal:
+- DEV_EARLY: 900 perfiles / 14 fechas;
+- DEV_MIDDLE: 908 perfiles / 14 fechas;
+- DEV_LATE: 845 perfiles / 13 fechas.
+
+No se entrenó ningún modelo.
+No se realizó nueva selección de features.
+INTERNAL_TEST permanece cerrado.
+Future-B permanece cerrado.
+

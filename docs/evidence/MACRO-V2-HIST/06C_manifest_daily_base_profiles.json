@@ -1,0 +1,57 @@
+{
+  "feature_set_id": "MACRO-V2-BASE-128",
+  "stage": "06C_daily_base_profiles",
+  "created_at_utc": "2026-09-19T21:04:21.171550+00:00",
+  "git_commit": "1d7df1c43f3c347bf307d2e861e4cf0c80e0ca70",
+  "inputs": {
+    "historical_dataset": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "temporal_assignments": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+      "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+    },
+    "frozen_base_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+      "count": 128
+    }
+  },
+  "data_policy": {
+    "development_splits_used": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "representation": {
+    "unit": "site-day",
+    "input_unit": "capture",
+    "input_dimensions": 128,
+    "aggregation": "per-feature median",
+    "learned_parameters": false,
+    "new_feature_selection": false,
+    "imputation": "none",
+    "date_source": "pcap_name"
+  },
+  "results": {
+    "dev_captures": 57916,
+    "sites": 65,
+    "dates": 41,
+    "site_day_profiles": 2653,
+    "missing_cells": 57,
+    "missing_fraction": 0.000167852431209951,
+    "all_missing_daily_profiles": 0
+  },
+  "selection_status": {
+    "base_128_frozen": true,
+    "meta_selected": false,
+    "temporal_encoder_selected": false,
+    "internal_test_opened": false,
+    "external_future_opened": false,
+    "next_stage": "06D longitudinal prototype baseline using DEV-only daily BASE-128 sequences"
+  }
+}

@@ -1,0 +1,4 @@
+temporal_split,site_day_profiles,sites,dates,date_min,date_max,captures_min,captures_median,captures_mean,captures_max
+DEV_EARLY,900,65,14,2025-11-18,2025-12-01,8,23.0,21.22,24
+DEV_MIDDLE,908,65,14,2025-12-02,2025-12-15,3,23.0,22.202643171806166,24
+DEV_LATE,845,65,13,2025-12-16,2025-12-28,1,23.0,22.080473372781064,24
