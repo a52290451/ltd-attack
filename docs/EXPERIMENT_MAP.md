@@ -321,3 +321,82 @@ same set of five historical daily profiles?
 Control:
 same architecture, same capacity, same W=5, but without positional encoding.
 
+
+
+## Master Research Plan
+
+The experimental program is divided into bounded phases.
+
+### Phase P0 — Provenance and leakage control — CLOSED
+Historical-only feature design, chronological DEV splits and immutable evidence.
+
+### Phase P1 — Static Macro representation — CLOSED
+Structural features -> D/T/P -> redundancy -> BASE-128.
+
+### Phase P2 — Strong Macro baseline — CLOSED
+BASE-128 + XGBoost.
+
+### Phase P3 — Longitudinal Macro — CLOSED
+Historical prototypes, recency and candidate-conditioned LTD.
+
+### Phase P4 — Macro fusion — CLOSED
+Complementarity audit and geometric BASE-XGB/LTD fusion.
+
+### Phase P5 — Macro refinement — ACTIVE
+V1 context=7.
+V2 context=5.
+Temporal-order ablation completed.
+Next hypothesis: explicit query-to-history age/staleness.
+
+Macro stop rule:
+after the explicit age/staleness experiment, continue with at most one
+additional Macro architecture hypothesis only if a concrete failure mode
+is identified prospectively. Otherwise freeze the strongest Macro milestone.
+
+### Phase P6 — Macro Final Freeze
+Select the strongest reproducible DEV Macro architecture.
+
+### Phase P7 — Clean Micro temporal baseline
+Rebuild Micro under the same chronological 65-site protocol.
+
+### Phase P8 — Micro/Macro complementarity
+Measure both-correct, Micro-only, Macro-only, oracle union, ranks and rescues.
+
+### Phase P9 — Hybrid development
+Start with calibrated probability fusion.
+Use learned Cross-Attention/gating only if residual complementarity justifies it.
+
+### Phase P10 — Final Hybrid Freeze
+Freeze all features, architectures, preprocessing and fusion rules.
+
+### Phase P11 — INTERNAL_TEST
+One-time historical holdout evaluation.
+No architecture changes based on its result.
+
+### Phase P12 — Future-B
+One-time external temporal-drift benchmark.
+
+### Phase P13 — Dataset C
+Preferred truly untouched external longitudinal benchmark.
+
+### Phase P14 — Sensitivity / extensions
+HIST-WIDE 118-site cohort, DAY/24h branch and secondary analyses.
+
+Primary target:
+a temporally robust hybrid Website Fingerprinting model combining
+current-session Micro information with longitudinal Macro dynamics.
+
+
+### 07E-1 result
+
+Status:
+CLOSED — ORDER EFFECT INCONCLUSIVE.
+
+Fold B strongly favors ordered W=5, but Fold A does not reproduce the
+Top-1 / Macro-F1 advantage.
+
+MACRO-LTD-V2 remains frozen.
+
+Next:
+07F-1 ACTIVE — Query-Age-Aware LTD.
+

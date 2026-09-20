@@ -1415,3 +1415,68 @@ Future-B remains closed.
 Next:
 07E-1 — Temporal Order Ablation.
 
+
+
+---
+
+## F7.9 — Temporal Order Ablation
+
+Stage:
+07E_01_temporal_order_ablation
+
+Question:
+does ordered temporal information contribute beyond the same set of
+five longitudinal daily profiles?
+
+Control:
+same architecture, same trainable parameter count, same W=5 and same
+training protocol, without positional encoding.
+
+Trainable parameters:
+116865.
+
+Fold A, Ordered - NoPos fusion:
+- Accuracy: -0.00045
+- Macro-F1: -0.00090
+- Top-5: +0.00273
+- MRR: +0.00009
+- net ordered correct: -9
+
+Fold B, Ordered - NoPos fusion:
+- Accuracy: +0.00525
+- Macro-F1: +0.00587
+- Top-5: +0.00193
+- MRR: +0.00314
+- net ordered correct: +98
+
+Fold-B day-block bootstrap:
+- Accuracy IC95%: +0.00268 to +0.00760
+- Macro-F1 IC95%: +0.00301 to +0.00851
+- Top-5 IC95%: +0.00075 to +0.00321
+- MRR IC95%: +0.00188 to +0.00419
+
+Interpretation:
+
+Temporal order provides strong positive evidence in Fold B, but the effect
+does not reproduce in Fold A for Top-1 Accuracy or Macro-F1.
+
+Therefore the order-specific causal claim is not considered established.
+
+Decision:
+ORDER_EFFECT_INCONCLUSIVE.
+
+MACRO-LTD-V2 remains the frozen DEV milestone because the ablation does not
+constitute a replacement-selection experiment.
+
+Current scientific claim:
+longitudinal historical context contributes complementary information.
+
+Current scientific claim NOT yet supported:
+temporal ordering alone is responsible for the gain.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
+Next:
+07F-1 — Query-Age-Aware LTD.
+

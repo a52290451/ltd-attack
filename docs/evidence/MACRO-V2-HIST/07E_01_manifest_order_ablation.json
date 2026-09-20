@@ -1,0 +1,41 @@
+{
+  "stage": "07E_01_temporal_order_ablation",
+  "created_at_utc": "2026-09-20T17:33:53.099397+00:00",
+  "git_commit": "f64eb5693b2d4cd4704efab6ef0ed0d18d5cf0ba",
+  "data_policy": {
+    "development_only": true,
+    "model_selection": false,
+    "context_tuning": false,
+    "alpha_tuning": false,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "frozen_reference": {
+    "model": "MACRO-LTD-V2",
+    "context_days": 5,
+    "alpha": 0.375,
+    "seeds": [
+      11,
+      42,
+      73
+    ]
+  },
+  "ablation": {
+    "ordered": "current CandidateTemporalEncoder with sinusoidal positional encoding",
+    "control": "same architecture and trainable parameter count without positional encoding",
+    "trainable_parameters": 116865,
+    "hypothesis": "ordered temporal information contributes beyond the unordered set of historical daily profiles"
+  },
+  "decision": "ORDER_EFFECT_INCONCLUSIVE",
+  "interpretation_policy": {
+    "if_ordered": "retain MACRO-LTD-V2 and support a temporal-order contribution claim",
+    "if_nopos": "do not claim temporal-order benefit; consider simpler orderless Macro candidate",
+    "if_inconclusive": "retain V2 milestone but describe evidence as longitudinal-context rather than order-specific"
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "daily_profiles_sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053",
+    "frozen_features_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "07A_source_sha256": "6d919ca865d591bacaa328104b6b91477f72866e812e5abe886cc8934efc48e8"
+  }
+}
