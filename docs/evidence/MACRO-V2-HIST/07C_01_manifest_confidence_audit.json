@@ -1,0 +1,56 @@
+{
+  "stage": "07C_01_confidence_stratified_fusion_audit",
+  "created_at_utc": "2026-09-20T15:53:37.393413+00:00",
+  "git_commit": "6b2612435724466602b14972ba9fd42da72b2fd0",
+  "data_policy": {
+    "development_only": true,
+    "model_training": false,
+    "alpha_tuning": false,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "confidence_thresholds_defined_on": "A_EARLY_TO_MIDDLE",
+    "fold_b_used_to_define_thresholds": false
+  },
+  "frozen_macro_v1": {
+    "alpha": 0.375,
+    "base_features": 128,
+    "context_days": 7,
+    "ltd_seeds": [
+      11,
+      42,
+      73
+    ]
+  },
+  "confidence_strata": {
+    "metric": "XGB top1-top2 probability margin",
+    "fold_a_thresholds": [
+      0.26442174315452577,
+      0.6064769402146339,
+      0.8667136929929257,
+      0.9716549964621664
+    ],
+    "labels": [
+      "Q1_lowest",
+      "Q2",
+      "Q3",
+      "Q4",
+      "Q5_highest"
+    ]
+  },
+  "diagnostic": {
+    "fold_b_low_confidence_mean_delta": 0.06534999139693351,
+    "fold_b_high_confidence_mean_delta": 0.0007974038955217422,
+    "fold_b_disagreement_net_correct": 507,
+    "adaptive_fusion_signal": true
+  },
+  "decision": {
+    "if_signal": "07C-2 adaptive fusion may be evaluated while keeping MACRO-LTD-V1 frozen",
+    "if_no_signal": "retain fixed alpha fusion and investigate a different Macro hypothesis"
+  },
+  "inputs": {
+    "paired_predictions": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07B_01_paired_predictions.csv",
+      "sha256": "3ea3ebe59866bb5434f2f4ec3267f6bd82e518c646507404be093eca6e415cd7"
+    }
+  }
+}

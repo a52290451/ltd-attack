@@ -1122,3 +1122,75 @@ altering the V1 reference.
 
 The Micro/Hybrid branch remains planned for a later phase.
 
+
+
+---
+
+## F7.5 — Confidence-Stratified Fusion Audit
+
+Stage:
+07C_01_confidence_stratified_fusion_audit
+
+Objective:
+determine whether the value of longitudinal LTD information depends on
+the confidence of BASE-XGB.
+
+No model training.
+No alpha tuning.
+Frozen alpha: 0.375.
+
+Confidence metric:
+XGB Top-1 minus Top-2 probability margin.
+
+Thresholds were defined exclusively on Fold A:
+- q20: 0.2644217
+- q40: 0.6064769
+- q60: 0.8667137
+- q80: 0.9716550
+
+Fold A fusion delta vs XGB:
+- Q1 lowest confidence: +4.54 pp Accuracy
+- Q2: +0.20 pp
+- Q3: -0.55 pp
+- Q4: -0.10 pp
+- Q5: 0.00 pp
+
+Fold B fusion delta vs XGB:
+- Q1 lowest confidence: +10.77 pp
+- Q2: +2.30 pp
+- Q3: +0.76 pp
+- Q4: +0.11 pp
+- Q5: +0.05 pp
+
+Model disagreement:
+
+Fold A:
+- XGB Accuracy: 0.4800
+- Fusion Accuracy: 0.5035
+- net correct: +165
+
+Fold B:
+- XGB Accuracy: 0.4373
+- Fusion Accuracy: 0.5297
+- net correct: +507
+
+Interpretation:
+
+The contribution of LTD is strongly confidence-dependent.
+
+Most useful longitudinal information appears when BASE-XGB is uncertain.
+When XGB confidence is high, fixed fusion contributes almost no additional
+Top-1 information and can slightly damage some DEV observations.
+
+This supports testing a query-adaptive fusion policy while preserving
+MACRO-LTD-V1 as an immutable reference.
+
+Status:
+07C-1 CLOSED — ADAPTIVE SIGNAL CONFIRMED.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
+Next:
+07C-2 — Confidence-Gated Fusion.
+

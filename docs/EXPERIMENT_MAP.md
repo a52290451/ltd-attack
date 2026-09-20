@@ -150,8 +150,8 @@ Rule:
 
 ```mermaid
 flowchart TD
-A["MACRO-LTD-V1<br/>FROZEN"] --> B["07C-1<br/>Confidence-Stratified Fusion Audit"]
-B --> C{"Adaptive fusion justified?"}
+A["MACRO-LTD-V1<br/>FROZEN"] --> B["07C-1 CLOSED<br/>Confidence-Stratified Audit"]
+B --> C["07C-2 ACTIVE<br/>Confidence-Gated Fusion"]
 C -- yes --> D["07C-2<br/>Adaptive Fusion"]
 C -- no --> E["Keep V1 fusion"]
 D --> F["MACRO-LTD-V2 candidate"]
@@ -201,3 +201,16 @@ BASE-XGB confidence, disagreement, entropy or margin.
 
 The result will determine whether MACRO-LTD-V2 should use
 query-adaptive fusion instead of the global alpha=0.375.
+
+
+### 07C-1 result:
+
+Adaptive signal confirmed.
+
+- Fold-B low-confidence fusion gain: +6.53 pp average
+- Fold-B high-confidence fusion gain: +0.08 pp average
+- Fold-B disagreement net correct: +507
+- confidence thresholds were defined only on Fold A
+
+Next:
+07C-2 Confidence-Gated Fusion.
