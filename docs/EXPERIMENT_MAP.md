@@ -99,7 +99,7 @@ Conclusion: LTD no reemplaza BASE directamente; aporta ranking complementario.
 
 ## Camino activo
 
-07B-1 CLOSED -> 07B-2A CLOSED -> 07B-2R ACTIVE -> Final Freeze -> INTERNAL_TEST -> Future-B
+07B-1 CLOSED -> 07B-2A CLOSED -> 07B-2R CLOSED -> MACRO-LTD-V1 FROZEN -> MACRO-LTD-V2 EXPLORATION
 
 ## Regla de cierre
 
@@ -134,3 +134,70 @@ DEV -> Final Architecture Freeze -> INTERNAL_TEST -> Future-B
 
 Despues de abrir INTERNAL_TEST no se cambia feature set, arquitectura,
 context window, preprocessing ni regla de fusion a partir de sus resultados.
+
+
+## Macro Continued Exploration
+
+MACRO-LTD-V1 is a frozen milestone, not the end of the Macro research line.
+
+Rule:
+- MACRO-LTD-V1 is immutable.
+- Improvements are developed as MACRO-LTD-V2+.
+- All V2 development remains DEV-only.
+- INTERNAL_TEST remains closed.
+- Future-B remains closed.
+- The future Micro/Hybrid phase remains planned but does not stop Macro exploration.
+
+```mermaid
+flowchart TD
+A["MACRO-LTD-V1<br/>FROZEN"] --> B["07C-1<br/>Confidence-Stratified Fusion Audit"]
+B --> C{"Adaptive fusion justified?"}
+C -- yes --> D["07C-2<br/>Adaptive Fusion"]
+C -- no --> E["Keep V1 fusion"]
+D --> F["MACRO-LTD-V2 candidate"]
+E --> F
+F --> G{"Remaining justified Macro hypothesis?"}
+G -- yes --> H["07D+<br/>Targeted Macro experiment"]
+G -- no --> I["Macro candidate freeze"]
+H --> I
+I --> J["Later: Micro + Macro-LTD Hybrid"]
+J --> K["FINAL HYBRID FREEZE"]
+K --> L["INTERNAL_TEST"]
+L --> M["Future-B"]
+```
+
+### MACRO-LTD-V1
+
+Status: FROZEN DEV MILESTONE.
+
+Configuration:
+- MACRO-V2-BASE-128
+- XGBoost BASE
+- LTDPairScorer
+- 7-day candidate context
+- LTD seeds: 11, 42, 73
+- mean probability ensemble
+- geometric fusion alpha = 0.375
+
+Robustness:
+- Fold A: Accuracy improves on 14/14 dates
+- Fold B: Accuracy improves on 13/13 dates
+- Fold B delta Accuracy: +2.72 pp
+- Fold B delta Macro-F1: +2.57 pp
+- alpha near-optimal region: 0.30–0.40
+
+Remaining weakness:
+- gains are heterogeneous across classes;
+- Fold-A Macro-F1 improvement is modest;
+- Fold-A Top-5 decreases;
+- fixed global alpha may over-trust LTD for some queries/classes.
+
+Next:
+07C-1 Confidence-Stratified Fusion Audit.
+
+Goal:
+determine whether the optimal contribution of LTD depends on
+BASE-XGB confidence, disagreement, entropy or margin.
+
+The result will determine whether MACRO-LTD-V2 should use
+query-adaptive fusion instead of the global alpha=0.375.

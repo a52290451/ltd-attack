@@ -1021,3 +1021,104 @@ Future-B permanece cerrado.
 Next:
 07B-2R Fusion Robustness Audit.
 
+
+
+---
+
+## F7.4 — MACRO-LTD Fusion Robustness and Freeze
+
+Stage:
+07B_02R_fusion_robustness_audit
+
+Objetivo:
+validar la robustez temporal de la fusión MACRO-LTD candidata sin realizar
+ningún nuevo ajuste de arquitectura ni de alpha.
+
+Configuración auditada:
+- MACRO-V2-BASE-128
+- BASE classifier: XGBoost
+- LTDPairScorer
+- context window: 7 días
+- LTD seeds: 11, 42, 73
+- LTD ensemble: media de probabilidades
+- geometric probability fusion
+- alpha: 0.375
+
+Fold A:
+- delta Accuracy: +0.0082
+- delta Macro-F1: +0.0039
+- 14/14 días mejoran Accuracy
+
+Day-block bootstrap:
+- Accuracy IC95%: +0.0049 a +0.0114
+- P(delta Accuracy > 0): 1.000
+- P(delta Macro-F1 > 0): 0.962
+
+Fold B:
+- delta Accuracy: +0.0272
+- delta Macro-F1: +0.0257
+- delta Top-5: +0.0183
+- delta MRR: +0.0220
+- 13/13 días mejoran Accuracy
+
+Day-block bootstrap:
+- Accuracy IC95%: +0.0238 a +0.0311
+- Macro-F1 IC95%: +0.0220 a +0.0301
+- P(delta Accuracy > 0): 1.000
+- P(delta Macro-F1 > 0): 1.000
+
+Alpha stability:
+- selected alpha: 0.375
+- near-optimal region: 0.30–0.40
+
+Resultado:
+ROBUSTNESS PASS.
+
+Interpretación:
+
+La mejora longitudinal no depende de un subconjunto aislado de días.
+La fusión mejora Accuracy en todos los días de ambos folds.
+
+Existen diferencias por clase, por lo que MACRO-LTD no debe interpretarse
+como solución completa del problema. Estas diferencias son especialmente
+relevantes para estudiar complementariedad posterior con la representación
+Micro.
+
+Decisión:
+
+Se congela la rama Macro como:
+
+MACRO-LTD-V1
+
+MACRO-LTD-V1 =
+MACRO-V2-BASE-128
++ XGBoost
++ LTDPairScorer
++ 7-day context
++ seeds [11,42,73]
++ probability ensemble
++ geometric fusion alpha=0.375
+
+Status:
+MACRO-LTD-V1 FROZEN.
+
+Importante:
+INTERNAL_TEST NO se abre todavía.
+
+Motivo:
+el objetivo final es construir un modelo híbrido Micro + Macro-LTD.
+INTERNAL_TEST se preserva como holdout para la arquitectura híbrida final,
+no para una rama intermedia.
+
+Future-B permanece cerrado.
+
+Next:
+07C-1 — Confidence-Stratified Fusion Audit.
+
+Research policy:
+MACRO-LTD-V1 remains frozen and immutable, but does not terminate the Macro
+research line. New improvements are developed as MACRO-LTD-V2+ without
+altering the V1 reference.
+
+The Micro/Hybrid branch remains planned for a later phase.
+

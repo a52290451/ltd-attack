@@ -1,0 +1,47 @@
+{
+  "stage": "07B_02R_fusion_robustness_audit",
+  "created_at_utc": "2026-09-20T15:17:33.953963+00:00",
+  "git_commit": "c6ee8c3e2bddedadbd30ae333868b215d366f6c7",
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "architecture_tuning": false,
+    "alpha_tuning": false
+  },
+  "frozen_candidate": {
+    "alpha": 0.375,
+    "fusion": "weighted geometric probability",
+    "context_days": 7,
+    "base_features": 128,
+    "ltd_seeds": [
+      11,
+      42,
+      73
+    ]
+  },
+  "robustness": {
+    "bootstrap_unit": "query_date",
+    "bootstrap_iterations": 2000,
+    "bootstrap_seed": 20260920,
+    "alpha_local_stability": {
+      "best_fold_a_macro_f1": 0.7349760641734705,
+      "tolerance": 0.001,
+      "stable_alpha_min": 0.3,
+      "stable_alpha_max": 0.4,
+      "stable_alpha_count": 5
+    }
+  },
+  "freeze_gate": {
+    "fold": "B_EARLY_MIDDLE_TO_LATE",
+    "requirements": [
+      "observed accuracy delta > 0",
+      "observed Macro-F1 delta > 0",
+      "P_day_bootstrap(delta accuracy > 0) >= 0.90",
+      "P_day_bootstrap(delta Macro-F1 > 0) >= 0.90"
+    ],
+    "passed": true
+  },
+  "next_if_pass": "FINAL_ARCHITECTURE_FREEZE",
+  "next_if_fail": "review fusion robustness before any new architecture experiment"
+}
