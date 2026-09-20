@@ -746,3 +746,71 @@ Future-B permanece cerrado.
 Siguiente etapa:
 07A — Candidate-Conditioned Temporal Encoder.
 
+
+
+---
+
+## F7.1 — Candidate-Conditioned Temporal Encoder
+
+Stage:
+07A_candidate_conditioned_temporal_encoder
+
+Objetivo:
+evaluar si un contexto longitudinal aprendido de hasta 7 días mejora la
+clasificación single-capture frente a un control BASE-only neuronal pareado.
+
+Fold A — DEV_EARLY -> DEV_MIDDLE
+
+BASE-MLP:
+- Accuracy: 0.6156
+- Macro-F1: 0.6061
+- Top-5: 0.8890
+
+LTD:
+- Accuracy: 0.6107
+- Macro-F1: 0.5974
+- Top-5: 0.8920
+
+Fold B — DEV_EARLY+DEV_MIDDLE -> DEV_LATE
+
+BASE-MLP:
+- Accuracy: 0.6813
+- Macro-F1: 0.6688
+- Top-5: 0.9323
+- MRR: 0.7901
+
+LTD:
+- Accuracy: 0.6820
+- Macro-F1: 0.6641
+- Top-5: 0.9519
+- MRR: 0.7963
+
+Interpretación:
+
+LTD no mejora de manera robusta Top-1/Macro-F1 frente al control BASE
+pareado.
+
+Sin embargo, mejora la señal de ranking, particularmente Top-5 en Fold B
+(+1.96 pp), además de MRR y mean true rank.
+
+La variabilidad entre semillas es considerablemente mayor en LTD que en
+BASE-MLP. Por tanto, no se justifica aumentar todavía la complejidad del
+Temporal Encoder.
+
+Decisión:
+
+La hipótesis "LTD reemplaza directamente al clasificador BASE" se cierra
+en su forma actual.
+
+La señal longitudinal se conserva como fuente auxiliar para evaluar
+complementariedad y posterior fusion/reranking con BASE-128 + XGBoost.
+
+Status:
+07A CLOSED.
+
+INTERNAL_TEST permanece cerrado.
+Future-B permanece cerrado.
+
+Next:
+07B-1 Complementarity Audit.
+

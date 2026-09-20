@@ -1,0 +1,105 @@
+{
+  "feature_set_id": "MACRO-V2-BASE-128",
+  "stage": "07A_candidate_conditioned_temporal_encoder",
+  "created_at_utc": "2026-09-19T21:52:35.416215+00:00",
+  "git_commit": "5e885fe6ce96c8970c039aa59f00eb8ebdbc9d05",
+  "environment": {
+    "python_model": "PyTorch",
+    "torch": "2.10.0.dev20251203+cu128",
+    "sklearn": "1.7.2",
+    "device": "cuda",
+    "cuda_available": true
+  },
+  "inputs": {
+    "historical_dataset": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "daily_profiles": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06C_daily_base_profiles.csv",
+      "sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053"
+    },
+    "frozen_base_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+      "count": 128
+    },
+    "temporal_assignments": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+      "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+    }
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "test_observations_update_history": false,
+    "same_day_context_allowed": false,
+    "candidate_identity_embedding": false,
+    "query_true_label_used_to_select_context": false,
+    "query_scored_against_all_65_candidates": true
+  },
+  "architecture": {
+    "input_dimensions": 128,
+    "latent_dimensions": 64,
+    "context_days": 7,
+    "context_window_origin": "DEV design choice informed by 06E recent-7 diagnostic; not an independent result",
+    "temporal_encoder": {
+      "type": "TransformerEncoder",
+      "layers": 2,
+      "heads": 4,
+      "feedforward_dim": 128,
+      "dropout": 0.1,
+      "positional_encoding": "fixed sinusoidal"
+    },
+    "pair_features": [
+      "query",
+      "candidate_context",
+      "absolute_difference",
+      "elementwise_product"
+    ],
+    "pair_head": "256 -> 128 -> 1",
+    "matched_control": "BASE MLP using same causal training queries"
+  },
+  "training": {
+    "epochs": 20,
+    "batch_size": 256,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "gradient_clip": 1.0,
+    "optimizer": "AdamW",
+    "seeds": [
+      11,
+      42,
+      73
+    ],
+    "early_stopping": false,
+    "model_selection_on_test_fold": false
+  },
+  "preprocessing": {
+    "imputation": "feature medians fitted on fold training captures only",
+    "scaling": "StandardScaler fitted on fold training captures only"
+  },
+  "temporal_folds": [
+    {
+      "fold": "A_EARLY_TO_MIDDLE",
+      "train_splits": [
+        "DEV_EARLY"
+      ],
+      "test_split": "DEV_MIDDLE"
+    },
+    {
+      "fold": "B_EARLY_MIDDLE_TO_LATE",
+      "train_splits": [
+        "DEV_EARLY",
+        "DEV_MIDDLE"
+      ],
+      "test_split": "DEV_LATE"
+    }
+  ],
+  "interpretation": {
+    "stage_type": "DEV architecture experiment; not independent generalization estimate",
+    "primary_question": "does learned candidate longitudinal context improve single-capture classification relative to a matched BASE-only neural control?",
+    "strong_external_dev_reference": "MACRO-V2-BASE-128 XGBoost from 06B-R1 remains the stronger non-neural reference and is not replaced by this matched control"
+  }
+}
