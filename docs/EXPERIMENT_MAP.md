@@ -246,3 +246,37 @@ Protocol:
 - XGB and fusion alpha=0.375 remain unchanged;
 - INTERNAL_TEST and Future-B remain closed.
 
+
+
+### 07D-1 result
+
+Context-length ablation passed.
+
+Selected:
+- context = 5 days
+
+Versus MACRO-LTD-V1 context=7:
+
+Fold A:
+- Accuracy +0.09 pp
+- Macro-F1 +0.04 pp
+
+Fold B temporal transfer:
+- Accuracy +0.34 pp
+- Macro-F1 +0.41 pp
+- MRR +0.18 pp
+
+Candidate:
+MACRO-LTD-V2 = MACRO-LTD-V1 with context 5.
+
+Important:
+all contexts retained the same number of causal training queries.
+The gain is therefore contextual/representational, not caused by
+additional training data.
+
+Status:
+07D-1 CLOSED — POSITIVE.
+
+Next:
+07D-1R ACTIVE — paired robustness audit before promotion to V2.
+

@@ -1255,3 +1255,77 @@ Future-B remains closed.
 Next:
 07D-1 — LTD Context-Length Ablation.
 
+
+
+---
+
+## F7.7 — LTD Context-Length Ablation
+
+Stage:
+07D_01_context_length_ablation
+
+Objective:
+test whether the 7-day longitudinal context frozen in MACRO-LTD-V1 is
+the most useful context length for the final fused Macro classifier.
+
+Candidate windows:
+1, 3, 5, 7 days.
+
+Protocol:
+- all candidates evaluated only on Fold A;
+- primary selection: fused Macro-F1;
+- secondary: fused Accuracy;
+- only the selected context transferred to Fold B;
+- fusion alpha remained frozen at 0.375;
+- Fold B did not participate in context selection.
+
+Selected context:
+5 days.
+
+Fold A, W=5 vs V1 W=7:
+- Accuracy: +0.00094
+- Macro-F1: +0.00042
+- Top-5: +0.00392
+- MRR: +0.00174
+
+Fold B temporal transfer, W=5 vs V1:
+- Accuracy: +0.00338
+- Macro-F1: +0.00414
+- Top-5: +0.00005
+- MRR: +0.00180
+
+W=5 Fold-B absolute performance:
+- Accuracy: 0.797995
+- Macro-F1: 0.783429
+- Top-5: 0.969343
+- MRR: 0.870105
+
+Important observation:
+
+All context candidates skipped the same seven earliest training dates.
+Therefore the W=5 improvement is not caused by recovering additional
+training queries. It is attributable to the context representation itself.
+
+Another relevant result:
+
+The strongest standalone LTD on Fold A remained W=7, while the strongest
+fused classifier used W=5.
+
+This supports optimizing longitudinal information for complementarity
+with BASE-XGB rather than standalone LTD accuracy.
+
+Decision:
+
+07D-1 PASSES the context gate.
+
+W=5 is a MACRO-LTD-V2 candidate, not yet a frozen V2.
+
+The improvement over V1 is modest and therefore requires a paired
+robustness audit before promotion.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
+Next:
+07D-1R — Paired Context Robustness Audit.
+
