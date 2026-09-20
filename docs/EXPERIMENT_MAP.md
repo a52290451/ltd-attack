@@ -400,3 +400,40 @@ MACRO-LTD-V2 remains frozen.
 Next:
 07F-1 ACTIVE — Query-Age-Aware LTD.
 
+
+
+### 07F-1 result
+
+Status:
+CLOSED — NEGATIVE.
+
+Query-age encoding degraded MACRO-LTD-V2 in both temporal folds.
+
+Important diagnostic:
+
+training histories are predominantly fresh, whereas frozen evaluation
+histories become progressively stale.
+
+This identifies a train/inference temporal-context mismatch.
+
+### 07G-1 ACTIVE — Stale-Context Training
+
+Final planned Macro hypothesis.
+
+Question:
+
+Can MACRO-LTD learn a more robust longitudinal identity if training
+explicitly exposes it to candidate contexts that are older than the query?
+
+Architecture:
+unchanged from MACRO-LTD-V2.
+
+Changed component:
+training context sampling only.
+
+Stop rule:
+
+- positive robust transfer -> candidate V3 -> robustness audit -> MACRO FINAL;
+- no robust transfer -> MACRO-LTD-V2 -> MACRO FINAL;
+- no additional Macro architecture search after this stage.
+

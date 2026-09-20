@@ -1,0 +1,61 @@
+{
+  "stage": "07F_01_query_age_aware_ltd",
+  "created_at_utc": "2026-09-20T18:00:13.548326+00:00",
+  "git_commit": "1db2385dae24d3db4de9a1ce36c66b81c36c3839",
+  "data_policy": {
+    "development_only": true,
+    "feature_tuning": false,
+    "context_tuning": false,
+    "alpha_tuning": false,
+    "architecture_search": false,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "reference": {
+    "model": "MACRO-LTD-V2",
+    "context_days": 5,
+    "alpha": 0.375,
+    "seeds": [
+      11,
+      42,
+      73
+    ],
+    "temporal_encoding": "ordinal sinusoidal position"
+  },
+  "candidate": {
+    "name": "QUERY_AGE_AWARE",
+    "context_days": 5,
+    "alpha": 0.375,
+    "seeds": [
+      11,
+      42,
+      73
+    ],
+    "temporal_encoding": "actual query-to-profile age in days using sinusoidal encoding",
+    "ordinal_position_encoding": false,
+    "trainable_parameters": 116865,
+    "capacity_matched": true
+  },
+  "hypothesis": "absolute staleness of historical profiles contains useful longitudinal information beyond ordinal recency position",
+  "promotion_gate": {
+    "passed": false,
+    "requirements": [
+      "Fold-A Accuracy delta vs V2 >= 0",
+      "Fold-A Macro-F1 delta vs V2 >= 0",
+      "Fold-B Accuracy delta vs V2 > 0",
+      "Fold-B Macro-F1 delta vs V2 > 0",
+      "Fold-B bootstrap P(delta Accuracy > 0) >= 0.90",
+      "Fold-B bootstrap P(delta Macro-F1 > 0) >= 0.90",
+      "Fold-B Top-5 delta >= 0",
+      "Fold-B MRR delta >= 0"
+    ]
+  },
+  "next_if_pass": "promote to MACRO-LTD-V3 and perform final Macro robustness/freeze review",
+  "next_if_fail": "retain MACRO-LTD-V2; allow at most one final targeted Macro hypothesis only if a concrete failure mode is identified",
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "daily_profiles_sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053",
+    "frozen_features_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "07A_source_sha256": "6d919ca865d591bacaa328104b6b91477f72866e812e5abe886cc8934efc48e8"
+  }
+}

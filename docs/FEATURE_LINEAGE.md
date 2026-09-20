@@ -1480,3 +1480,84 @@ Future-B remains closed.
 Next:
 07F-1 — Query-Age-Aware LTD.
 
+
+
+---
+
+## F7.10 — Query-Age-Aware LTD
+
+Stage:
+07F_01_query_age_aware_ltd
+
+Hypothesis:
+absolute query-to-profile staleness may contain useful information beyond
+ordinal temporal position.
+
+Design:
+- reference: MACRO-LTD-V2;
+- context: 5 site-days;
+- same 116865 trainable parameters;
+- same seeds [11,42,73];
+- same fusion alpha=0.375;
+- ordinal sinusoidal encoding replaced by actual profile age in days.
+
+Result:
+NEGATIVE.
+
+Fold A — Age minus V2 fusion:
+- Accuracy: -0.00243
+- Macro-F1: -0.00208
+- Top-5: -0.00585
+- MRR: -0.00273
+- net correct: -49
+
+Fold B — Age minus V2 fusion:
+- Accuracy: -0.00407
+- Macro-F1: -0.00551
+- Top-5: -0.00381
+- MRR: -0.00315
+- net correct: -76
+
+Fold-B day-block bootstrap:
+- Accuracy IC95%: -0.00577 to -0.00226
+- Macro-F1 IC95%: -0.00762 to -0.00342
+- Top-5 IC95%: -0.00650 to -0.00130
+- MRR IC95%: -0.00457 to -0.00181
+
+Decision:
+07F-1 CLOSED — FAILED PROMOTION.
+
+MACRO-LTD-V2 remains the frozen reference.
+
+Important failure-mode observation:
+
+During causal training, candidate context is predominantly fresh.
+Typical five-token context ages are approximately 1--5 days.
+
+During frozen-history evaluation, the same historical context becomes
+progressively stale. Test token ages extend to approximately 18--19 days.
+
+Therefore replacing ordinal position by absolute age requires extrapolation
+to staleness regimes that are poorly represented during model training.
+
+This motivates one final targeted Macro hypothesis:
+
+07G-1 — Stale-Context Training.
+
+The architecture remains MACRO-LTD-V2. Only the training context distribution
+is modified so the model is explicitly trained with historical candidate
+snapshots of different ages.
+
+Macro stop rule:
+
+07G is the final planned Macro hypothesis.
+
+If stale-context training does not produce robust temporal transfer,
+MACRO-LTD-V2 becomes MACRO-FINAL and research proceeds to Micro.
+
+If it succeeds, the candidate is subjected to one robustness audit and,
+if confirmed, becomes MACRO-FINAL.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
