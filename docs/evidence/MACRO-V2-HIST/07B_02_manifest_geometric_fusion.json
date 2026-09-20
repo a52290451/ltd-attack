@@ -1,0 +1,80 @@
+{
+  "stage": "07B_02_geometric_probability_fusion",
+  "created_at_utc": "2026-09-20T15:04:24.285165+00:00",
+  "git_commit": "eb28af9822438c4db736af1f8b01cafe18b38432",
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "alpha_selected_on": "A_EARLY_TO_MIDDLE",
+    "fold_b_used_for_alpha_selection": false,
+    "fold_b_previously_seen_in_dev_diagnostics": true
+  },
+  "fusion": {
+    "type": "weighted geometric probability",
+    "formula": "(1-alpha)*log(P_XGB) + alpha*log(P_LTD)",
+    "alpha_grid": [
+      0.0,
+      0.025,
+      0.05,
+      0.075,
+      0.1,
+      0.125,
+      0.15,
+      0.175,
+      0.2,
+      0.225,
+      0.25,
+      0.275,
+      0.3,
+      0.325,
+      0.35,
+      0.375,
+      0.4,
+      0.425,
+      0.45,
+      0.475,
+      0.5,
+      0.525,
+      0.55,
+      0.575,
+      0.6,
+      0.625,
+      0.65,
+      0.675,
+      0.7,
+      0.725,
+      0.75,
+      0.775,
+      0.8,
+      0.825,
+      0.85,
+      0.875,
+      0.9,
+      0.925,
+      0.95,
+      0.975,
+      1.0
+    ],
+    "selected_alpha": 0.375,
+    "selection_primary": "Fold-A Macro-F1",
+    "selection_secondary": "Fold-A Accuracy",
+    "tie_break": "smallest alpha"
+  },
+  "inputs": {
+    "fold_a_scores": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07B_01_scores_A_EARLY_TO_MIDDLE.npz",
+      "sha256": "d3a968ce2b22489a626aef9e30a392da9c33c327b7841a9aece0edbee51d20f1"
+    },
+    "fold_b_scores": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07B_01_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+      "sha256": "a4ad82220f9b2db09be34938dce7e72c00083d0f0692c7f9ae56bed6892844b7"
+    }
+  },
+  "decision": {
+    "positive_temporal_transfer": true,
+    "rule": "positive only if Fold-B Accuracy and Macro-F1 both improve over BASE-XGB",
+    "next_if_positive": "candidate final fusion / freeze",
+    "next_if_negative": "07B-2B conditional reranker because 07B-1 established substantial oracle complementarity"
+  }
+}

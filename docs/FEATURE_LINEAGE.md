@@ -905,3 +905,119 @@ Future-B permanece cerrado.
 Next:
 07B-2A Geometric Probability Fusion.
 
+
+
+---
+
+## F7.3 — Geometric BASE-XGB / LTD Fusion
+
+Stage:
+07B_02_geometric_probability_fusion
+
+Objetivo:
+convertir la complementariedad observada entre BASE-XGB y LTD en una
+mejora efectiva de clasificación single-capture.
+
+Fusión:
+
+score(c) =
+(1-alpha) * log(P_XGB(c))
++
+alpha * log(P_LTD(c))
+
+Selección:
+
+alpha se seleccionó exclusivamente sobre Fold A.
+
+Grid:
+0.000 -> 1.000, step 0.025.
+
+Alpha seleccionado:
+0.375
+
+Fold B no participó en la selección de alpha.
+
+Fold A — selection:
+
+XGB:
+- Accuracy: 0.7369
+- Macro-F1: 0.7311
+
+Fusion:
+- Accuracy: 0.7451
+- Macro-F1: 0.7350
+
+Delta:
+- Accuracy: +0.0082
+- Macro-F1: +0.0039
+- MRR: +0.0019
+- Top-5: -0.0119
+- net Top-1 correct: +165
+
+Fold B — temporal transfer:
+
+XGB:
+- Accuracy: 0.7674
+- Macro-F1: 0.7536
+- Top-5: 0.9510
+- MRR: 0.8463
+
+Fusion:
+- Accuracy: 0.7946
+- Macro-F1: 0.7793
+- Top-5: 0.9693
+- MRR: 0.8683
+
+Delta:
+- Accuracy: +0.0272
+- Macro-F1: +0.0257
+- Top-5: +0.0183
+- MRR: +0.0220
+- fusion-only correct: 848
+- XGB-only correct: 341
+- net Top-1 gain: +507
+
+Interpretación:
+
+La información longitudinal complementaria detectada en 07B-1 puede
+convertirse en una mejora real mediante una fusión probabilística simple.
+
+La transferencia a Fold B es positiva simultáneamente en Accuracy,
+Macro-F1, Top-5 y MRR.
+
+La curva Fold-A presenta una región relativamente estable aproximadamente
+entre alpha 0.30 y 0.40, reduciendo evidencia de una selección extremadamente
+frágil.
+
+Advertencia:
+
+Fold B es DEV y ya había sido observado durante el desarrollo. Por tanto,
+estos resultados no constituyen todavía una estimación independiente de
+generalización.
+
+Decisión:
+
+07B-2A CLOSED — POSITIVE.
+
+Candidate final architecture:
+
+MACRO-V2-BASE-128
++
+XGBoost BASE
++
+07A LTDPairScorer
++
+7-day candidate context
++
+3-seed LTD probability ensemble
++
+geometric fusion alpha=0.375
+
+No se modifica esta arquitectura durante el siguiente audit.
+
+INTERNAL_TEST permanece cerrado.
+Future-B permanece cerrado.
+
+Next:
+07B-2R Fusion Robustness Audit.
+
