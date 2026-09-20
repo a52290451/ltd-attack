@@ -1194,3 +1194,64 @@ Future-B remains closed.
 Next:
 07C-2 — Confidence-Gated Fusion.
 
+
+
+---
+
+## F7.6 — Confidence-Gated Fusion
+
+Stage:
+07C_02_confidence_gated_fusion
+
+Hypothesis:
+a hard confidence gate can improve MACRO-LTD-V1 by applying LTD fusion
+only when BASE-XGB confidence is low.
+
+Selection protocol:
+- candidate thresholds derived exclusively from Fold A;
+- alpha remained frozen at 0.375;
+- Fold B did not participate in gate selection.
+
+Selected policy:
+Q20.
+
+Fold A:
+- fusion coverage: 20.00%
+- V2 vs V1 Accuracy: +0.0009
+- V2 vs V1 Macro-F1: +0.0039
+- V2 vs V1 Top-5: +0.0075
+- V2 vs V1 MRR: +0.0023
+- net correct: +18
+
+Fold B temporal transfer:
+- fusion coverage: 19.25%
+- V2 vs V1 Accuracy: -0.0064
+- V2 vs V1 Macro-F1: -0.0053
+- V2 vs V1 Top-5: -0.0089
+- V2 vs V1 MRR: -0.0069
+- net correct: -120
+
+Interpretation:
+
+XGB confidence is diagnostically associated with LTD usefulness, but a
+hard confidence threshold selected on Fold A is not temporally robust.
+
+The absolute confidence regime shifts enough across temporal folds that
+the selected Q20 rule does not transfer.
+
+Decision:
+
+07C-2 CLOSED — NEGATIVE.
+
+The hard confidence-gating hypothesis is rejected in its current form.
+
+No alternative threshold will be selected using Fold-B results.
+
+MACRO-LTD-V1 remains the frozen reference.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
+Next:
+07D-1 — LTD Context-Length Ablation.
+

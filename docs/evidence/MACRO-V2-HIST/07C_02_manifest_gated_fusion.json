@@ -1,0 +1,58 @@
+{
+  "stage": "07C_02_confidence_gated_fusion",
+  "created_at_utc": "2026-09-20T15:58:20.152460+00:00",
+  "git_commit": "0c6fffb418909eb6a1f602d262aeeedd5abfb087",
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "gate_selected_on": "A_EARLY_TO_MIDDLE",
+    "fold_b_used_for_gate_selection": false,
+    "alpha_tuning": false
+  },
+  "macro_ltd_v1": {
+    "alpha": 0.375,
+    "status": "FROZEN"
+  },
+  "adaptive_policy": {
+    "type": "hard XGB confidence gate",
+    "metric": "XGB top1-top2 probability margin",
+    "candidate_gates": [
+      "NEVER",
+      "Q20",
+      "Q40",
+      "Q60",
+      "Q80",
+      "ALWAYS"
+    ],
+    "thresholds": {
+      "Q20": 0.2644217431545257,
+      "Q40": 0.6064769402146339,
+      "Q60": 0.8667136929929257,
+      "Q80": 0.9716549964621664
+    },
+    "selected_gate": "Q20"
+  },
+  "v2_gate": {
+    "requirements": [
+      "selected gate is adaptive",
+      "Fold-A Accuracy delta vs V1 >= 0",
+      "Fold-A Macro-F1 delta vs V1 > 0",
+      "Fold-B Accuracy delta vs V1 >= 0",
+      "Fold-B Macro-F1 delta vs V1 > 0"
+    ],
+    "passed": false
+  },
+  "next_if_pass": "07C-2R robustness audit for MACRO-LTD-V2",
+  "next_if_fail": "retain MACRO-LTD-V1 and evaluate another targeted Macro hypothesis",
+  "inputs": {
+    "A_EARLY_TO_MIDDLE": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07B_01_scores_A_EARLY_TO_MIDDLE.npz",
+      "sha256": "d3a968ce2b22489a626aef9e30a392da9c33c327b7841a9aece0edbee51d20f1"
+    },
+    "B_EARLY_MIDDLE_TO_LATE": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07B_01_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+      "sha256": "a4ad82220f9b2db09be34938dce7e72c00083d0f0692c7f9ae56bed6892844b7"
+    }
+  }
+}

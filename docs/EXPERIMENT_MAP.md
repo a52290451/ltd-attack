@@ -151,7 +151,7 @@ Rule:
 ```mermaid
 flowchart TD
 A["MACRO-LTD-V1<br/>FROZEN"] --> B["07C-1 CLOSED<br/>Confidence-Stratified Audit"]
-B --> C["07C-2 ACTIVE<br/>Confidence-Gated Fusion"]
+B --> C["07C-2 CLOSED<br/>Hard confidence gate failed transfer"]
 C -- yes --> D["07C-2<br/>Adaptive Fusion"]
 C -- no --> E["Keep V1 fusion"]
 D --> F["MACRO-LTD-V2 candidate"]
@@ -214,3 +214,35 @@ Adaptive signal confirmed.
 
 Next:
 07C-2 Confidence-Gated Fusion.
+
+
+### 07C-2 result
+
+Hard confidence gating did not transfer.
+
+- Fold A: small improvement over MACRO-LTD-V1
+- Fold B: Accuracy -0.64 pp
+- Fold B: Macro-F1 -0.53 pp
+- Fold B net correct: -120
+
+Decision:
+retain MACRO-LTD-V1.
+
+No post-hoc threshold adjustment using Fold B.
+
+### 07D-1 ACTIVE — LTD Context-Length Ablation
+
+Question:
+Is the frozen 7-day context optimal for the longitudinal component?
+
+Candidate windows:
+1, 3, 5, 7 days.
+
+Protocol:
+- all candidate windows evaluated on Fold A;
+- select exactly one window using Fold-A Macro-F1;
+- Freeze selected window;
+- only the selected window is then evaluated on Fold B;
+- XGB and fusion alpha=0.375 remain unchanged;
+- INTERNAL_TEST and Future-B remain closed.
+
