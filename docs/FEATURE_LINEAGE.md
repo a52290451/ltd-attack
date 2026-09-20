@@ -814,3 +814,94 @@ Future-B permanece cerrado.
 Next:
 07B-1 Complementarity Audit.
 
+
+
+---
+
+## F7.2 — BASE-XGB / LTD Complementarity Audit
+
+Stage:
+07B_01_complementarity_audit
+
+Objetivo:
+determinar si LTD proporciona información complementaria cuando el
+clasificador BASE-128 + XGBoost se equivoca.
+
+Control:
+BASE-XGB reproduce exactamente 06B-R1 en ambos folds.
+
+Fold A — EARLY -> MIDDLE:
+
+BASE-XGB:
+- Accuracy: 0.7369
+- Macro-F1: 0.7311
+- Top-5: 0.9328
+
+LTD ensemble:
+- Accuracy: 0.6491
+- Macro-F1: 0.6358
+- Top-5: 0.8975
+
+Complementariedad:
+- both correct: 11,487
+- XGB-only correct: 3,369
+- LTD-only correct: 1,598
+- both wrong: 3,706
+- oracle union accuracy: 0.8162
+- oracle gain vs XGB: +0.0793
+- LTD rescues 30.13% of XGB errors
+
+Fold B — EARLY+MIDDLE -> LATE:
+
+BASE-XGB:
+- Accuracy: 0.7674
+- Macro-F1: 0.7536
+- Top-5: 0.9510
+
+LTD ensemble:
+- Accuracy: 0.7158
+- Macro-F1: 0.6979
+- Top-5: 0.9583
+
+Complementariedad:
+- both correct: 11,918
+- XGB-only correct: 2,401
+- LTD-only correct: 1,438
+- both wrong: 2,901
+- oracle union accuracy: 0.8445
+- oracle gain vs XGB: +0.0771
+- LTD rescues 33.14% of XGB errors
+
+Interpretación:
+
+LTD no sustituye al clasificador BASE-XGB, pero contiene una señal
+claramente complementaria.
+
+En ambos folds LTD resuelve aproximadamente 30-33% de las observaciones
+incorrectas de XGB.
+
+El oracle union muestra un margen potencial de aproximadamente +7.7 a
++7.9 puntos porcentuales de accuracy.
+
+Existen además fuertes diferencias por sitio, confirmando que las dos
+representaciones capturan patrones distintos.
+
+Decisión:
+
+07B-1 PASSES the complementarity gate.
+
+No se realizará una fusión arbitraria 50/50.
+
+La siguiente etapa evaluará primero una fusión probabilística geométrica
+con un único peso alpha seleccionado exclusivamente en Fold A y transferido
+sin cambios a Fold B.
+
+Status:
+07B-1 CLOSED — POSITIVE.
+
+INTERNAL_TEST permanece cerrado.
+Future-B permanece cerrado.
+
+Next:
+07B-2A Geometric Probability Fusion.
+

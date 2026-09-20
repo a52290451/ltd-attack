@@ -1,0 +1,72 @@
+{
+  "feature_set_id": "MACRO-V2-BASE-128",
+  "stage": "07B_01_complementarity_audit",
+  "created_at_utc": "2026-09-20T14:06:10.556110+00:00",
+  "git_commit": "e5157711a29bf5721884609e876662de7105f222",
+  "environment": {
+    "torch": "2.10.0.dev20251203+cu128",
+    "xgboost": "3.1.3",
+    "sklearn": "1.7.2",
+    "device": "cuda"
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "fusion_fitted": false,
+    "query_true_label_used_to_select_context": false,
+    "query_scored_against_all_65_candidates": true
+  },
+  "inputs": {
+    "historical_dataset": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "daily_profiles": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06C_daily_base_profiles.csv",
+      "sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053"
+    },
+    "frozen_base_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+      "count": 128
+    },
+    "stage07a_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/07A_candidate_conditioned_temporal_encoder.py",
+      "sha256": "6d919ca865d591bacaa328104b6b91477f72866e812e5abe886cc8934efc48e8"
+    },
+    "stage06b_reference": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06B_R1_model_runs.csv",
+      "available": true
+    }
+  },
+  "xgb_configuration": {
+    "n_estimators": 120,
+    "max_depth": 5,
+    "learning_rate": 0.1,
+    "min_child_weight": 1,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0,
+    "objective": "multi:softprob",
+    "num_class": 65,
+    "eval_metric": "mlogloss",
+    "tree_method": "hist",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "ltd": {
+    "architecture": "exact 07A LTDPairScorer",
+    "context_days": 7,
+    "seeds": [
+      11,
+      42,
+      73
+    ],
+    "ensemble": "mean softmax probability"
+  },
+  "decision_gate": {
+    "next": "07B-2 fusion / reranking",
+    "condition": "non-trivial LTD rescue pool or rank complementarity on BASE-XGB errors"
+  }
+}

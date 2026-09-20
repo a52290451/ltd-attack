@@ -56,7 +56,7 @@ T -.-> X["PARKED: Dataset C"]
 | 06D | CLOSED | contexto historico aporta ranking |
 | 06E | CLOSED | recent-7 ayuda con mas historia, no de forma uniforme |
 | 07A | CLOSED | LTD mejora ranking/Top-5, no Top-1/F1 robustamente |
-| 07B-1 | NEXT | audit BASE-XGB vs LTD |
+| 07B-1 | CLOSED | complementarity confirmed; oracle gain ~+7.7 to +7.9 pp |
 | 07B-2 | PLANNED | fusion/reranking si 07B-1 pasa el gate |
 | INTERNAL_TEST | CLOSED DATA | abrir una sola vez tras freeze |
 | Future-B | CLOSED DATA | benchmark externo tras INTERNAL_TEST |
@@ -98,7 +98,7 @@ Conclusion: LTD no reemplaza BASE directamente; aporta ranking complementario.
 
 ## Camino activo
 
-07B-1 -> 07B-2 (solo si pasa el gate) -> Final Freeze -> INTERNAL_TEST -> Future-B
+07B-1 CLOSED -> 07B-2A ACTIVE (solo si pasa el gate) -> Final Freeze -> INTERNAL_TEST -> Future-B
 
 ## Regla de cierre
 
