@@ -1,0 +1,63 @@
+id: MACRO-LTD-V2
+status: FROZEN_DEV_MILESTONE
+
+purpose: >
+  Improved Macro/longitudinal milestone derived from MACRO-LTD-V1.
+  V2 reduces the candidate longitudinal context from 7 to 5 site-days.
+  All other frozen components remain unchanged.
+
+parent:
+  id: MACRO-LTD-V1
+  file: configs/models/MACRO-LTD-V1.yaml
+
+features:
+  id: MACRO-V2-BASE-128
+  count: 128
+  file: configs/features/MACRO-V2-BASE-128.txt
+
+base_classifier:
+  type: XGBoost
+  n_estimators: 120
+  max_depth: 5
+  learning_rate: 0.10
+  min_child_weight: 1
+  subsample: 0.80
+  colsample_bytree: 0.80
+  reg_lambda: 1.0
+  random_state: 42
+
+longitudinal:
+  model: LTDPairScorer
+  context_days: 5
+  temporal_position_encoding: sinusoidal
+  seeds:
+    - 11
+    - 42
+    - 73
+  ensemble: mean_softmax_probability
+
+fusion:
+  type: weighted_geometric_probability
+  alpha: 0.375
+  formula: "(1-alpha)*log(P_XGB) + alpha*log(P_LTD)"
+
+development_protocol:
+  context_candidates:
+    - 1
+    - 3
+    - 5
+    - 7
+  context_selected_on: DEV_EARLY_TO_MIDDLE
+  selected_context_days: 5
+  temporal_transfer_checked_on: DEV_EARLY_MIDDLE_TO_LATE
+  paired_robustness_gate_passed: true
+
+dev_fold_b:
+  accuracy: 0.7979954979097438
+  macro_f1: 0.783428885514458
+  top5_accuracy: 0.9693429092078465
+  mrr: 0.8701053324025053
+
+holdout_policy:
+  internal_test_opened: false
+  future_b_opened: false

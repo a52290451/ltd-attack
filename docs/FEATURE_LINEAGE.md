@@ -1329,3 +1329,89 @@ Future-B remains closed.
 Next:
 07D-1R — Paired Context Robustness Audit.
 
+
+
+---
+
+## F7.8 — MACRO-LTD-V2 Promotion
+
+Source:
+07D_01R_context_robustness_audit
+
+Candidate:
+MACRO-LTD-V1 with context reduced from 7 to 5 site-days.
+
+No alpha change.
+No feature change.
+No XGBoost change.
+No seed change.
+
+Fold A paired V2 vs V1:
+- Accuracy: +0.00094
+- Macro-F1: +0.00042
+- Top-5: +0.00392
+- MRR: +0.00174
+
+Fold-A Accuracy and Macro-F1 bootstrap intervals cross zero.
+This fold was used for context selection and is not treated as an
+independent confirmation of the selected context.
+
+Fold B temporal transfer:
+
+- Accuracy delta: +0.00338
+- Macro-F1 delta: +0.00414
+- Top-5 delta: +0.00005
+- MRR delta: +0.00180
+- V2-only correct: 242
+- V1-only correct: 179
+- net correct: +63
+- improved dates: 11
+- worse dates: 1
+- tied dates: 1
+
+Day-block bootstrap Fold B:
+
+Accuracy:
+- IC95%: +0.00209 to +0.00462
+- P(delta > 0): 1.000
+
+Macro-F1:
+- IC95%: +0.00260 to +0.00557
+- P(delta > 0): 1.000
+
+MRR:
+- IC95%: +0.00113 to +0.00246
+- P(delta > 0): 1.000
+
+Top-5 is effectively unchanged.
+
+Decision:
+
+07D-1R PASSED the predeclared promotion gate.
+
+MACRO-LTD-V2 is promoted as a new immutable DEV milestone.
+
+MACRO-LTD-V1 remains preserved.
+
+MACRO-LTD-V2 configuration:
+- BASE-128
+- XGBoost
+- LTDPairScorer
+- context = 5 site-days
+- ordered sinusoidal positional encoding
+- seeds = [11,42,73]
+- mean probability ensemble
+- geometric fusion alpha = 0.375
+
+Fold-B DEV performance:
+- Accuracy: 0.797995
+- Macro-F1: 0.783429
+- Top-5: 0.969343
+- MRR: 0.870105
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
+Next:
+07E-1 — Temporal Order Ablation.
+

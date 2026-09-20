@@ -1,0 +1,45 @@
+{
+  "stage": "07D_01R_context_robustness_audit",
+  "created_at_utc": "2026-09-20T16:48:19.994167+00:00",
+  "git_commit": "c082907fe8dea907b873b6e61217b5cded5632b7",
+  "data_policy": {
+    "development_only": true,
+    "context_selection": false,
+    "alpha_tuning": false,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "candidate": {
+    "v1_context_days": 7,
+    "v2_context_days": 5,
+    "alpha": 0.375,
+    "seeds": [
+      11,
+      42,
+      73
+    ]
+  },
+  "bootstrap": {
+    "unit": "query_date",
+    "iterations": 2000,
+    "seed": 20260920
+  },
+  "promotion_gate": {
+    "passed": true,
+    "requirements": [
+      "Fold-B Accuracy delta > 0",
+      "Fold-B Macro-F1 delta > 0",
+      "Fold-B bootstrap P(delta Accuracy > 0) >= 0.90",
+      "Fold-B bootstrap P(delta Macro-F1 > 0) >= 0.90",
+      "Fold-B Top-5 delta >= 0",
+      "Fold-B MRR delta >= 0"
+    ]
+  },
+  "next_if_pass": "promote context=5 candidate to MACRO-LTD-V2",
+  "next_if_fail": "retain MACRO-LTD-V1 and continue targeted Macro research",
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "daily_profiles_sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053",
+    "frozen_features_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+  }
+}

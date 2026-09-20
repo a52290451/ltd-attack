@@ -58,7 +58,7 @@ T -.-> X["PARKED: Dataset C"]
 | 07A | CLOSED | LTD mejora ranking/Top-5, no Top-1/F1 robustamente |
 | 07B-1 | CLOSED | complementarity confirmed; oracle gain ~+7.7 to +7.9 pp |
 | 07B-2A | CLOSED | geometric fusion alpha=0.375; positive temporal transfer |
-| 07B-2R | ACTIVE | fixed-fusion robustness audit; no architecture tuning |
+| 07B-2R | CLOSED | fixed-fusion robustness audit; no architecture tuning |
 | INTERNAL_TEST | CLOSED DATA | abrir una sola vez tras freeze |
 | Future-B | CLOSED DATA | benchmark externo tras INTERNAL_TEST |
 | DAY-128 optimized | PARKED | rama 24h |
@@ -278,5 +278,46 @@ Status:
 07D-1 CLOSED — POSITIVE.
 
 Next:
-07D-1R ACTIVE — paired robustness audit before promotion to V2.
+07D-1R CLOSED — promotion gate passed.
+
+
+
+### MACRO-LTD-V2
+
+Status:
+FROZEN DEV MILESTONE.
+
+Difference from V1:
+- longitudinal context: 7 -> 5 site-days
+
+Unchanged:
+- BASE-128
+- XGBoost
+- LTD architecture
+- seeds [11,42,73]
+- geometric fusion alpha=0.375
+
+Fold-B DEV:
+- Accuracy: 79.80%
+- Macro-F1: 78.34%
+- Top-5: 96.93%
+- MRR: 0.8701
+
+Paired Fold-B gain vs V1:
+- Accuracy: +0.34 pp
+- Macro-F1: +0.41 pp
+- MRR: +0.18 pp
+- net correct: +63
+
+11/13 dates improve Accuracy.
+
+Next:
+07E-1 ACTIVE — Temporal Order Ablation.
+
+Question:
+Does ordered temporal information itself contribute beyond having the
+same set of five historical daily profiles?
+
+Control:
+same architecture, same capacity, same W=5, but without positional encoding.
 
