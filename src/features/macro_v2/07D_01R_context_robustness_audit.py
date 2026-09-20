@@ -201,7 +201,7 @@ def main():
         "macro_v2_07d_context",
     )
 
-    mod07a = mod07d.load_07a()
+    mod07a, source07a = mod07d.load_07a()
 
     features, frozen_path = (
         mod07a.load_frozen_features()
@@ -319,6 +319,35 @@ def main():
         pcap_uid = old[
             "pcap_uid"
         ].astype(str)
+
+        expected_uid = (
+            fold_data[
+                "test"
+            ][
+                "pcap_uid"
+            ]
+            .astype(str)
+            .to_numpy()
+        )
+
+        if not np.array_equal(
+            pcap_uid,
+            expected_uid,
+        ):
+            raise RuntimeError(
+                f"{fold}: pcap_uid alignment mismatch "
+                "between stored V1 scores and reconstructed fold."
+            )
+
+        if not np.array_equal(
+            labels,
+            fold_data[
+                "candidate_labels"
+            ].astype(str),
+        ):
+            raise RuntimeError(
+                f"{fold}: candidate-label order mismatch."
+            )
 
         # Re-run only the preselected W=5 candidate.
         result = mod07d.run_window(
