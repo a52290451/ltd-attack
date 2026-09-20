@@ -1561,3 +1561,69 @@ if confirmed, becomes MACRO-FINAL.
 INTERNAL_TEST remains closed.
 Future-B remains closed.
 
+
+
+---
+
+## F7.11 — Macro Final Freeze
+
+07G-1 tested the final prospectively allowed Macro hypothesis:
+stale-context training.
+
+Result:
+NEGATIVE.
+
+Fold A — STALE vs MACRO-LTD-V2 fusion:
+- Accuracy: -0.00491
+- Macro-F1: -0.00612
+- Top-5: -0.00174
+- MRR: -0.00361
+- net correct: -99
+
+Fold B:
+- Accuracy: -0.00263
+- Macro-F1: -0.00308
+- Top-5: -0.00236
+- MRR: -0.00148
+- net correct: -49
+
+Fold-B bootstrap intervals are below zero for all four metrics.
+
+Decision:
+
+07G-1 CLOSED — FAILED PROMOTION.
+
+The prospectively defined Macro stop rule is activated.
+
+MACRO-LTD-V2 becomes:
+
+MACRO-LTD-FINAL
+
+Frozen architecture:
+- BASE-128
+- XGBoost
+- LTDPairScorer
+- context = 5 site-days
+- ordinal sinusoidal temporal encoding
+- seeds = [11,42,73]
+- mean probability ensemble
+- geometric fusion alpha = 0.375
+
+DEV Fold-B reference:
+- Accuracy: 0.797995
+- Macro-F1: 0.783429
+- Top-5: 0.969343
+- MRR: 0.870105
+
+No additional Macro architecture search is permitted before holdout
+evaluation.
+
+The final all-DEV refit is still pending and will occur only after the
+hybrid architecture has been frozen.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
+Next:
+Phase P7 — Clean Temporal Micro.
+

@@ -342,7 +342,7 @@ Historical prototypes, recency and candidate-conditioned LTD.
 ### Phase P4 — Macro fusion — CLOSED
 Complementarity audit and geometric BASE-XGB/LTD fusion.
 
-### Phase P5 — Macro refinement — ACTIVE
+### Phase P5 — Macro refinement — CLOSED
 V1 context=7.
 V2 context=5.
 Temporal-order ablation completed.
@@ -353,10 +353,10 @@ after the explicit age/staleness experiment, continue with at most one
 additional Macro architecture hypothesis only if a concrete failure mode
 is identified prospectively. Otherwise freeze the strongest Macro milestone.
 
-### Phase P6 — Macro Final Freeze
+### Phase P6 — Macro Final Freeze — CLOSED
 Select the strongest reproducible DEV Macro architecture.
 
-### Phase P7 — Clean Micro temporal baseline
+### Phase P7 — Clean Micro temporal baseline — ACTIVE
 Rebuild Micro under the same chronological 65-site protocol.
 
 ### Phase P8 — Micro/Macro complementarity
@@ -436,4 +436,37 @@ Stop rule:
 - positive robust transfer -> candidate V3 -> robustness audit -> MACRO FINAL;
 - no robust transfer -> MACRO-LTD-V2 -> MACRO FINAL;
 - no additional Macro architecture search after this stage.
+
+
+
+### 07G-1 result
+
+Status:
+CLOSED — NEGATIVE.
+
+Stale-context training degraded MACRO-LTD-V2 in both DEV temporal folds.
+
+Decision:
+the predeclared Macro stop rule is activated.
+
+MACRO-LTD-V2 -> MACRO-LTD-FINAL.
+
+No additional Macro architecture search.
+
+## MACRO-LTD-FINAL
+
+Status:
+FROZEN DEV ARCHITECTURE.
+
+Fold-B DEV:
+- Accuracy: 79.80%
+- Macro-F1: 78.34%
+- Top-5: 96.93%
+- MRR: 0.8701
+
+Next:
+Phase P7 — Clean Temporal Micro.
+
+First stage:
+08A — Micro/Macro Capture Alignment Audit.
 
