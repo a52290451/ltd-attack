@@ -343,9 +343,14 @@ def main():
             / f"07B_01_scores_{fold}.npz"
         )
 
+        # 07B-1 stores pcap_uid metadata through pandas -> NumPy.
+        # That array is serialized as dtype=object inside the trusted,
+        # pipeline-generated NPZ artifact. Numerical score tensors remain
+        # unchanged. allow_pickle=True is therefore required only to read
+        # this internally generated metadata.
         data = np.load(
             score_path,
-            allow_pickle=False,
+            allow_pickle=True,
         )
 
         xgb_probs = data[
