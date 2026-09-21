@@ -63,5 +63,5 @@ freeze_policy:
   final_all_dev_refit_pending: false
 
 holdout_policy:
-  internal_test_opened: false
+  internal_test_opened: true
   future_b_opened: false

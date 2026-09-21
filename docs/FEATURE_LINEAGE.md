@@ -2124,3 +2124,72 @@ After that:
 
 full Historical refit and Future-B concept-drift evaluation.
 
+
+
+---
+
+## F9.2 — One-Time Historical Holdout
+
+Stage:
+09B_one_time_internal_test
+
+Status:
+CLOSED — EVALUATED ONCE.
+
+Population:
+- 14,687 captures
+- 65 sites
+- 2025-12-29 to 2026-01-08
+
+All model artifacts and input hashes were verified before numerical
+opening.
+
+Results:
+
+MICRO-FINAL:
+- Accuracy: 0.950024
+- Macro-F1: 0.948180
+- Top-5: 0.990195
+- MRR: 0.968523
+
+MACRO-XGB:
+- Accuracy: 0.824811
+- Macro-F1: 0.823591
+
+MACRO-LTD:
+- Accuracy: 0.760332
+- Macro-F1: 0.753655
+
+MACRO-LTD-FINAL:
+- Accuracy: 0.840675
+- Macro-F1: 0.839456
+- Top-5: 0.985225
+- MRR: 0.903854
+
+LTD-HYBRID-FINAL:
+- Accuracy: 0.974399
+- Macro-F1: 0.973790
+- Top-5: 0.998162
+- MRR: 0.985273
+
+Hybrid vs Micro:
+- Accuracy: +2.44 pp
+- Macro-F1: +2.56 pp
+
+Macro rescued 59.54% of Micro Top-1 errors.
+
+Fold-date bootstrap for Hybrid vs Micro was positive for Accuracy,
+Macro-F1, Top-5 and MRR.
+
+No model, feature, architecture, epoch count or fusion weight may be
+changed based on INTERNAL_TEST.
+
+INTERNAL_TEST is now permanently opened.
+
+Next:
+10A — Full Historical refit using all captures available through
+2026-01-08.
+
+Then:
+10B — Future-B Concept Drift evaluation.
+

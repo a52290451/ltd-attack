@@ -1,0 +1,44 @@
+{
+  "stage": "09B_one_time_internal_test",
+  "created_at_utc": "2026-09-21T16:37:00.734131+00:00",
+  "git_commit": "a4440751d21a9ad82dd159a70ddc203e4ad0e6ef",
+  "status": "INTERNAL_TEST_OPENED_AND_EVALUATED",
+  "population": {
+    "captures": 14687,
+    "sites": 65,
+    "date_min": "2025-12-29",
+    "date_max": "2026-01-08",
+    "date_source": "pcap_name"
+  },
+  "models": {
+    "micro": "MICRO-FINAL",
+    "macro": "MACRO-LTD-FINAL",
+    "hybrid": "LTD-HYBRID-FINAL",
+    "macro_internal_alpha": 0.375,
+    "hybrid_macro_weight": 0.55
+  },
+  "protocol": {
+    "model_selection_after_open": false,
+    "hyperparameter_changes_after_open": false,
+    "test_observations_update_ltd_context": false,
+    "ltd_history_source": "DEV-only frozen standardized site-day history",
+    "day_block_bootstrap_iterations": 2000,
+    "bootstrap_fraction_is_p_value": false
+  },
+  "data_policy": {
+    "internal_test_values_used": true,
+    "internal_test_opened": true,
+    "external_future_used": false,
+    "future_b_opened": false
+  },
+  "frozen_refit_manifest_sha256": "6160c9fe0cd3c345d7c6372a7cbaee52d477c4df1644f0845dd5f961d74804b4",
+  "outputs": {
+    "summary": "1148db53671d8d8962836e0096be400dd26f4f1d6a6261b85f26548c6b4b8b3b",
+    "complementarity": "d904542a68f029054eb4dbd2861cbfc71012461453bb8a3e265899b3f9be9290",
+    "bootstrap": "27d1d26aab91381f44bc042629e0dfc853028430ba7d1948dcde04ea2c070ec5",
+    "per_day": "ffff3dfd3273e5c46436ef3d05ee95c393d836820c0502a69a711e4f527de4c2",
+    "per_class": "a7a6e8a11f95c63588a94ccec4e6824cca5259c7d2ff117557afc43a64d56e8c",
+    "scores": "5b13d0c16bf4a2d418eddf2dbd11ffca42b5f45485d731d9b9680f5c5b69d0f3"
+  },
+  "next": "full-Historical refit followed by one-time Future-B concept-drift evaluation"
+}
