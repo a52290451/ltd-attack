@@ -1627,3 +1627,56 @@ Future-B remains closed.
 Next:
 Phase P7 — Clean Temporal Micro.
 
+
+
+---
+
+## F8.1 — Micro/Macro Capture Alignment
+
+Stage:
+08A_micro_temporal_alignment_audit
+
+Purpose:
+establish an exact capture-level bridge between frozen Macro experiments
+and the clean temporal Micro phase.
+
+Result:
+PASS.
+
+Canonical Micro source:
+historical/CLEAN_final_vectors_sites.csv
+
+Join key:
+pcap_uid
+
+Canonical 65-site population:
+72,603 captures.
+
+Coverage:
+- DEV_EARLY: 19,098 / 19,098 = 100%
+- DEV_MIDDLE: 20,160 / 20,160 = 100%
+- DEV_LATE: 18,658 / 18,658 = 100%
+- INTERNAL_TEST metadata: 14,687 / 14,687 = 100%
+
+Integrity:
+- duplicate Macro keys: 0
+- duplicate Micro keys: 0
+- label mismatches: 0
+
+Both available vector sources covered the canonical Macro population.
+
+CLEAN_final_vectors_sites.csv was selected because it is the canonical
+legacy Micro source and its 65-site row count exactly matches the current
+Macro population.
+
+cached_vectors_with_dates.csv contains additional observations and is not
+used in the canonical 08B experiment.
+
+08A read metadata only.
+
+INTERNAL_TEST vector values remain unused.
+Future-B remains closed.
+
+Next:
+08B — Clean Temporal Micro Baseline.
+

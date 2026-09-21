@@ -1,0 +1,3 @@
+source,exists,rows_total,rows_elite65,sites_elite,join_key,macro_duplicate_key_rows,vector_duplicate_key_rows,dev_coverage,internal_metadata_coverage,label_mismatch_n,payload_columns_present,payload_columns_read,eligible_for_clean_micro,status
+CLEAN_final_vectors_sites.csv,True,77685,72603,65,pcap_uid,0,0,1.0,1.0,0,"direction_vector,size_vector,time_vector",False,True,ELIGIBLE
+cached_vectors_with_dates.csv,True,133119,74812,65,pcap_uid,0,0,1.0,1.0,0,"direction_vector,size_vector,time_vector",False,True,ELIGIBLE
