@@ -1,0 +1,95 @@
+{
+  "stage": "08D_simple_probability_fusion",
+  "created_at_utc": "2026-09-21T13:55:21.887781+00:00",
+  "git_commit": "496bc763c5e9a256be7ceef7146db2553b740da1",
+  "fusion": {
+    "type": "weighted geometric probability",
+    "formula": "(1-alpha)*log(P_micro) + alpha*log(P_macro)",
+    "alpha_definition": "Macro weight",
+    "candidate_grid": [
+      0.0,
+      0.025,
+      0.05,
+      0.075,
+      0.1,
+      0.125,
+      0.15,
+      0.175,
+      0.2,
+      0.225,
+      0.25,
+      0.275,
+      0.3,
+      0.325,
+      0.35,
+      0.375,
+      0.4,
+      0.425,
+      0.45,
+      0.475,
+      0.5,
+      0.525,
+      0.55,
+      0.575,
+      0.6,
+      0.625,
+      0.65,
+      0.675,
+      0.7,
+      0.725,
+      0.75,
+      0.775,
+      0.8,
+      0.825,
+      0.85,
+      0.875,
+      0.9,
+      0.925,
+      0.95,
+      0.975,
+      1.0
+    ],
+    "selected_alpha": 0.55,
+    "selected_on": "A_EARLY_TO_MIDDLE",
+    "selection_primary": "Macro-F1",
+    "selection_secondary": "Accuracy",
+    "tie_break": "smaller Macro alpha"
+  },
+  "data_policy": {
+    "development_only": true,
+    "model_training": false,
+    "fold_b_used_for_alpha_selection": false,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "bootstrap": {
+    "unit": "query_date",
+    "iterations": 2000,
+    "seed": 20260921,
+    "fraction_delta_gt_0_is_p_value": false
+  },
+  "promotion_gate": {
+    "passed": true,
+    "requirements": [
+      "0 < alpha < 1",
+      "Fold-A fusion Accuracy >= Micro",
+      "Fold-A fusion Macro-F1 > Micro",
+      "Fold-B fusion Accuracy > Micro",
+      "Fold-B fusion Macro-F1 > Micro",
+      "Fold-B day-bootstrap positive fraction Accuracy >= 0.90",
+      "Fold-B day-bootstrap positive fraction Macro-F1 >= 0.90"
+    ]
+  },
+  "inputs": {
+    "A_EARLY_TO_MIDDLE": {
+      "micro": "d8009638a42e3dba21c0cf5fce3b1b80679f9d6348c11cf9ad5b4ff65255cd9d",
+      "macro": "730ead2d3809b3fcd7c99de805ab5e5bd76dc792e94ea7b3ad0ab35a3708b193"
+    },
+    "B_EARLY_MIDDLE_TO_LATE": {
+      "micro": "b6e9fa8ad99d89a241402fe66b76166bac0ecc7812fdf0ff1be6e503995090de",
+      "macro": "1cae431518ad3143c157c76ca229e6e5d8af9c434aa1320b52d9d7d1f9912b33"
+    }
+  },
+  "next_if_pass": "freeze simple hybrid DEV milestone and assess remaining oracle headroom before considering learned fusion",
+  "next_if_fail": "evaluate probability calibration before any learned hybrid architecture"
+}

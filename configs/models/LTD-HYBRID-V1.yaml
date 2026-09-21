@@ -1,0 +1,28 @@
+id: LTD-HYBRID-V1
+status: FROZEN_DEV_MILESTONE
+
+components:
+  micro:
+    id: MICRO-TEMPORAL-V1
+  macro:
+    id: MACRO-LTD-FINAL
+
+fusion:
+  type: weighted_geometric_probability
+  micro_weight: 0.45
+  macro_weight: 0.55
+  formula: "0.45*log(P_micro) + 0.55*log(P_macro)"
+
+selection:
+  alpha_selected_on: A_EARLY_TO_MIDDLE
+  fold_b_used_for_alpha_selection: false
+
+dev_fold_b:
+  accuracy: 0.9204630721406367
+  macro_f1: 0.9174103531483069
+  top5_accuracy: 0.9927109014899775
+  mrr: 0.9518901714726432
+
+holdout_policy:
+  internal_test_opened: false
+  future_b_opened: false

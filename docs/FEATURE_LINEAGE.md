@@ -1853,3 +1853,60 @@ Decision:
 Next:
 08D — simple probability-level Micro/Macro fusion.
 
+
+
+---
+
+## F8.4 — LTD-HYBRID-V1
+
+Stage:
+08D_simple_probability_fusion
+
+Components:
+- MICRO-TEMPORAL-V1
+- MACRO-LTD-FINAL
+
+Fusion:
+weighted geometric probability.
+
+Alpha:
+- Micro weight: 0.45
+- Macro weight: 0.55
+
+Alpha was selected exclusively on Fold A.
+
+Fold A:
+- Accuracy: 0.874802
+- Macro-F1: 0.863938
+- Top-5: 0.958185
+- MRR: 0.912906
+- Accuracy gain over Micro: +9.94 pp
+
+Fold B temporal transfer:
+- Accuracy: 0.920463
+- Macro-F1: 0.917410
+- Top-5: 0.992711
+- MRR: 0.951890
+- Accuracy gain over Micro: +5.72 pp
+- Macro-F1 gain over Micro: +5.99 pp
+
+Fold-B day-block bootstrap:
+Accuracy, Macro-F1, Top-5 and MRR all show positive intervals.
+
+Decision:
+08D PASSED.
+
+LTD-HYBRID-V1 is frozen as a DEV milestone.
+
+Important:
+the Top-1 union oracle from 08C is not a mathematical upper bound on
+probability fusion. A hybrid may correct samples even when both branch
+Top-1 predictions are wrong, if their ranked probability distributions
+contain complementary evidence.
+
+Next:
+08E — Residual Hybrid Headroom Audit.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
