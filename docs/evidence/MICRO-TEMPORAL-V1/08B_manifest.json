@@ -1,0 +1,68 @@
+{
+  "stage": "08B_clean_temporal_micro_baseline",
+  "created_at_utc": "2026-09-21T10:20:26.966034+00:00",
+  "git_commit": "a39bf9b12ea76a6467145f44e183f1513b1570f9",
+  "source": {
+    "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_vectors_sites.csv",
+    "sha256": "a8a88041c44e5627e126e2c29c7e068b17c8598a0b01c63a5ff1cd3105c2c7c9",
+    "join_key": "pcap_uid",
+    "sites": 65,
+    "max_sequence_length": 3000,
+    "date_metadata": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+      "join_key": "pcap_uid",
+      "payload_used": false
+    }
+  },
+  "architecture": {
+    "name": "legacy multimodal direction+size Transformer",
+    "direction": "Embedding(3,256)",
+    "size": "Linear(1,256)",
+    "fusion": "Linear(512,256)",
+    "local": "Conv1d kernel=7 stride=2",
+    "transformer_layers": 4,
+    "heads": 8,
+    "d_model": 256,
+    "pooling": "mean+max",
+    "classes": 65
+  },
+  "training": {
+    "seed": 42,
+    "selected_epoch": 30,
+    "epoch_selection": "chronological validation using last 20% of DEV_EARLY dates only; primary Macro-F1, secondary Accuracy",
+    "learning_rate": 0.0002,
+    "weight_decay": 0.01,
+    "label_smoothing": 0.1,
+    "size_scaling": "fold-specific min/max fitted on training captures only"
+  },
+  "temporal_folds": [
+    {
+      "fold": "A_EARLY_TO_MIDDLE",
+      "train_splits": [
+        "DEV_EARLY"
+      ],
+      "test_split": "DEV_MIDDLE"
+    },
+    {
+      "fold": "B_EARLY_MIDDLE_TO_LATE",
+      "train_splits": [
+        "DEV_EARLY",
+        "DEV_MIDDLE"
+      ],
+      "test_split": "DEV_LATE"
+    }
+  ],
+  "data_policy": {
+    "development_only": true,
+    "test_fold_used_for_epoch_selection": false,
+    "internal_test_vector_values_used": false,
+    "external_future_used": false,
+    "random_capture_split": false
+  },
+  "checkpoints": {
+    "A_EARLY_TO_MIDDLE": "c14cce4447ad769cb4c72073556ba8d0ad476e9f21df824c89da0f63c1b72bc4",
+    "B_EARLY_MIDDLE_TO_LATE": "c233005b5e0180ea95ade06bc2bfc689e6051fc51d4e5c00afa5d2ae925dd404"
+  },
+  "next": "08C Micro/Macro complementarity audit using exact pcap_uid-aligned predictions"
+}

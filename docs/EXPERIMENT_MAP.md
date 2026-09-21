@@ -356,10 +356,10 @@ is identified prospectively. Otherwise freeze the strongest Macro milestone.
 ### Phase P6 — Macro Final Freeze — CLOSED — CLOSED
 Select the strongest reproducible DEV Macro architecture.
 
-### Phase P7 — Clean Micro temporal baseline — ACTIVE — ACTIVE
+### Phase P7 — Clean Micro temporal baseline — CLOSED — ACTIVE
 Rebuild Micro under the same chronological 65-site protocol.
 
-### Phase P8 — Micro/Macro complementarity
+### Phase P8 — Micro/Macro complementarity — ACTIVE
 Measure both-correct, Micro-only, Macro-only, oracle union, ranks and rescues.
 
 ### Phase P9 — Hybrid development
@@ -469,4 +469,34 @@ Phase P7 — Clean Temporal Micro.
 
 First stage:
 08A — Micro/Macro Capture Alignment Audit.
+
+
+
+### 08B result
+
+Status:
+CLOSED — CLEAN TEMPORAL MICRO BASELINE ESTABLISHED.
+
+Fold A:
+- Accuracy 77.54%
+- Macro-F1 76.55%
+
+Fold B:
+- Accuracy 86.32%
+- Macro-F1 85.75%
+- Top-5 98.27%
+- MRR 0.9146
+
+Micro is stronger than MACRO-LTD-FINAL as a standalone classifier.
+
+This does not answer whether the Macro representation contains
+complementary information.
+
+Next:
+
+08C ACTIVE — exact capture-level Micro/Macro complementarity audit.
+
+No model training.
+No fusion tuning.
+No holdout access.
 

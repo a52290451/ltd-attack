@@ -1680,3 +1680,102 @@ Future-B remains closed.
 Next:
 08B — Clean Temporal Micro Baseline.
 
+
+
+---
+
+## F8.2 — Clean Temporal Micro Baseline
+
+Stage:
+08B_clean_temporal_micro_baseline
+
+Source:
+historical/CLEAN_final_vectors_sites.csv
+
+Canonical bridge:
+pcap_uid.
+
+Population:
+- 65 sites
+- DEV: 57,916 captures
+
+Architecture:
+legacy multimodal direction+size Transformer retained as the Micro
+architectural baseline.
+
+Inputs:
+- direction_vector
+- size_vector
+- maximum sequence length: 3000 packets
+
+Temporal protocol:
+
+Fold A:
+DEV_EARLY -> DEV_MIDDLE
+
+Fold B:
+DEV_EARLY + DEV_MIDDLE -> DEV_LATE
+
+Epoch selection:
+
+Performed exclusively inside DEV_EARLY.
+
+Chronological calibration:
+- first 11 EARLY dates: training
+- final 3 EARLY dates: validation
+
+Primary selection metric:
+Macro-F1.
+
+Selected epoch:
+30.
+
+Temporal results:
+
+Fold A:
+- Accuracy: 0.775397
+- Macro-F1: 0.765474
+- Top-5: 0.957986
+- MRR: 0.855649
+
+Fold B:
+- Accuracy: 0.863222
+- Macro-F1: 0.857515
+- Top-5: 0.982742
+- MRR: 0.914639
+
+Comparison with MACRO-LTD-FINAL:
+
+Fold A Micro advantage:
+- Accuracy: +2.94 pp
+- Macro-F1: +3.01 pp
+
+Fold B Micro advantage:
+- Accuracy: +6.52 pp
+- Macro-F1: +7.41 pp
+
+Interpretation:
+
+Micro is the stronger standalone classifier under the clean temporal
+protocol.
+
+This does NOT determine whether Macro is redundant.
+
+The next question is capture-level error complementarity between
+MICRO-TEMPORAL-V1 and MACRO-LTD-FINAL.
+
+Minor logging note:
+
+The terminal evaluated epoch 40 during EARLY calibration, while the
+stored curve ends at epoch 39 because the early-stopping break occurs
+before appending the final row. This does not affect selected epoch 30
+or any trained Fold-A/Fold-B model.
+
+INTERNAL_TEST numerical/vector values were not used for training,
+epoch selection or evaluation.
+
+Future-B remains closed.
+
+Next:
+08C — Micro/Macro Complementarity Audit.
+
