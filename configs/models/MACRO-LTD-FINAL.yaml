@@ -60,7 +60,7 @@ selection_history:
 freeze_policy:
   architecture_frozen: true
   additional_macro_architecture_search: false
-  final_all_dev_refit_pending: true
+  final_all_dev_refit_pending: false
 
 holdout_policy:
   internal_test_opened: false

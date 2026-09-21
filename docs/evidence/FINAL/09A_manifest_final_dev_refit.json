@@ -1,0 +1,104 @@
+{
+  "stage": "09A_refit_final_dev_models",
+  "created_at_utc": "2026-09-21T16:00:26.035733+00:00",
+  "git_commit": "afd29a27fcfedd8333d1340425c459f28ecb9425",
+  "training_population": {
+    "splits": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "captures": 57916,
+    "sites": 65
+  },
+  "micro_final": {
+    "epochs": 30,
+    "seed": 42,
+    "size_min": 0.0,
+    "size_max": 13098.0,
+    "fit_seconds": 2080.5617347439984
+  },
+  "macro_final": {
+    "base": "XGBoost",
+    "context_days": 5,
+    "ltd_seeds": [
+      11,
+      42,
+      73
+    ],
+    "ltd_ensemble": "mean softmax probability",
+    "internal_macro_fusion_alpha": 0.375,
+    "skipped_causal_training_dates": [
+      "2025-11-18",
+      "2025-11-19",
+      "2025-11-20",
+      "2025-11-21",
+      "2025-11-22",
+      "2025-11-23",
+      "2025-11-24"
+    ]
+  },
+  "hybrid_final": {
+    "type": "weighted geometric probability",
+    "micro_weight": 0.45,
+    "macro_weight": 0.55
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false,
+    "source_files_may_physically_contain_internal_rows": true,
+    "internal_rows_used_in_model_computation": false
+  },
+  "inputs": {
+    "historical_macro": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "temporal_assignments": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/01_temporal_split_assignments.csv",
+      "sha256": "d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+    },
+    "daily_profiles": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06C_daily_base_profiles.csv",
+      "sha256": "d3f95f9bfc46769e56e4b5d2b5ca685ae24ca932e2b04ba2cd45f52f457ce053"
+    },
+    "frozen_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    }
+  },
+  "artifacts": {
+    "micro_checkpoint": {
+      "path": "/home/bsierra/ltd-storage/artifacts/final/DEV-FINAL/MICRO-FINAL_DEV.pth",
+      "sha256": "70a5c651c1fcfd9f37cd01175a3b36145317e8b320e43ba802fb77e69747a987"
+    },
+    "macro_xgb": {
+      "path": "/home/bsierra/ltd-storage/artifacts/final/DEV-FINAL/MACRO-FINAL_XGB_DEV.joblib",
+      "sha256": "b36832a7268d2a8527e670b5c905a437a6171bded8d0694c9e241c22a3fb3c3f"
+    },
+    "macro_ltd_preprocessing": {
+      "path": "/home/bsierra/ltd-storage/artifacts/final/DEV-FINAL/MACRO-FINAL_LTD_PREPROCESSING_DEV.joblib",
+      "sha256": "178e01336b533de4e38e1ac2be6da9507e0e0f64c4dd57c26926d0865de93ff4"
+    },
+    "macro_daily_history": {
+      "path": "/home/bsierra/ltd-storage/results/final/DEV-FINAL/09A_macro_standardized_daily_history.csv",
+      "sha256": "28267e7fd22c6301b890a6daf5e761d342adde6d96370ac42979c0baa3ed8df5"
+    },
+    "macro_ltd_checkpoints": [
+      {
+        "path": "/home/bsierra/ltd-storage/artifacts/final/DEV-FINAL/MACRO-FINAL_LTD_seed11_DEV.pth",
+        "sha256": "025d14dba0b71d360157ac3ce91c19bf905e2e3a9b7a69d8523d11450afa2db3"
+      },
+      {
+        "path": "/home/bsierra/ltd-storage/artifacts/final/DEV-FINAL/MACRO-FINAL_LTD_seed42_DEV.pth",
+        "sha256": "7c323d56a88cbd04b2481e7c77129f24942c7543ee81220fb66d09474be575ee"
+      },
+      {
+        "path": "/home/bsierra/ltd-storage/artifacts/final/DEV-FINAL/MACRO-FINAL_LTD_seed73_DEV.pth",
+        "sha256": "17ff199d00de32d1ebefc797defbe1cd0bc58fb71b7325bb2190d2ac28a79953"
+      }
+    ]
+  },
+  "next": "09B one-time INTERNAL_TEST evaluation after artifact verification"
+}
