@@ -1,0 +1,121 @@
+{
+  "stage": "08G_residual_candidate_reranker",
+  "created_at_utc": "2026-09-21T15:12:18.393645+00:00",
+  "git_commit": "c46afda07b93b7a5d360c7de13f424b84ad97749",
+  "reference": "LTD-HYBRID-V1",
+  "model": {
+    "type": "shared linear residual candidate reranker",
+    "candidate_identity_features": false,
+    "site_specific_parameters": false,
+    "manual_site_rules": false,
+    "feature_count": 24,
+    "features": [
+      "micro_log_gap",
+      "macro_log_gap",
+      "fixed_log_gap",
+      "micro_z",
+      "macro_z",
+      "fixed_z",
+      "micro_reciprocal_rank",
+      "macro_reciprocal_rank",
+      "fixed_reciprocal_rank",
+      "micro_top1",
+      "macro_top1",
+      "fixed_top1",
+      "micro_top3",
+      "macro_top3",
+      "fixed_top3",
+      "micro_top5",
+      "macro_top5",
+      "fixed_top5",
+      "both_branch_top5",
+      "reciprocal_rank_product",
+      "reciprocal_rank_absdiff",
+      "rank_agreement",
+      "z_sum",
+      "z_absdiff"
+    ],
+    "base_score": "log probability from LTD-HYBRID-V1",
+    "objective": "listwise 65-class cross-entropy",
+    "regularization_l2": 0.001,
+    "hyperparameter_search": false
+  },
+  "protocol": {
+    "inner_fold_a_train_dates": [
+      "2025-12-02",
+      "2025-12-03",
+      "2025-12-04",
+      "2025-12-05",
+      "2025-12-06",
+      "2025-12-07",
+      "2025-12-08"
+    ],
+    "inner_fold_a_validation_dates": [
+      "2025-12-09",
+      "2025-12-10",
+      "2025-12-11",
+      "2025-12-12",
+      "2025-12-13",
+      "2025-12-14",
+      "2025-12-15"
+    ],
+    "final_reranker_fit": "all Fold-A predictions",
+    "fold_b_used_for_training": false,
+    "fold_b_used_for_feature_selection": false
+  },
+  "inner_validation": {
+    "fixed": {
+      "accuracy": 0.8513916500994035,
+      "macro_f1": 0.8312907763577778,
+      "top5_accuracy": 0.9398608349900597,
+      "mrr": 0.8927229481993204,
+      "mean_true_rank": 2.4619284294234594
+    },
+    "reranker": {
+      "accuracy": 0.8562624254473161,
+      "macro_f1": 0.8435267086237285,
+      "top5_accuracy": 0.9516898608349901,
+      "mrr": 0.899850656889882,
+      "mean_true_rank": 2.0099403578528827
+    },
+    "delta": {
+      "accuracy": 0.0048707753479125815,
+      "macro_f1": 0.012235932265950655,
+      "top5_accuracy": 0.011829025844930396,
+      "mrr": 0.007127708690561563
+    }
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "promotion_gate": {
+    "passed": false,
+    "requirements": [
+      "Inner Fold-A validation Accuracy delta > 0",
+      "Inner Fold-A validation Macro-F1 delta > 0",
+      "Fold-B Accuracy > LTD-HYBRID-V1",
+      "Fold-B Macro-F1 > LTD-HYBRID-V1",
+      "Fold-B Top-5 delta >= -0.001",
+      "Fold-B MRR >= LTD-HYBRID-V1",
+      "Fold-B bootstrap positive fraction Accuracy >= 0.90",
+      "Fold-B bootstrap positive fraction Macro-F1 >= 0.90"
+    ]
+  },
+  "stop_rule": {
+    "if_pass": "promote reranker candidate and freeze HYBRID-FINAL",
+    "if_fail": "LTD-HYBRID-V1 becomes HYBRID-FINAL",
+    "additional_dev_hybrid_architecture_search": false
+  },
+  "inputs": {
+    "A_EARLY_TO_MIDDLE": {
+      "path": "/home/bsierra/ltd-storage/results/hybrid/LTD-HYBRID-DEV/08D_scores_A_EARLY_TO_MIDDLE.npz",
+      "sha256": "a709fe4d655465c7d240ea9a24db667a19966f84015dbf13f881b926bed0a4cd"
+    },
+    "B_EARLY_MIDDLE_TO_LATE": {
+      "path": "/home/bsierra/ltd-storage/results/hybrid/LTD-HYBRID-DEV/08D_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+      "sha256": "6ecc872bc3ae4dfd45d398bc167b4568d4ba1e8957395e4bb75d20b19caa42e0"
+    }
+  }
+}

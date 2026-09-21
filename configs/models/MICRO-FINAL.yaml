@@ -1,0 +1,42 @@
+id: MICRO-FINAL
+status: FROZEN_DEV_ARCHITECTURE
+
+source_model:
+  id: MICRO-TEMPORAL-V1
+
+input:
+  direction_vector: true
+  size_vector: true
+  max_sequence_length: 3000
+
+architecture:
+  direction_embedding_dim: 256
+  size_projection_dim: 256
+  fusion_dim: 256
+  convolution:
+    kernel_size: 7
+    stride: 2
+  transformer:
+    layers: 4
+    heads: 8
+    d_model: 256
+  pooling:
+    - mean
+    - max
+  classes: 65
+
+training:
+  epochs: 30
+  seed: 42
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  label_smoothing: 0.1
+
+freeze_policy:
+  architecture_frozen: true
+  hyperparameters_frozen: true
+  final_all_dev_refit_pending: true
+
+holdout_policy:
+  internal_test_opened: false
+  future_b_opened: false

@@ -2047,3 +2047,80 @@ No additional DEV hybrid architecture search after 08G.
 INTERNAL_TEST remains closed.
 Future-B remains closed.
 
+
+
+---
+
+## F8.7 — Hybrid Final Freeze
+
+08G tested the final predeclared DEV Hybrid architecture candidate:
+a shared candidate-level residual reranker.
+
+Inner Fold-A temporal validation was positive.
+
+However, Fold-B temporal transfer was negative:
+
+- Accuracy: -0.003752
+- Macro-F1: -0.004266
+- Top-5: -0.002519
+- MRR: -0.003369
+- net correct: -70
+
+Fold-B day-block bootstrap intervals were entirely negative for all
+four metrics.
+
+Decision:
+
+08G CLOSED — FAILED PROMOTION.
+
+The predeclared Hybrid stop rule is activated.
+
+LTD-HYBRID-V1 becomes:
+
+LTD-HYBRID-FINAL
+
+Frozen final Hybrid:
+
+MICRO-FINAL
++
+MACRO-LTD-FINAL
++
+weighted geometric probability fusion
+
+Micro weight:
+0.45
+
+Macro weight:
+0.55
+
+Fold-B DEV reference:
+
+- Accuracy: 0.920463
+- Macro-F1: 0.917410
+- Top-5: 0.992711
+- MRR: 0.951890
+
+Rejected DEV refinements:
+
+- 08F adaptive query-level alpha
+- 08G candidate residual reranker
+
+No additional DEV Hybrid architecture search is permitted.
+
+Next:
+
+09A — all-DEV component refit.
+
+09A does not evaluate INTERNAL_TEST.
+
+After artifact verification:
+
+09B — one-time INTERNAL_TEST evaluation of:
+- MICRO-FINAL
+- MACRO-LTD-FINAL
+- LTD-HYBRID-FINAL
+
+After that:
+
+full Historical refit and Future-B concept-drift evaluation.
+
