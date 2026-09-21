@@ -1779,3 +1779,77 @@ Future-B remains closed.
 Next:
 08C — Micro/Macro Complementarity Audit.
 
+
+
+---
+
+## F8.3 — Micro/Macro Complementarity
+
+Stage:
+08C_micro_macro_complementarity_audit
+
+Models:
+- MICRO-TEMPORAL-V1
+- MACRO-LTD-FINAL
+
+Method:
+exact pcap_uid paired predictions.
+
+No model training.
+No fusion tuning.
+
+Fold A:
+
+- Micro Accuracy: 0.775397
+- Macro Accuracy: 0.746032
+- both correct: 12,552
+- Micro-only correct: 3,080
+- Macro-only correct: 2,488
+- both wrong: 2,040
+- oracle Accuracy: 0.898810
+- oracle gain over Micro: +12.34 pp
+- Macro rescue rate among Micro errors: 54.95%
+
+Fold B:
+
+- Micro Accuracy: 0.863222
+- Macro Accuracy: 0.797995
+- both correct: 13,529
+- Micro-only correct: 2,577
+- Macro-only correct: 1,360
+- both wrong: 1,192
+- oracle Accuracy: 0.936113
+- oracle gain over Micro: +7.29 pp
+- Macro rescue rate among Micro errors: 53.29%
+
+Probability/ranking evidence:
+
+Fold B prediction agreement:
+0.7403.
+
+Fold B true-class probability correlation:
+0.3623.
+
+Fold B Macro rank is better than Micro rank in 66.97% of
+Micro-error captures.
+
+Interpretation:
+
+MACRO-LTD-FINAL is not redundant with MICRO-TEMPORAL-V1.
+
+Despite lower standalone Accuracy, Macro correctly identifies more than
+half of the captures misclassified by Micro in both temporal folds.
+
+The large oracle headroom provides direct justification for a hybrid
+classifier.
+
+Oracle performance is not deployable and must not be reported as final
+hybrid performance.
+
+Decision:
+
+08C CLOSED — STRONG COMPLEMENTARITY CONFIRMED.
+
+Next:
+08D — simple probability-level Micro/Macro fusion.
+

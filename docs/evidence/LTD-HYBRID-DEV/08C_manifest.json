@@ -1,0 +1,50 @@
+{
+  "stage": "08C_micro_macro_complementarity_audit",
+  "created_at_utc": "2026-09-21T10:54:20.415685+00:00",
+  "git_commit": "a401f0e8b3cba697adfc0d6d848b41e11c7224be",
+  "models": {
+    "micro": "MICRO-TEMPORAL-V1",
+    "macro": "MACRO-LTD-FINAL"
+  },
+  "method": {
+    "pairing": "exact pcap_uid",
+    "candidate_alignment": "explicit label-based probability-column alignment",
+    "oracle_definition": "correct if either Micro or Macro predicts the true class",
+    "oracle_is_deployable_model": false,
+    "fusion_tuning": false,
+    "model_training": false
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "primary_questions": [
+    "How often does MACRO-LTD-FINAL rescue errors made by MICRO-TEMPORAL-V1?",
+    "What is the oracle union headroom above the stronger standalone model?",
+    "Are the true-class ranks and errors sufficiently different to justify fusion?"
+  ],
+  "inputs": {
+    "A_EARLY_TO_MIDDLE": {
+      "micro_scores": {
+        "path": "/home/bsierra/ltd-storage/results/micro/MICRO-TEMPORAL-V1/08B_scores_A_EARLY_TO_MIDDLE.npz",
+        "sha256": "d8009638a42e3dba21c0cf5fce3b1b80679f9d6348c11cf9ad5b4ff65255cd9d"
+      },
+      "macro_scores": {
+        "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07D_01R_scores_A_EARLY_TO_MIDDLE.npz",
+        "sha256": "730ead2d3809b3fcd7c99de805ab5e5bd76dc792e94ea7b3ad0ab35a3708b193"
+      }
+    },
+    "B_EARLY_MIDDLE_TO_LATE": {
+      "micro_scores": {
+        "path": "/home/bsierra/ltd-storage/results/micro/MICRO-TEMPORAL-V1/08B_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+        "sha256": "b6e9fa8ad99d89a241402fe66b76166bac0ecc7812fdf0ff1be6e503995090de"
+      },
+      "macro_scores": {
+        "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/07D_01R_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+        "sha256": "1cae431518ad3143c157c76ca229e6e5d8af9c434aa1320b52d9d7d1f9912b33"
+      }
+    }
+  },
+  "next": "08D simple probability-level Micro/Macro fusion using DEV-only protocol"
+}

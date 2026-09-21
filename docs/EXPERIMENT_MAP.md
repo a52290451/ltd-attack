@@ -500,3 +500,39 @@ No model training.
 No fusion tuning.
 No holdout access.
 
+
+
+### 08C result
+
+Status:
+CLOSED — STRONG COMPLEMENTARITY CONFIRMED.
+
+Fold B:
+- Micro Accuracy: 86.32%
+- Macro Accuracy: 79.80%
+- Oracle union: 93.61%
+- Oracle headroom over Micro: +7.29 pp
+- Macro rescues 53.29% of Micro errors
+
+Fold A:
+- Oracle headroom over Micro: +12.34 pp
+- Macro rescues 54.95% of Micro errors
+
+Conclusion:
+Micro and Macro contain strongly complementary classification information.
+
+### 08D ACTIVE — Simple Probability Fusion
+
+Rule:
+weighted geometric probability fusion.
+
+Selection:
+alpha chosen only on Fold A.
+
+Transfer:
+selected alpha applied unchanged to Fold B.
+
+No new model training.
+No class-specific gating.
+No neural meta-model.
+
