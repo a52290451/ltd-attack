@@ -353,10 +353,10 @@ after the explicit age/staleness experiment, continue with at most one
 additional Macro architecture hypothesis only if a concrete failure mode
 is identified prospectively. Otherwise freeze the strongest Macro milestone.
 
-### Phase P6 — Macro Final Freeze — CLOSED
+### Phase P6 — Macro Final Freeze — CLOSED — CLOSED
 Select the strongest reproducible DEV Macro architecture.
 
-### Phase P7 — Clean Micro temporal baseline — ACTIVE
+### Phase P7 — Clean Micro temporal baseline — ACTIVE — ACTIVE
 Rebuild Micro under the same chronological 65-site protocol.
 
 ### Phase P8 — Micro/Macro complementarity
