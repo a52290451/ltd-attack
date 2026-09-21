@@ -44,6 +44,13 @@ SOURCE = Path(
     )
 )
 
+DATE_METADATA_SOURCE = Path(
+    data_path(
+        "historical",
+        "CLEAN_final_features_sites.csv",
+    )
+)
+
 ASSIGNMENTS = Path(
     result_path(
         "feature_engineering",
@@ -337,20 +344,145 @@ def load_dev_vectors():
             "Micro site population mismatch."
         )
 
-    df[
+    # -----------------------------------------------------
+    # Capture dates are authoritative Macro metadata.
+    #
+    # CLEAN_final_vectors_sites.csv is the canonical Micro
+    # payload source but does not necessarily contain
+    # date_id / pcap_name.
+    #
+    # pcap_uid is the audited 1:1 bridge established in 08A.
+    # Only metadata columns are read from the Macro source.
+    # -----------------------------------------------------
+
+    date_header = pd.read_csv(
+        DATE_METADATA_SOURCE,
+        nrows=0,
+    ).columns.tolist()
+
+    date_columns = [
+        "pcap_uid",
+    ]
+
+    for candidate in [
+        "date_id",
+        "pcap_name",
+    ]:
+        if candidate in date_header:
+            date_columns.append(
+                candidate
+            )
+
+    if len(
+        date_columns
+    ) == 1:
+        raise RuntimeError(
+            "Canonical Macro metadata contains neither "
+            "date_id nor pcap_name."
+        )
+
+    date_chunks = []
+
+    for chunk in pd.read_csv(
+        DATE_METADATA_SOURCE,
+        usecols=date_columns,
+        chunksize=4000,
+    ):
+
+        chunk[
+            "pcap_uid"
+        ] = (
+            chunk[
+                "pcap_uid"
+            ].astype(str)
+        )
+
+        keep = (
+            chunk[
+                "pcap_uid"
+            ].isin(
+                dev_ids
+            )
+        )
+
+        if keep.any():
+            date_chunks.append(
+                chunk.loc[
+                    keep
+                ].copy()
+            )
+
+    if not date_chunks:
+        raise RuntimeError(
+            "No DEV date metadata was recovered."
+        )
+
+    date_meta = pd.concat(
+        date_chunks,
+        ignore_index=True,
+    )
+
+    if date_meta[
+        "pcap_uid"
+    ].duplicated().any():
+        raise RuntimeError(
+            "Duplicate pcap_uid in canonical date metadata."
+        )
+
+    if len(
+        date_meta
+    ) != len(
+        dev_assign
+    ):
+        raise RuntimeError(
+            "DEV date metadata coverage mismatch: "
+            f"{len(date_meta)} != {len(dev_assign)}"
+        )
+
+    date_meta[
         "_date"
     ] = (
         extract_capture_dates(
-            df
+            date_meta
         )
+    )
+
+    if date_meta[
+        "_date"
+    ].isna().any():
+        raise RuntimeError(
+            "Missing canonical capture date."
+        )
+
+    df = df.merge(
+        date_meta[
+            [
+                "pcap_uid",
+                "_date",
+            ]
+        ],
+        on="pcap_uid",
+        how="left",
+        validate="one_to_one",
     )
 
     if df[
         "_date"
     ].isna().any():
         raise RuntimeError(
-            "Missing capture date."
+            "Micro/Macro date bridge produced missing dates."
         )
+
+    print(
+        "Capture dates joined from canonical Macro metadata."
+    )
+
+    print(
+        "Date range:",
+        df["_date"].min(),
+        "->",
+        df["_date"].max(),
+    )
 
     labels = np.array(
         sorted(
@@ -1727,6 +1859,24 @@ def main():
 
             "max_sequence_length":
                 MAX_LEN,
+
+            "date_metadata": {
+                "path":
+                    str(
+                        DATE_METADATA_SOURCE
+                    ),
+
+                "sha256":
+                    sha256(
+                        DATE_METADATA_SOURCE
+                    ),
+
+                "join_key":
+                    "pcap_uid",
+
+                "payload_used":
+                    False,
+            },
         },
 
         "architecture": {
