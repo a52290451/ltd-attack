@@ -536,3 +536,31 @@ No new model training.
 No class-specific gating.
 No neural meta-model.
 
+
+
+### 08E result
+
+Status:
+CLOSED — RESIDUAL STRUCTURE CONFIRMED.
+
+Fold B:
+- LTD-HYBRID-V1 Accuracy: 92.05%
+- Hybrid errors: 1,484
+- any-alpha oracle: 95.27%
+- union Top-2: 97.35%
+- union Top-3: 98.60%
+- union Top-5: 99.53%
+- 40.57% of Hybrid errors recoverable by some scalar alpha
+- 80.93% of Hybrid errors occur during Micro/Macro disagreement
+
+Decision:
+
+08F ACTIVE — low-DOF query-adaptive alpha gate.
+
+Predeclared follow-up:
+
+08G — one final candidate-level learned reranker, justified by the
+large gap between scalar-alpha headroom and candidate-ranking headroom.
+
+No manual class-specific rules.
+

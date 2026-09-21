@@ -1,0 +1,29 @@
+{
+  "stage": "08E_residual_hybrid_headroom_audit",
+  "created_at_utc": "2026-09-21T14:43:42.382647+00:00",
+  "git_commit": "4a738bf4f76097f7abe5f4c4d75a6cd016596cd3",
+  "reference": "LTD-HYBRID-V1",
+  "selected_alpha": 0.55,
+  "analysis": {
+    "model_training": false,
+    "fusion_selection": false,
+    "per_query_alpha_oracle": "diagnostic only; uses true labels to determine whether any predeclared alpha would have been correct",
+    "topk_union": "diagnostic only"
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "inputs": {
+    "A_EARLY_TO_MIDDLE": {
+      "path": "/home/bsierra/ltd-storage/results/hybrid/LTD-HYBRID-DEV/08D_scores_A_EARLY_TO_MIDDLE.npz",
+      "sha256": "a709fe4d655465c7d240ea9a24db667a19966f84015dbf13f881b926bed0a4cd"
+    },
+    "B_EARLY_MIDDLE_TO_LATE": {
+      "path": "/home/bsierra/ltd-storage/results/hybrid/LTD-HYBRID-DEV/08D_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+      "sha256": "6ecc872bc3ae4dfd45d398bc167b4568d4ba1e8957395e4bb75d20b19caa42e0"
+    }
+  },
+  "next": "Decide prospectively whether residual structure justifies one learned/calibrated fusion stage."
+}

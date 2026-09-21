@@ -1910,3 +1910,63 @@ Next:
 INTERNAL_TEST remains closed.
 Future-B remains closed.
 
+
+
+---
+
+## F8.5 — Residual Hybrid Headroom
+
+Stage:
+08E_residual_hybrid_headroom_audit
+
+Reference:
+LTD-HYBRID-V1
+
+No model training.
+No fusion selection.
+
+Fold B:
+
+- Hybrid Accuracy: 0.920463
+- Hybrid errors: 1,484
+- Top-1 Micro/Macro union oracle: 0.936113
+- Any-alpha-grid oracle: 0.952728
+- Union Top-2 diagnostic: 0.973523
+- Union Top-3 diagnostic: 0.985958
+- Union Top-5 diagnostic: 0.995284
+
+Residual structure:
+
+- 602 / 1,484 Hybrid errors are recoverable by at least one alpha
+  from the already-defined scalar fusion grid.
+- Recoverable rate: 40.57%.
+- 80.93% of Hybrid errors occur when Micro and Macro disagree.
+- Among Hybrid-error / branch-disagreement cases, an alternative alpha
+  would be correct in approximately 50% of observations.
+- 90.84% of Hybrid errors still contain the true class within Hybrid Top-5.
+
+Interpretation:
+
+The residual error is not purely information absence.
+
+A substantial fraction reflects query-dependent branch reliability.
+
+A low-degree-of-freedom adaptive alpha gate is therefore justified.
+
+However, scalar-alpha fusion has a diagnostic ceiling near 95.27% on
+Fold B, while Micro/Macro ranking information places the true class in
+the union Top-3 for 98.60% and union Top-5 for 99.53%.
+
+Therefore:
+
+08F will test adaptive scalar fusion.
+
+A single final candidate-level reranking stage (08G) is predeclared
+after 08F because the scalar family cannot exploit all available
+candidate-ranking information.
+
+No manual site-specific rules are permitted.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+
