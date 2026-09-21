@@ -1,0 +1,92 @@
+{
+  "stage": "10A_refit_full_historical",
+  "created_at_utc": "2026-09-21T20:27:49.373844+00:00",
+  "git_commit": "f2943fafc39d2de112b7a9005c97133154212fd0",
+  "population": {
+    "captures": 72603,
+    "sites": 65,
+    "date_min": "2025-11-18",
+    "date_max": "2026-01-08"
+  },
+  "frozen_configuration": {
+    "micro_epochs": 30,
+    "micro_seed": 42,
+    "macro_context_days": 5,
+    "macro_ltd_seeds": [
+      11,
+      42,
+      73
+    ],
+    "macro_internal_alpha": 0.375,
+    "hybrid_micro_weight": 0.45,
+    "hybrid_macro_weight": 0.55
+  },
+  "macro_causal_training": {
+    "skipped_dates": [
+      "2025-11-18",
+      "2025-11-19",
+      "2025-11-20",
+      "2025-11-21",
+      "2025-11-22",
+      "2025-11-23",
+      "2025-11-24"
+    ]
+  },
+  "data_policy": {
+    "internal_test_previously_evaluated": true,
+    "internal_test_now_in_training_population": true,
+    "future_values_used": false,
+    "hyperparameter_tuning": false
+  },
+  "inputs": {
+    "historical_macro": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "historical_micro": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_vectors_sites.csv",
+      "sha256": "a8a88041c44e5627e126e2c29c7e068b17c8598a0b01c63a5ff1cd3105c2c7c9"
+    },
+    "frozen_features": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    }
+  },
+  "artifacts": {
+    "micro_checkpoint": {
+      "path": "/home/bsierra/ltd-storage/artifacts/final/HISTORICAL-FINAL/MICRO-FINAL_HISTORICAL.pth",
+      "sha256": "b229351757f04a6bbb2c1b28a161bfd7c7f60e527817f629c991ca69bb03efb3"
+    },
+    "macro_xgb": {
+      "path": "/home/bsierra/ltd-storage/artifacts/final/HISTORICAL-FINAL/MACRO-FINAL_XGB_HISTORICAL.joblib",
+      "sha256": "f322093ba90f824b8921cb84f6a2563574a133a22b67f4d29880cace7c019a97"
+    },
+    "macro_ltd_preprocessing": {
+      "path": "/home/bsierra/ltd-storage/artifacts/final/HISTORICAL-FINAL/MACRO-FINAL_LTD_PREPROCESSING_HISTORICAL.joblib",
+      "sha256": "3b7c2d78af4c3f902835bb65ce09bbe75dcd5d9e4c839188fb2777824a98a818"
+    },
+    "historical_daily_profiles": {
+      "path": "/home/bsierra/ltd-storage/results/final/HISTORICAL-FINAL/10A_historical_daily_profiles.csv",
+      "sha256": "bdbba69303bd9f1f800bab86291992cf2a732e7da0945d753f9371e2c4aa98f8"
+    },
+    "historical_standardized_daily_history": {
+      "path": "/home/bsierra/ltd-storage/results/final/HISTORICAL-FINAL/10A_historical_standardized_daily_history.csv",
+      "sha256": "deb918c1cd7f88af8bcda65304cde688a8e9968f2a1a34e6d39857f65555bdcf"
+    },
+    "macro_ltd_checkpoints": [
+      {
+        "path": "/home/bsierra/ltd-storage/artifacts/final/HISTORICAL-FINAL/MACRO-FINAL_LTD_seed11_HISTORICAL.pth",
+        "sha256": "96741ec89a78dc2487599586386237817de10d9fd29878728f8c2da67bd3d4d6"
+      },
+      {
+        "path": "/home/bsierra/ltd-storage/artifacts/final/HISTORICAL-FINAL/MACRO-FINAL_LTD_seed42_HISTORICAL.pth",
+        "sha256": "e1248d9cf7241251738f4f86e32e9be44655232f13d2e491616f7c1572259ca1"
+      },
+      {
+        "path": "/home/bsierra/ltd-storage/artifacts/final/HISTORICAL-FINAL/MACRO-FINAL_LTD_seed73_HISTORICAL.pth",
+        "sha256": "9625ccf30cbc0a63cb0f81249c194adb56d03dce853adf04cd06d65d32133578"
+      }
+    ]
+  },
+  "next": "10B frozen Future-B Concept Drift evaluation"
+}

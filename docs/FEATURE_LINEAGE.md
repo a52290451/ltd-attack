@@ -2193,3 +2193,98 @@ Next:
 Then:
 10B — Future-B Concept Drift evaluation.
 
+
+
+---
+
+## F10.2 — Future-B Predeclared Evaluation
+
+Stage:
+10B_future_concept_drift_evaluation
+
+Future-B canonical sources:
+
+Macro:
+CLEAN_final_features_sites_concept_drift.csv
+
+Micro:
+CLEAN_final_vectors_sites_concept_drift.csv
+
+Future-B will be opened numerically once after code freeze.
+
+Two evaluation tracks are predeclared.
+
+TRACK A — DEV_FROZEN
+
+Uses exactly the 09A artifacts evaluated on INTERNAL_TEST.
+
+Purpose:
+measure direct same-checkpoint temporal retention.
+
+Comparison:
+
+INTERNAL_TEST -> Future-B
+
+No model retraining occurs between these two evaluations.
+
+TRACK B — HISTORICAL_FINAL
+
+Uses the 10A models refitted on all Historical captures available through
+2026-01-08.
+
+Purpose:
+measure final operational performance using the maximum historical
+training information available before Future-B.
+
+Frozen configuration:
+
+- Micro epochs: 30
+- Micro seed: 42
+- Macro context days: 5
+- Macro LTD seeds: 11, 42, 73
+- Macro XGB/LTD geometric fusion alpha: 0.375
+- Hybrid Micro weight: 0.45
+- Hybrid Macro weight: 0.55
+
+Models evaluated in both tracks:
+
+MICRO-FINAL
+MACRO-XGB
+MACRO-LTD
+MACRO-LTD-FINAL
+LTD-HYBRID-FINAL
+
+Metrics:
+
+Accuracy
+Macro-F1
+Top-5 Accuracy
+MRR
+Mean true-class rank
+
+Additional analyses:
+
+- day-block bootstrap
+- per-day metrics
+- per-class metrics
+- Micro/Macro complementarity
+- Hybrid rescue behavior
+- exact same-checkpoint retention for DEV_FROZEN
+- effect of full-Historical refit on Future-B
+
+Critical longitudinal rule:
+
+Future-B observations MUST NOT update the Macro/LTD history bank.
+
+All Future-B queries use only historical site-day profiles available
+before Future-B.
+
+No model or hyperparameter may be changed after Future-B opening.
+
+Cohort caveat:
+
+The 65-site cohort may historically have been conditioned by future
+availability during dataset construction. Future feature values were not
+used for current feature/model selection, but cohort membership must not
+be described as wholly future-blind.
+
