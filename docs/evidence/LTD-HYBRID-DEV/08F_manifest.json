@@ -1,0 +1,104 @@
+{
+  "stage": "08F_adaptive_alpha_gate",
+  "created_at_utc": "2026-09-21T14:59:10.421317+00:00",
+  "git_commit": "b8c885931aa780bda6e051da16878d48173b0b73",
+  "reference": "LTD-HYBRID-V1",
+  "gate": {
+    "type": "logistic scalar-alpha gate",
+    "class_identity_features": false,
+    "feature_count": 13,
+    "features": [
+      "micro_conf",
+      "macro_conf",
+      "micro_margin",
+      "macro_margin",
+      "micro_entropy",
+      "macro_entropy",
+      "macro_minus_micro_conf",
+      "macro_minus_micro_margin",
+      "macro_minus_micro_entropy",
+      "branch_agree",
+      "macro_prob_on_micro_top1",
+      "micro_prob_on_macro_top1",
+      "js_divergence"
+    ],
+    "objective": "cross-entropy of fused class distribution",
+    "regularization_l2": 0.001,
+    "initial_alpha": 0.55
+  },
+  "protocol": {
+    "inner_fold_a_train_dates": [
+      "2025-12-02",
+      "2025-12-03",
+      "2025-12-04",
+      "2025-12-05",
+      "2025-12-06",
+      "2025-12-07",
+      "2025-12-08"
+    ],
+    "inner_fold_a_validation_dates": [
+      "2025-12-09",
+      "2025-12-10",
+      "2025-12-11",
+      "2025-12-12",
+      "2025-12-13",
+      "2025-12-14",
+      "2025-12-15"
+    ],
+    "final_gate_fit": "all Fold-A predictions",
+    "fold_b_used_for_gate_training": false,
+    "fold_b_used_for_feature_selection": false,
+    "manual_site_rules": false
+  },
+  "inner_validation": {
+    "fixed": {
+      "accuracy": 0.8513916500994035,
+      "macro_f1": 0.8312907763577778,
+      "top5_accuracy": 0.9398608349900597,
+      "mrr": 0.8927229481993204,
+      "mean_true_rank": 2.4619284294234594
+    },
+    "adaptive": {
+      "accuracy": 0.8517892644135189,
+      "macro_f1": 0.8370562530275539,
+      "top5_accuracy": 0.9494035785288271,
+      "mrr": 0.8963637832097684,
+      "mean_true_rank": 2.2547713717693836
+    },
+    "delta": {
+      "accuracy": 0.00039761431411533543,
+      "macro_f1": 0.005765476669776115,
+      "top5_accuracy": 0.009542743538767384,
+      "mrr": 0.0036408350104479847
+    }
+  },
+  "data_policy": {
+    "development_only": true,
+    "internal_test_values_used": false,
+    "external_future_used": false
+  },
+  "promotion_gate": {
+    "passed": false,
+    "requirements": [
+      "Inner Fold-A validation Accuracy delta >= 0",
+      "Inner Fold-A validation Macro-F1 delta > 0",
+      "Fold-B Accuracy > LTD-HYBRID-V1",
+      "Fold-B Macro-F1 > LTD-HYBRID-V1",
+      "Fold-B Top-5 >= LTD-HYBRID-V1",
+      "Fold-B MRR > LTD-HYBRID-V1",
+      "Fold-B bootstrap positive fraction Accuracy >= 0.90",
+      "Fold-B bootstrap positive fraction Macro-F1 >= 0.90"
+    ]
+  },
+  "inputs": {
+    "A_EARLY_TO_MIDDLE": {
+      "path": "/home/bsierra/ltd-storage/results/hybrid/LTD-HYBRID-DEV/08D_scores_A_EARLY_TO_MIDDLE.npz",
+      "sha256": "a709fe4d655465c7d240ea9a24db667a19966f84015dbf13f881b926bed0a4cd"
+    },
+    "B_EARLY_MIDDLE_TO_LATE": {
+      "path": "/home/bsierra/ltd-storage/results/hybrid/LTD-HYBRID-DEV/08D_scores_B_EARLY_MIDDLE_TO_LATE.npz",
+      "sha256": "6ecc872bc3ae4dfd45d398bc167b4568d4ba1e8957395e4bb75d20b19caa42e0"
+    }
+  },
+  "next": "08G final candidate-level learned reranker; predeclared before observing 08F Fold-B result"
+}

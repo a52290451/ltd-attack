@@ -1970,3 +1970,80 @@ No manual site-specific rules are permitted.
 INTERNAL_TEST remains closed.
 Future-B remains closed.
 
+
+
+---
+
+## F8.6 — Adaptive Alpha Gate
+
+Stage:
+08F_adaptive_alpha_gate
+
+Reference:
+LTD-HYBRID-V1
+
+Model:
+label-free logistic query-level alpha gate.
+
+Features:
+13 confidence, margin, entropy, agreement and distribution-divergence
+signals.
+
+No class identity features.
+No site-specific rules.
+
+Inner Fold-A temporal validation:
+
+- Accuracy delta: +0.00040
+- Macro-F1 delta: +0.00577
+- Top-5 delta: +0.00954
+- MRR delta: +0.00364
+
+Full Fold A:
+
+- Accuracy delta: -0.00288
+- Macro-F1 delta: +0.00040
+- Top-5 delta: +0.00843
+- MRR delta: +0.00173
+
+Fold B temporal transfer:
+
+- Accuracy delta: -0.00407
+- Macro-F1 delta: -0.00461
+- Top-5 delta: +0.00043
+- MRR delta: -0.00217
+
+Fold-B day-block bootstrap:
+
+Accuracy, Macro-F1 and MRR intervals are entirely below zero.
+Top-5 interval crosses zero.
+
+Decision:
+
+08F CLOSED — FAILED PROMOTION.
+
+LTD-HYBRID-V1 remains the frozen Hybrid reference.
+
+Interpretation:
+
+Query-level absolute confidence statistics do not provide a sufficiently
+stable adaptive branch-weighting signal across the current temporal
+transfer protocol.
+
+No further adaptive-alpha tuning is permitted.
+
+Next:
+
+08G — final candidate-level residual reranker.
+
+08G was predeclared before observing the Fold-B result of 08F.
+
+After 08G:
+- if robustly positive -> promote and freeze Hybrid;
+- otherwise -> LTD-HYBRID-V1 becomes HYBRID-FINAL.
+
+No additional DEV hybrid architecture search after 08G.
+
+INTERNAL_TEST remains closed.
+Future-B remains closed.
+

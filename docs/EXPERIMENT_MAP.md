@@ -564,3 +564,47 @@ large gap between scalar-alpha headroom and candidate-ranking headroom.
 
 No manual class-specific rules.
 
+
+
+### 08F result
+
+Status:
+CLOSED — NEGATIVE.
+
+Adaptive query-level alpha failed temporal transfer.
+
+Fold B vs LTD-HYBRID-V1:
+- Accuracy: -0.41 pp
+- Macro-F1: -0.46 pp
+- MRR: -0.22 pp
+
+Reference remains:
+LTD-HYBRID-V1.
+
+### 08G ACTIVE — Final Candidate-Level Residual Reranker
+
+Purpose:
+
+Exploit candidate-ranking information that cannot be expressed by a
+single scalar Micro/Macro alpha.
+
+Constraints:
+
+- shared scorer across all 65 candidates;
+- no candidate/site identity;
+- no manual class rules;
+- no architecture search;
+- relative/rank-based features;
+- Fold A only for learning;
+- Fold B temporal transfer only.
+
+Stop rule:
+
+08G is the final DEV hybrid architecture experiment.
+
+PASS:
+promote candidate and freeze HYBRID-FINAL.
+
+FAIL:
+LTD-HYBRID-V1 becomes HYBRID-FINAL.
+
