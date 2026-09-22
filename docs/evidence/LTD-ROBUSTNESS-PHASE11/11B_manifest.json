@@ -1,0 +1,178 @@
+{
+  "stage": "11B_multiscale_longitudinal_memory",
+  "created_at_utc": "2026-09-22T09:24:36.172852+00:00",
+  "git_commit": "f76cea9860dcf8f998b403247ec634f5e71cff16",
+  "scientific_status": "POST_CONFIRMATORY_ROBUSTNESS_DEVELOPMENT",
+  "hypothesis": "A multiscale candidate history retains site identity under stale context better than the last five raw site-day profiles.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_observations_update_history": false,
+    "history_bank": "training-window only"
+  },
+  "representation": {
+    "features": "MACRO-V2-BASE-128",
+    "context_tokens": 5,
+    "control": "last five chronological site-day profiles",
+    "multiscale_tokens": [
+      "median all prior site-days",
+      "median last 10 prior site-days",
+      "median last 5 prior site-days",
+      "median last 3 prior site-days",
+      "last prior site-day"
+    ],
+    "same_model_architecture": true,
+    "same_context_token_budget": true
+  },
+  "model": {
+    "source": "07A LTDPairScorer",
+    "seeds": [
+      11,
+      42,
+      73
+    ],
+    "epochs": 20,
+    "fusion_alpha_ltd": 0.375
+  },
+  "origins": {
+    "ORIGIN14": {
+      "train_dates": [
+        "2025-11-18",
+        "2025-11-19",
+        "2025-11-20",
+        "2025-11-21",
+        "2025-11-22",
+        "2025-11-23",
+        "2025-11-24",
+        "2025-11-25",
+        "2025-11-26",
+        "2025-11-27",
+        "2025-11-28",
+        "2025-11-29",
+        "2025-11-30",
+        "2025-12-01"
+      ],
+      "windows": {
+        "NEAR": [
+          "2025-12-02",
+          "2025-12-03",
+          "2025-12-04",
+          "2025-12-05",
+          "2025-12-06",
+          "2025-12-07",
+          "2025-12-08"
+        ],
+        "MID": [
+          "2025-12-16",
+          "2025-12-17",
+          "2025-12-18",
+          "2025-12-19",
+          "2025-12-20",
+          "2025-12-21",
+          "2025-12-22"
+        ],
+        "FAR": [
+          "2025-12-30",
+          "2025-12-31",
+          "2026-01-01",
+          "2026-01-02",
+          "2026-01-03",
+          "2026-01-04",
+          "2026-01-05"
+        ]
+      }
+    },
+    "ORIGIN28": {
+      "train_dates": [
+        "2025-11-18",
+        "2025-11-19",
+        "2025-11-20",
+        "2025-11-21",
+        "2025-11-22",
+        "2025-11-23",
+        "2025-11-24",
+        "2025-11-25",
+        "2025-11-26",
+        "2025-11-27",
+        "2025-11-28",
+        "2025-11-29",
+        "2025-11-30",
+        "2025-12-01",
+        "2025-12-02",
+        "2025-12-03",
+        "2025-12-04",
+        "2025-12-05",
+        "2025-12-06",
+        "2025-12-07",
+        "2025-12-08",
+        "2025-12-09",
+        "2025-12-10",
+        "2025-12-11",
+        "2025-12-12",
+        "2025-12-13",
+        "2025-12-14",
+        "2025-12-15"
+      ],
+      "windows": {
+        "NEAR": [
+          "2025-12-16",
+          "2025-12-17",
+          "2025-12-18",
+          "2025-12-19",
+          "2025-12-20",
+          "2025-12-21",
+          "2025-12-22"
+        ],
+        "MID": [
+          "2025-12-23",
+          "2025-12-24",
+          "2025-12-25",
+          "2025-12-26",
+          "2025-12-27",
+          "2025-12-28",
+          "2025-12-29"
+        ],
+        "FAR": [
+          "2026-01-02",
+          "2026-01-03",
+          "2026-01-04",
+          "2026-01-05",
+          "2026-01-06",
+          "2026-01-07",
+          "2026-01-08"
+        ]
+      }
+    }
+  },
+  "promotion_gate": {
+    "mean_far_fusion_macro_f1_delta_min": 0.005,
+    "all_far_fusion_macro_f1_positive": true,
+    "mean_far_ltd_macro_f1_positive": true,
+    "max_near_fusion_macro_f1_degradation": 0.01,
+    "all_far_fusion_macro_f1_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "inputs": {
+    "historical": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "base128": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    },
+    "07A_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/07A_candidate_conditioned_temporal_encoder.py",
+      "sha256": "6d919ca865d591bacaa328104b6b91477f72866e812e5abe886cc8934efc48e8"
+    }
+  },
+  "outputs": {
+    "summary": "cd17c9503af1c41b0b768fe8b226783a05d2cdf44a9835c47ce3bb66a4d64928",
+    "comparison": "3a548e45e81b7c259fc3e9e4b1d79a2426012307ac587591420a611cee3b9d96",
+    "seed_training": "65a9d70c96afe2d3ca256e9dc790ee1b86b992f8d9b128ef3a1fa5898ba2af1e",
+    "bootstrap": "40ec2fa9cdc1f51e34810b5e5150dd9c66a48496e4306ec5fc25e61dd4b989c9"
+  },
+  "next_if_pass": "11C temporal contrastive representation using multiscale memory",
+  "next_if_fail": "11C temporal contrastive representation using BASE128 and retain RECENT5 control"
+}

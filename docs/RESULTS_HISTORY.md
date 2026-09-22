@@ -225,3 +225,78 @@ No Stable-K feature subset is promoted.
 Next:
 11B — Multiscale Longitudinal Memory using BASE128.
 
+
+---
+
+## 11B — Multiscale Longitudinal Memory
+
+Status:
+CLOSED — NOT PROMOTED.
+
+Data:
+Historical only.
+Future-B not used.
+
+Control:
+RECENT5_SEQUENCE.
+
+Candidate:
+MULTISCALE5:
+- all-history median
+- last-10 median
+- last-5 median
+- last-3 median
+- last observed day
+
+Same BASE128 representation.
+Same five-token context budget.
+Same LTD architecture.
+Same seeds and training configuration.
+
+Result:
+
+MULTISCALE5 improved LTD Macro-F1 in all six
+origin/window evaluations.
+
+Most relevant FAR results:
+
+ORIGIN14:
+- LTD Macro-F1: +0.94 pp
+- Fusion Macro-F1: +0.29 pp
+
+ORIGIN28:
+- LTD Macro-F1: +2.00 pp
+- Fusion Macro-F1: +0.38 pp
+
+The FAR LTD Macro-F1 bootstrap intervals were positive
+for both temporal origins.
+
+The gain became strongest in the later/staler ORIGIN28
+FAR condition, supporting the hypothesis that multiscale
+history helps preserve longitudinal identity.
+
+However, the mean FAR Fusion Macro-F1 improvement was
+approximately +0.33 pp, below the predeclared +0.50 pp
+promotion threshold.
+
+In addition, ORIGIN28 NEAR and MID fusion metrics showed
+small degradations.
+
+Decision:
+
+MULTISCALE5 is not promoted as the canonical memory.
+
+RECENT5 remains the control.
+
+The multiscale result is retained as positive mechanistic
+evidence and may be reconsidered only after an independently
+successful representation improvement.
+
+Next:
+
+11C — Temporal Contrastive Representation.
+
+BASE128 remains canonical.
+XGB remains unchanged.
+11C will modify only the representation used by the LTD branch.
+
