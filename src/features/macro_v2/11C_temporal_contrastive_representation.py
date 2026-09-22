@@ -207,92 +207,192 @@ def build_temporal_pools(
     y,
     dates,
 ):
+    """
+    Build temporally separated positive pools independently
+    for every site.
 
-    unique_dates = np.array(
-        sorted(
-            pd.unique(
-                pd.to_datetime(
-                    dates
-                )
-            )
+    The previous implementation used global first/last
+    thirds of the training calendar and implicitly required
+    all 65 sites to be observed in both global windows.
+
+    That assumption is unnecessarily strict because capture
+    availability is not perfectly uniform by site/date.
+
+    New policy:
+
+        for each site independently:
+
+            earliest one-third of its observed training dates
+                            vs
+            latest one-third of its observed training dates
+
+    Requirements:
+
+    - every site must have >= 2 distinct training dates;
+    - early and late date sets must be disjoint;
+    - late dates must be strictly after early dates;
+    - no test/Future observation participates.
+
+    This preserves the scientific objective:
+    learn same-site invariance across temporally separated
+    Historical observations.
+    """
+
+    y = np.asarray(
+        y,
+        dtype=np.int64,
+    )
+
+    dates = pd.to_datetime(
+        dates
+    )
+
+    if len(y) != len(dates):
+        raise RuntimeError(
+            "y/dates length mismatch."
         )
-    )
-
-    block = max(
-        3,
-        len(
-            unique_dates
-        )
-        //
-        3,
-    )
-
-    early_dates = unique_dates[
-        :block
-    ]
-
-    late_dates = unique_dates[
-        -block:
-    ]
-
-    early_mask = np.isin(
-        pd.to_datetime(
-            dates
-        ),
-        early_dates,
-    )
-
-    late_mask = np.isin(
-        pd.to_datetime(
-            dates
-        ),
-        late_dates,
-    )
 
     early_pools = {}
     late_pools = {}
+
+    early_dates_union = set()
+    late_dates_union = set()
+
+    audit_rows = []
 
     for cls in range(
         EXPECTED_SITES
     ):
 
-        early = np.flatnonzero(
-            (
-                y
-                ==
-                cls
-            )
-            &
-            early_mask
+        cls_idx = np.flatnonzero(
+            y == cls
         )
 
-        late = np.flatnonzero(
-            (
-                y
-                ==
-                cls
+        if len(cls_idx) == 0:
+            raise RuntimeError(
+                f"Class {cls} has no training observations."
             )
-            &
-            late_mask
+
+        cls_dates = pd.to_datetime(
+            dates[
+                cls_idx
+            ]
         )
+
+        unique_cls_dates = np.array(
+            sorted(
+                pd.unique(
+                    cls_dates
+                )
+            )
+        )
+
+        n_dates = len(
+            unique_cls_dates
+        )
+
+        if n_dates < 2:
+            raise RuntimeError(
+                f"Class {cls} has only "
+                f"{n_dates} distinct training date(s); "
+                "temporal contrastive pairing requires >= 2."
+            )
+
+        # Earliest/latest thirds.
+        #
+        # For sparse classes, at least one date is retained
+        # on each side.
+        block = max(
+            1,
+            n_dates // 3,
+        )
+
+        early_dates_cls = (
+            unique_cls_dates[
+                :block
+            ]
+        )
+
+        late_dates_cls = (
+            unique_cls_dates[
+                -block:
+            ]
+        )
+
+        early_max = pd.Timestamp(
+            early_dates_cls[
+                -1
+            ]
+        )
+
+        late_min = pd.Timestamp(
+            late_dates_cls[
+                0
+            ]
+        )
+
+        if early_max >= late_min:
+            raise RuntimeError(
+                f"Class {cls}: early/late temporal "
+                "pools overlap."
+            )
+
+        cls_dates_np = (
+            cls_dates
+            .to_numpy(
+                dtype="datetime64[ns]"
+            )
+        )
+
+        early_dates_np = np.asarray(
+            early_dates_cls,
+            dtype="datetime64[ns]",
+        )
+
+        late_dates_np = np.asarray(
+            late_dates_cls,
+            dtype="datetime64[ns]",
+        )
+
+        early_local = np.flatnonzero(
+            np.isin(
+                cls_dates_np,
+                early_dates_np,
+            )
+        )
+
+        late_local = np.flatnonzero(
+            np.isin(
+                cls_dates_np,
+                late_dates_np,
+            )
+        )
+
+        early = cls_idx[
+            early_local
+        ]
+
+        late = cls_idx[
+            late_local
+        ]
 
         if (
-            len(
-                early
-            )
-            ==
-            0
+            len(early) == 0
             or
-            len(
-                late
-            )
-            ==
-            0
+            len(late) == 0
         ):
-
             raise RuntimeError(
-                f"Class {cls} has no "
-                "early/late contrastive pool."
+                f"Class {cls}: empty temporal pool "
+                "after class-specific partition."
+            )
+
+        if np.intersect1d(
+            early,
+            late,
+        ).size:
+            raise RuntimeError(
+                f"Class {cls}: early/late observation "
+                "indices overlap."
             )
 
         early_pools[
@@ -302,6 +402,174 @@ def build_temporal_pools(
         late_pools[
             cls
         ] = late
+
+        for date in early_dates_cls:
+            early_dates_union.add(
+                pd.Timestamp(
+                    date
+                )
+            )
+
+        for date in late_dates_cls:
+            late_dates_union.add(
+                pd.Timestamp(
+                    date
+                )
+            )
+
+        audit_rows.append(
+            {
+                "class_idx":
+                    cls,
+
+                "n_training_observations":
+                    len(
+                        cls_idx
+                    ),
+
+                "n_distinct_dates":
+                    n_dates,
+
+                "early_date_count":
+                    len(
+                        early_dates_cls
+                    ),
+
+                "late_date_count":
+                    len(
+                        late_dates_cls
+                    ),
+
+                "early_observation_count":
+                    len(
+                        early
+                    ),
+
+                "late_observation_count":
+                    len(
+                        late
+                    ),
+
+                "early_min":
+                    pd.Timestamp(
+                        early_dates_cls[
+                            0
+                        ]
+                    ),
+
+                "early_max":
+                    early_max,
+
+                "late_min":
+                    late_min,
+
+                "late_max":
+                    pd.Timestamp(
+                        late_dates_cls[
+                            -1
+                        ]
+                    ),
+
+                "temporal_gap_days":
+                    int(
+                        (
+                            late_min
+                            -
+                            early_max
+                        ).days
+                    ),
+            }
+        )
+
+    audit = pd.DataFrame(
+        audit_rows
+    )
+
+    if len(audit) != EXPECTED_SITES:
+        raise RuntimeError(
+            "Contrastive pool audit does not contain "
+            "all 65 classes."
+        )
+
+    if (
+        audit[
+            "temporal_gap_days"
+        ]
+        <=
+        0
+    ).any():
+        raise RuntimeError(
+            "At least one contrastive class has "
+            "non-positive temporal separation."
+        )
+
+    print()
+    print(
+        "Contrastive pool policy:"
+    )
+
+    print(
+        "  class-specific earliest/latest thirds"
+    )
+
+    print(
+        "  classes:",
+        len(
+            audit
+        ),
+    )
+
+    print(
+        "  minimum distinct dates/class:",
+        int(
+            audit[
+                "n_distinct_dates"
+            ].min()
+        ),
+    )
+
+    print(
+        "  median distinct dates/class:",
+        float(
+            audit[
+                "n_distinct_dates"
+            ].median()
+        ),
+    )
+
+    print(
+        "  minimum temporal gap:",
+        int(
+            audit[
+                "temporal_gap_days"
+            ].min()
+        ),
+        "days",
+    )
+
+    print(
+        "  median temporal gap:",
+        float(
+            audit[
+                "temporal_gap_days"
+            ].median()
+        ),
+        "days",
+    )
+
+    early_dates = np.array(
+        sorted(
+            early_dates_union
+        ),
+        dtype="datetime64[ns]",
+    )
+
+    late_dates = np.array(
+        sorted(
+            late_dates_union
+        ),
+        dtype="datetime64[ns]",
+    )
 
     return (
         early_pools,
@@ -1958,8 +2226,9 @@ def main():
 
             "positive":
                 (
-                    "same site sampled from separated "
-                    "early and late training blocks"
+                    "same site sampled from its "
+                    "class-specific earliest and latest "
+                    "thirds of observed training dates"
                 ),
 
             "negatives":
