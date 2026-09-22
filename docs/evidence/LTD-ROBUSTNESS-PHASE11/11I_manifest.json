@@ -1,0 +1,54 @@
+{
+  "stage": "11I_crossfit_worstenv_xgb",
+  "created_at_utc": "2026-09-22T14:32:18.266682+00:00",
+  "git_commit": "b24eab7489fd5af8477f23b3848b77395896ad7d",
+  "scientific_status": "FROZEN_MODEL_TEMPORAL_GENERALIZATION",
+  "research_objective": "Reduce longitudinal degradation using training-time worst-environment weighting while keeping inference fully frozen.",
+  "method": {
+    "name": "cross-fitted temporal worst-environment weighting",
+    "groupdro_claim": "GroupDRO-inspired one-step reweighting; not claimed as full iterative GroupDRO",
+    "temporal_environments": 3,
+    "environment_definition": "contiguous chronological blocks",
+    "difficulty_estimation": "leave-one-environment-out cross-fitted multiclass log loss",
+    "group_weight": "softmax of centered cross-fitted environment losses",
+    "final_model": "single XGB trained on all Historical training captures with group-balanced sample weights"
+  },
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "origin14_selection": false,
+    "origin28_selection": false
+  },
+  "comparators": [
+    "UNIFORM canonical XGB",
+    "11H TEMPORAL_SYMMETRIC3"
+  ],
+  "promotion_gate": {
+    "mean_far_macro_f1_gain_vs_uniform_min": 0.005,
+    "all_far_macro_f1_vs_uniform_positive": true,
+    "mean_far_xgb_f1_vs_uniform_positive": true,
+    "max_near_macro_f1_drop_vs_uniform": 0.01,
+    "all_far_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "comparison_to_11H": {
+    "mean_far_macro_f1_delta": -0.0028653414980177594,
+    "positive_means_11I_better": true
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "base128_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "11H_source_sha256": "c976f49c103adfb859027bbcfca9592d66ec31849f355e7cefdd4d61fbb520e8"
+  },
+  "outputs": {
+    "environment_weights": "c2c48e9009fc00822b5f14e95e49033016a541c0a0733e372dc854dd9b66efba",
+    "comparison": "cf71b28f4ecac9f27d5f46f1c80b07b0fe1a1c74fe2eae4ecb2681becc488da3",
+    "bootstrap": "72a46a601a2e6fddc3ae9dd391acdf08619e36df61feebb4a9ea9e0827762736",
+    "seed_training": "ec8b02b43a472ec385bb20250dadcd6617a2e50fb8197d2d920b7844e1b68321"
+  },
+  "next_if_pass": "11J freeze robust XGB candidate and evaluate controlled combination with the strongest independently supported longitudinal mechanism",
+  "next_if_fail": "retain 11H as leading frozen candidate and test full training-time temporal distributionally robust optimization"
+}

@@ -766,3 +766,72 @@ Train one frozen XGB by assigning greater training importance to
 temporal environments that are hardest to generalize to from the
 other historical environments.
 
+
+---
+
+## 11I — Cross-fitted Temporal Worst-Environment XGB
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Scientific status:
+FROZEN MODEL TEMPORAL GENERALIZATION.
+
+No Future-B.
+No test-time adaptation.
+No parameter or memory update during inference.
+
+Method:
+
+Historical training dates were divided into three contiguous temporal
+environments.
+
+Leave-one-environment-out cross-fitting estimated the difficulty of
+each temporal environment.
+
+A single final XGB was trained using group-balanced weights derived
+from those cross-fitted losses.
+
+Results:
+
+ORIGIN14 FAR:
+- XGB Macro-F1 vs UNIFORM: -0.18 pp
+- Macro Fusion F1 vs UNIFORM: -0.13 pp
+
+ORIGIN28 FAR:
+- XGB Macro-F1 vs UNIFORM: +0.11 pp
+- Macro Fusion F1 vs UNIFORM: +0.30 pp
+
+Mean FAR Macro-F1 gain vs UNIFORM:
+approximately +0.084 pp.
+
+Mean FAR Macro-F1 relative to 11H:
+approximately -0.287 pp.
+
+Decision:
+
+11I is rejected.
+
+TEMPORAL_SYMMETRIC3 from 11H remains the leading frozen
+temporal-generalization candidate.
+
+Interpretation:
+
+Temporal environment difficulty is measurable, but collapsing that
+information into a single one-step reweighted XGB does not reproduce
+the benefit of maintaining multiple temporal hypotheses.
+
+Technical note:
+
+The provisional log-loss calculation emitted probability-normalization
+warnings because clipped probability vectors were not explicitly
+renormalized. This does not affect the reported transfer metrics.
+Future DRO experiments will explicitly renormalize probabilities
+before log-loss calculation.
+
+Next:
+
+11J — iterative cross-fitted temporal GroupDRO-style weighting.
+
+11J is the final planned experiment in the temporal-reweighting family.
+
