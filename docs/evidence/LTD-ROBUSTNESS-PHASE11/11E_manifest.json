@@ -1,0 +1,62 @@
+{
+  "stage": "11E_longitudinal_trajectory_scoring",
+  "created_at_utc": "2026-09-22T11:17:15.377254+00:00",
+  "git_commit": "9965130592372eb8d3f306c5b7690b0197806f90",
+  "scientific_status": "POST_CONFIRMATORY_ROBUSTNESS_DEVELOPMENT",
+  "hypothesis": "Candidate-specific direction of temporal change contains longitudinal identity information that is lost by static prototypes.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_observations_update_history": false,
+    "selection_origin": "ORIGIN14",
+    "origin28_selection_use": false
+  },
+  "control": "BASE128 + RECENT5 LTD + canonical XGB",
+  "trajectory": {
+    "blocks": "early/middle/late thirds per site",
+    "direction": "late median - early median",
+    "consistency": "max(0, cosine(mid-early, late-mid))",
+    "query_geometry": "distance to forward candidate ray",
+    "directional_variant": "0.75 standardized ray proximity + 0.25 consistency-weighted alignment"
+  },
+  "candidate_grid": {
+    "methods": [
+      "RAY_DISTANCE",
+      "RAY_DIRECTIONAL"
+    ],
+    "beta_within_longitudinal_branch": [
+      0.1,
+      0.25,
+      0.4
+    ],
+    "selection": "ORIGIN14 FAR Fusion Macro-F1",
+    "selected": "RAY_DISTANCE_BETA0.25",
+    "selected_method": "RAY_DISTANCE",
+    "selected_beta": 0.25,
+    "origin28": "exact one-candidate transfer"
+  },
+  "promotion_gate": {
+    "mean_far_fusion_f1_gain_min": 0.005,
+    "all_far_fusion_f1_positive": true,
+    "mean_far_branch_f1_positive": true,
+    "max_near_fusion_f1_drop": 0.01,
+    "all_far_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "base128_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "11D_source_sha256": "e961c01338144ad8bf2c4965fe6a1f79ef286bb3b9315dba7ef62e9a190f5ac6"
+  },
+  "outputs": {
+    "grid": "c124b1a1e4c8399113c17fdeeaf58ff4a42abe2b2f3345b87de3ba02e11ccfc4",
+    "summary": "6d7cc67b846fc65730e265211b51804b27ae02f1383c85693cccba5798813998",
+    "transfer": "a932f71ca2d14db950ab829e76180b432d8ff052a54187440d37ed0abcef2e41",
+    "bootstrap": "d0a68137f5aa59572f9b5c586576b3ce89fa868db9ba1754b46293d9ef5b0b14",
+    "trajectory_audit": "3c2e2e02d36633c95c64a7226e9803124242ca3374390a578977bf43ed1944de",
+    "seed_training": "569faf9cd53c418a7d5cf182870914bff91c8e8b875467b785f14da9fa841315"
+  },
+  "next_if_pass": "11F controlled combination with MULTISCALE5",
+  "next_if_fail": "stop hand-designed Macro trajectory search and move to adaptive/self-updating longitudinal memory"
+}

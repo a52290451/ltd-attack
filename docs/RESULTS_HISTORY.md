@@ -426,3 +426,74 @@ The new hypothesis is that site-specific direction of temporal change,
 rather than static temporal identity, carries useful longitudinal
 information.
 
+
+---
+
+## 11E — Explicit Longitudinal Trajectory Scoring
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Data:
+Historical only.
+Future-B not used.
+
+Control:
+BASE128 + RECENT5 LTD + canonical XGB.
+
+Selected on ORIGIN14:
+RAY_DISTANCE_BETA0.25.
+
+FAR:
+
+ORIGIN14:
+- Branch Macro-F1 delta: -0.02 pp
+- Fusion Macro-F1 delta: approximately 0.00 pp
+
+ORIGIN28:
+- Branch Macro-F1 delta: -0.04 pp
+- Fusion Macro-F1 delta: +0.21 pp
+
+The ORIGIN28 Fusion improvement did not have a fully positive
+bootstrap confidence interval.
+
+Trajectory audit:
+
+The historical velocity assumption was not supported.
+
+ORIGIN14:
+- 63/65 sites had negative early-to-middle vs middle-to-late
+  directional consistency.
+- median directional consistency was approximately -0.47.
+
+ORIGIN28:
+- 40/65 sites had negative directional consistency.
+- median directional consistency was approximately -0.26.
+
+Interpretation:
+
+Website Macro evolution is not well represented by a persistent
+linear direction in BASE128 space.
+
+The evidence is consistent with non-monotonic, recurrent, abrupt,
+or feature-dependent temporal change.
+
+This explains why stability selection, static prototypes,
+contrastive invariance and explicit linear trajectory extrapolation
+did not improve robustness.
+
+The strongest Phase-11 positive evidence remains 11B:
+preserving several historical scales improved the LTD branch,
+particularly at FAR horizons.
+
+Decision:
+
+Stop hand-designed frozen trajectory/prototype search.
+
+Next:
+11F — causal oracle memory refresh feasibility.
+
+11F will test whether fresh longitudinal context itself can recover
+performance before implementing any deployable pseudo-label
+adaptation.
+
