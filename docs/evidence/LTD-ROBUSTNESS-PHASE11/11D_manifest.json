@@ -1,0 +1,82 @@
+{
+  "stage": "11D_longterm_drift_aware_scoring",
+  "created_at_utc": "2026-09-22T10:34:27.927904+00:00",
+  "git_commit": "2adf3d40f627507a19e2409cbd6ef3cef5177ab7",
+  "scientific_status": "POST_CONFIRMATORY_ROBUSTNESS_DEVELOPMENT",
+  "hypothesis": "Separating recent candidate state from long-term candidate identity improves stale-history robustness without forcing temporal invariance.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_observations_update_history": false,
+    "candidate_selection_origin": "ORIGIN14",
+    "origin28_used_for_selection": false
+  },
+  "control": {
+    "features": "BASE128",
+    "memory": "RECENT5",
+    "macro_fusion": "XGB=.625 / LTD=.375"
+  },
+  "prototype_scoring": {
+    "space": "training-standardized BASE128",
+    "longterm": "per-site median across all training site-day profiles",
+    "recent_anchor": "per-site median of last five training site-day profiles",
+    "similarity": "cosine",
+    "query_normalization": "candidate cosine similarities converted to per-query z-scores before softmax",
+    "DUALANCHOR": "per candidate maximum of long-term and recent-anchor z-score",
+    "test_history_updates": false
+  },
+  "candidate_grid": {
+    "methods": [
+      "LONGTERM",
+      "DUALANCHOR"
+    ],
+    "prototype_beta_within_longitudinal_branch": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "outer_xgb_ltd_alpha": 0.375,
+    "selection_primary": "ORIGIN14 FAR Fusion Macro-F1",
+    "selection_secondary": "ORIGIN14 mean NEAR/MID/FAR Fusion Macro-F1",
+    "selected_candidate": "LONGTERM_BETA0.25",
+    "selected_method": "LONGTERM",
+    "selected_beta": 0.25,
+    "transfer": "exactly one selected candidate to ORIGIN28"
+  },
+  "promotion_gate": {
+    "mean_far_fusion_macro_f1_gain_min": 0.005,
+    "all_far_fusion_macro_f1_positive": true,
+    "mean_far_branch_macro_f1_positive": true,
+    "max_near_fusion_macro_f1_drop": 0.01,
+    "all_far_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "inputs": {
+    "historical": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "base128": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    },
+    "07A_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/07A_candidate_conditioned_temporal_encoder.py",
+      "sha256": "6d919ca865d591bacaa328104b6b91477f72866e812e5abe886cc8934efc48e8"
+    },
+    "11B_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/11B_multiscale_longitudinal_memory.py",
+      "sha256": "0e15b743b9278ae09009bd34c4b38e658e780380760efccf3494534ee0d1c9ed"
+    }
+  },
+  "outputs": {
+    "origin14_grid": "a3a32373d4f573d9ad93984973e550d9de6517f917623b7c9e82a0e7209c98e1",
+    "candidate_summary": "9cd227f3e87664c9de6a43ad77082bf90ea02ae9a848ef3177ebc7d19a3fc7c3",
+    "selected_transfer": "01a12f69c5edfa2fedecf5f6166f9e17c1fb0d1011e49ca9df8e949c26c0da89",
+    "bootstrap": "6bbbb20c7b8196c4f99f16942409e591071aebf7a0c61737c8c262ab421428ac",
+    "seed_training": "7120692ba44dd03f794d9a4eb3e4a28a42ff235b3814fcb750c9dfc368e8b278"
+  },
+  "next_if_pass": "11E combine supported long-term scoring with the independently positive multiscale memory mechanism",
+  "next_if_fail": "11E test explicit longitudinal trajectory and velocity scoring without changing BASE128 or Future-B"
+}

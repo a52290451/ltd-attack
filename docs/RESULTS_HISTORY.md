@@ -362,3 +362,67 @@ is preferable to removing temporal variation.
 Next:
 11D — long-term prototype / drift-aware candidate scoring.
 
+
+---
+
+## 11D — Long-Term / Drift-Aware Candidate Scoring
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Data:
+Historical only.
+Future-B not used.
+
+Control:
+BASE128 + RECENT5.
+
+Candidates:
+LONGTERM and DUALANCHOR prototype scores.
+
+Candidate selection:
+ORIGIN14 only.
+
+Transfer:
+exactly one candidate to ORIGIN28.
+
+Selected candidate:
+LONGTERM_BETA0.25.
+
+ORIGIN14 FAR:
+- Branch Macro-F1 delta: -0.34 pp
+- Fusion Macro-F1 delta: -0.05 pp
+
+ORIGIN28 FAR:
+- Branch Macro-F1 delta: -0.38 pp
+- Fusion Macro-F1 delta: +0.05 pp
+
+The ORIGIN28 Fusion FAR increase was not statistically stable and
+its bootstrap interval crossed zero.
+
+NEAR and MID performance degraded in ORIGIN28.
+
+Increasing prototype weight progressively degraded performance.
+
+Interpretation:
+
+Static long-term identity prototypes do not solve stale-history drift.
+
+The evidence from 11A–11D suggests that robustness is not obtained by:
+
+- removing temporally varying features,
+- forcing temporal invariance,
+- or anchoring queries to static long-term identities.
+
+The strongest positive evidence remains 11B, where preserving BASE128
+while changing the temporal representation improved LTD performance,
+especially at FAR horizons.
+
+Next:
+
+11E — explicit longitudinal trajectory / velocity scoring.
+
+The new hypothesis is that site-specific direction of temporal change,
+rather than static temporal identity, carries useful longitudinal
+information.
+
