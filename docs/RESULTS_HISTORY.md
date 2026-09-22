@@ -592,3 +592,74 @@ Next:
 
 11G — deployable causal pseudo-label self-updating memory.
 
+
+---
+
+## 11G — Pseudo-label Self-Updating Memory
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Scientific decision:
+The online/self-updating adaptation branch is stopped.
+
+Research objective clarification:
+
+The target of LTD-Attack is NOT continual model or memory adaptation.
+
+The objective is to train a frozen model whose performance degrades
+as slowly as possible under longitudinal concept drift, extending the
+useful interval between retraining events.
+
+11F remains a mechanism diagnostic only:
+
+It demonstrated that stale context contributes to degradation in the
+current LTD architecture, but it does not imply that online refreshing
+is the desired solution.
+
+11G evaluated a deployable approximation using XGB/LTD consensus
+pseudo-labels.
+
+Selected policy:
+CONSENSUS_ONLY.
+
+ORIGIN14 FAR:
+- LTD Macro-F1 delta: -1.84 pp
+- Fusion Macro-F1 delta: -0.31 pp
+
+ORIGIN28 FAR:
+- LTD Macro-F1 delta: +0.48 pp
+- Fusion Macro-F1 delta: -0.37 pp
+
+ORIGIN28 FAR Fusion Macro-F1 bootstrap interval was entirely negative.
+
+Despite relatively high pseudo-label precision and substantial update
+coverage, memory contamination degraded overall performance.
+
+Decision:
+
+Reject online pseudo-label memory adaptation.
+
+No further self-updating, continual-learning or test-time adaptation
+will be pursued in Phase 11.
+
+Revised frozen-model hypothesis:
+
+Temporal robustness should be obtained during training by exposing the
+model to multiple temporal distributions/states and learning a decision
+function that remains discriminative across them.
+
+Evidence motivating this direction:
+
+- temporal stability selection failed;
+- forced temporal invariance failed;
+- static prototypes failed;
+- linear trajectories failed;
+- MULTISCALE memory improved LTD because it preserved multiple temporal
+  states instead of collapsing them;
+- XGB remains the strongest Macro source of Future-B robustness.
+
+Next:
+
+11H — Frozen Temporal Environment Ensemble.
+

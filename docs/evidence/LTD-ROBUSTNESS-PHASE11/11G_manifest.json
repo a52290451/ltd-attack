@@ -1,0 +1,74 @@
+{
+  "stage": "11G_pseudolabel_self_updating_memory",
+  "created_at_utc": "2026-09-22T12:20:25.960763+00:00",
+  "git_commit": "df9c3bc66802076ab563fb971515ab6eee242ced",
+  "scientific_status": "POST_CONFIRMATORY_ROBUSTNESS_DEVELOPMENT",
+  "hypothesis": "High-confidence agreement between static and longitudinal branches can provide sufficiently precise pseudo-labels to refresh RECENT5 memory causally.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "true_labels_used_for_memory_update": false,
+    "true_labels_used_for_policy_gate": "ORIGIN14 evaluation metrics only; never individual update decisions",
+    "pseudo_precision": "diagnostic only",
+    "window_reset": true,
+    "origin14_policy_selection": true,
+    "origin28_policy_selection": false
+  },
+  "update": {
+    "timing": "score full current day first; pseudo-update only afterward",
+    "memory": "RECENT5",
+    "pseudo_label": "XGB/LTD consensus class",
+    "minimum_pseudo_captures_per_site_day": 3,
+    "policies": [
+      {
+        "name": "CONSENSUS_ONLY",
+        "min_confidence": null,
+        "min_margin": null
+      },
+      {
+        "name": "CONSENSUS_CONF60",
+        "min_confidence": 0.6,
+        "min_margin": null
+      },
+      {
+        "name": "CONSENSUS_MARGIN20",
+        "min_confidence": null,
+        "min_margin": 0.2
+      }
+    ],
+    "selected_policy": "CONSENSUS_ONLY"
+  },
+  "promotion_gate": {
+    "mean_far_fusion_macro_f1_gain_min": 0.005,
+    "all_far_fusion_macro_f1_positive": true,
+    "mean_far_ltd_macro_f1_positive": true,
+    "max_near_fusion_macro_f1_drop": 0.01,
+    "all_far_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "inputs": {
+    "historical": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "base128": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    },
+    "11F_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/11F_oracle_memory_refresh.py",
+      "sha256": "0aa80197f6a1953b45598b8ea691a2db4ab2a351698f174771a82253f7212f5c"
+    }
+  },
+  "outputs": {
+    "grid": "ca41dbbf4cef178ea40f055736f4a80cd2dd55a5da8e9b6f5f73d76e5ed31e91",
+    "policy_summary": "63a744cfac5ec699cb23de122219685189c6c2d29d5e082e20c78f2cf5b49b33",
+    "transfer": "7e8c52b1ba14b9522714204033391ab085de8a26b6890ba130a88cddb427291d",
+    "bootstrap": "87552d681954138b558f01b6711cb2b61a3ce01d8d6c90ded9949571fa05bd09",
+    "update_audit": "35d88ae10af977b7e9635c15449353fd7cbffa0a2adfa264666f524d508b48d5",
+    "seed_training": "dc985c93f95840cd44cd8390abf676bf426082f28570b04470e52bb2eb81ce02"
+  },
+  "next_if_pass": "11H continuous deployable adaptation and controlled combination with MULTISCALE memory",
+  "next_if_fail": "analyze pseudo-label contamination and test safer soft/consensus memory updates without Future-B"
+}
