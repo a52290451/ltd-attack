@@ -300,3 +300,65 @@ BASE128 remains canonical.
 XGB remains unchanged.
 11C will modify only the representation used by the LTD branch.
 
+
+---
+
+## 11C — Temporal Contrastive Representation
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Data:
+Historical only.
+Future-B not used.
+
+Control:
+BASE128 + RECENT5.
+
+Candidate:
+TCL128 + RECENT5.
+
+Temporal contrastive pools were constructed independently per site
+using class-specific earliest/latest thirds of available training dates.
+
+Pool audit:
+- 65/65 sites valid in ORIGIN14.
+- 65/65 sites valid in ORIGIN28.
+- strictly positive temporal separation.
+
+The temporal contrastive objective optimized successfully, but the
+learned representation degraded downstream temporal identification.
+
+FAR deltas vs RAW128:
+
+ORIGIN14:
+- LTD Macro-F1: -2.07 pp
+- Fusion Macro-F1: -0.24 pp
+
+ORIGIN28:
+- LTD Macro-F1: -4.60 pp
+- Fusion Macro-F1: -0.69 pp
+
+ORIGIN28 FAR bootstrap intervals were fully negative for all principal
+LTD and Fusion metrics.
+
+Decision:
+
+TCL128 is rejected.
+
+BASE128 remains canonical.
+RECENT5 remains canonical.
+
+Interpretation:
+
+Explicitly forcing same-site embeddings from separated Historical
+periods to become invariant removed or distorted temporally varying
+information that remains useful for Website Fingerprinting.
+
+Combined with 11A and 11B, current evidence suggests that preserving
+temporal variation while modeling it across multiple temporal scales
+is preferable to removing temporal variation.
+
+Next:
+11D — long-term prototype / drift-aware candidate scoring.
+

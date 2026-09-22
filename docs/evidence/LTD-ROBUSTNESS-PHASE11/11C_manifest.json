@@ -1,0 +1,90 @@
+{
+  "stage": "11C_temporal_contrastive_representation",
+  "created_at_utc": "2026-09-22T10:15:57.233177+00:00",
+  "git_commit": "261a6d7d24b2e21809965449c5922597a2b4cb67",
+  "scientific_status": "POST_CONFIRMATORY_ROBUSTNESS_DEVELOPMENT",
+  "hypothesis": "Explicitly aligning same-site captures across separated Historical periods learns a representation that preserves candidate identity under temporal drift.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_observations_update_history": false
+  },
+  "control": {
+    "representation": "BASE128 standardized",
+    "memory": "RECENT5",
+    "xgb": "canonical BASE128 XGB"
+  },
+  "candidate": {
+    "representation": "TCL128",
+    "input_dim": 128,
+    "output_dim": 128,
+    "objective": "symmetric temporal cross-period contrastive classification",
+    "positive": "same site sampled from its class-specific earliest and latest thirds of observed training dates",
+    "negatives": "all other sites in the 65-site batch",
+    "temperature": 0.07,
+    "seed": 42,
+    "epochs": 20,
+    "steps_per_epoch": 50,
+    "memory": "RECENT5",
+    "xgb": "UNCHANGED canonical BASE128 XGB; TCL modifies LTD branch only"
+  },
+  "downstream_ltd": {
+    "source": "07A LTDPairScorer",
+    "context_days": 5,
+    "seeds": [
+      11,
+      42,
+      73
+    ],
+    "epochs": 20,
+    "fusion_alpha_ltd": 0.375
+  },
+  "promotion_gate": {
+    "mean_far_fusion_macro_f1_gain_min": 0.005,
+    "all_far_fusion_macro_f1_positive": true,
+    "mean_far_ltd_macro_f1_positive": true,
+    "max_near_fusion_macro_f1_drop": 0.01,
+    "all_far_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "inputs": {
+    "historical": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "base128": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    },
+    "07A_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/07A_candidate_conditioned_temporal_encoder.py",
+      "sha256": "6d919ca865d591bacaa328104b6b91477f72866e812e5abe886cc8934efc48e8"
+    },
+    "11B_source": {
+      "path": "/home/bsierra/ltd-attack/src/features/macro_v2/11B_multiscale_longitudinal_memory.py",
+      "sha256": "0e15b743b9278ae09009bd34c4b38e658e780380760efccf3494534ee0d1c9ed"
+    }
+  },
+  "encoder_artifacts": {
+    "ORIGIN14": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/LTD-ROBUSTNESS-PHASE11/11C_TCL128_ORIGIN14.pth",
+      "sha256": "85b6fb4d0db742f6eb32f5ebd71668e08ee7040bac6aaf1d3e83424ff0b6d300",
+      "fit_seconds": 3.114570136065595
+    },
+    "ORIGIN28": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/LTD-ROBUSTNESS-PHASE11/11C_TCL128_ORIGIN28.pth",
+      "sha256": "a6d05264adf1ac9641ab87d42cbed939c0c018bbf4eace6388fe25f0658ab853",
+      "fit_seconds": 2.4987188739469275
+    }
+  },
+  "outputs": {
+    "summary": "d7b7526d04420c13fa39434ed065de0a118060a85acdd907c52590c6949e41cb",
+    "comparison": "fc52b79834c8e3cd24e1805870b92643c4d002b00295c13d50d0e2e669bab26f",
+    "bootstrap": "776ae204b209d9987e34ffb72e04cc3c79323962fba818274e5339f1829df523",
+    "ltd_seed_training": "e9a1a52a8ba2b14bd142bfa32f98019aac6bd0f2f54841b6acc34c6b6f3d33e4",
+    "contrastive_curve": "9dff1b8b7dcf73833f918d3d85419983d68479b404f467ef7e58db4a3ee8a53e"
+  },
+  "next_if_pass": "11D combine independently supported TCL representation with a controlled longitudinal memory/adaptation experiment",
+  "next_if_fail": "11D retain BASE128+RECENT5 and test long-term prototype / drift-aware candidate scoring"
+}
