@@ -1,0 +1,84 @@
+{
+  "stage": "10C_future_mechanistic_ablation",
+  "created_at_utc": "2026-09-22T07:42:33.287086+00:00",
+  "git_commit": "2e3962c86b5375a43c9d6700b329a1f5c8a4f14a",
+  "status": "POSTHOC_MECHANISTIC_ANALYSIS",
+  "purpose": "Decompose the frozen Future-B Hybrid gain into static-XGB and longitudinal-LTD contributions without model training.",
+  "scientific_status": {
+    "confirmatory_model_selection": false,
+    "posthoc_analysis": true,
+    "future_b_already_open": true,
+    "may_promote_new_model": false,
+    "may_change_hyperparameters": false
+  },
+  "data_policy": {
+    "future_csv_read": false,
+    "stored_10b_probabilities_only": true,
+    "new_training": false,
+    "new_fitting": false,
+    "new_alpha_search": false
+  },
+  "frozen_weights": {
+    "macro_alpha": 0.375,
+    "outer_micro": 0.45,
+    "outer_macro": 0.55,
+    "effective_three_way": {
+      "micro": 0.45,
+      "xgb": 0.34375,
+      "ltd": 0.20625000000000002
+    },
+    "component_deletion_weights": {
+      "HYBRID_NO_LTD_RENORM": {
+        "micro": 0.5669291338582677,
+        "xgb": 0.4330708661417323
+      },
+      "HYBRID_NO_XGB_RENORM": {
+        "micro": 0.6857142857142857,
+        "ltd": 0.31428571428571433
+      }
+    }
+  },
+  "variants": {
+    "MICRO": "Frozen Micro probabilities.",
+    "MICRO_XGB_OUTER55": "Branch substitution diagnostic: Micro=.45, XGB=.55.",
+    "MICRO_LTD_OUTER55": "Branch substitution diagnostic: Micro=.45, LTD=.55.",
+    "HYBRID_NO_LTD_RENORM": "Remove LTD from the exact effective Hybrid coefficients and renormalize Micro/XGB.",
+    "HYBRID_NO_XGB_RENORM": "Remove XGB from the exact effective Hybrid coefficients and renormalize Micro/LTD.",
+    "ACTUAL_HYBRID": "Frozen LTD-HYBRID-FINAL from 10B."
+  },
+  "score_inputs": {
+    "DEV_FROZEN": {
+      "path": "/home/bsierra/ltd-storage/results/final/FUTURE-B/10B_scores_DEV_FROZEN.npz",
+      "sha256": "d0edcd2780454b5cd39ef962ec45375d8822dc26b4b3c0b02cf4c06b0b29c7bb"
+    },
+    "HISTORICAL_FINAL": {
+      "path": "/home/bsierra/ltd-storage/results/final/FUTURE-B/10B_scores_HISTORICAL_FINAL.npz",
+      "sha256": "59ba60a98853128be53dee6216f66fcc3fd80fea8abae0fdb459e2cda30a3496"
+    }
+  },
+  "reconstruction_checks": {
+    "DEV_FROZEN": {
+      "max_abs_macro_probability_error": 7.324431139377197e-08,
+      "max_abs_hybrid_probability_error": 1.2086264922217538e-07
+    },
+    "HISTORICAL_FINAL": {
+      "max_abs_macro_probability_error": 7.821614134151389e-08,
+      "max_abs_hybrid_probability_error": 1.0484355916773325e-07
+    }
+  },
+  "bootstrap": {
+    "unit": "Future-B query date",
+    "iterations": 2000,
+    "seed": 20260922,
+    "fraction_delta_gt_0_is_p_value": false
+  },
+  "outputs": {
+    "summary": "e746296c6b4340768e3bc3c553db110f25c46cd61e211007067bafb5e22cfc2a",
+    "bootstrap": "68c0841c6968371201515c79a576b448550be453491a21968040bc4ffb2fdca8",
+    "rescues": "0baab58d1ca47be3369f207f1b93f3206ce779c5ee4b1bd728bc823d5bef2f7b",
+    "per_day": "ce33bd3df3b333ce0df568eb9518b86ee7edbacb54e4abcfaddb9f426e1d5fbb",
+    "per_class": "df21fe87a2fc271ce14c72b004915c7d824117daca4cd4e42d4a998e76ac13ef"
+  },
+  "interpretation_rule": "Results are mechanistic evidence only. They cannot be used to select or promote a new Future-B model.",
+  "next": "Use 10C to define Historical-only robustness hypotheses for Phase 11."
+}

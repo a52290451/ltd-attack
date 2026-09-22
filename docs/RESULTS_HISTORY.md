@@ -108,3 +108,58 @@ Historical-final operational track:
 The full-Historical Micro refit unexpectedly degraded Future-B
 performance and requires separate analysis.
 
+
+---
+
+## 10C — Future-B Mechanistic Ablation
+
+Status:
+POST-HOC MECHANISTIC ANALYSIS.
+
+No training.
+No hyperparameter search.
+No alpha search.
+No Future-B raw CSV reread.
+
+DEV_FROZEN:
+
+- Micro: 43.12%
+- Micro + XGB: 49.70%
+- Micro + LTD: 36.23%
+- Hybrid without LTD, renormalized: 49.16%
+- Hybrid without XGB, renormalized: 44.66%
+- Actual Hybrid: 49.45%
+
+Interpretation:
+
+The static XGB Macro component is currently the dominant source of
+Future-B robustness.
+
+Removing XGB causes a large and temporally consistent degradation.
+
+Removing LTD produces only a small/non-conclusive Top-1 change in the
+DEV_FROZEN track and improves Top-5.
+
+However, LTD is not completely redundant.
+
+In HISTORICAL_FINAL:
+
+- Micro: 22.20%
+- Micro + LTD: 24.86%
+- Hybrid without LTD: 27.91%
+- Actual Hybrid: 30.24%
+
+Here the LTD component provides a measurable complementary gain.
+
+Conclusion:
+
+The current longitudinal encoder contains useful identity information,
+but its contribution is not stable across long temporal gaps and
+training regimes.
+
+Phase 11 will therefore focus on learning temporally stable Macro
+representations using Historical data only.
+
+Future-B remains frozen.
+No new model may be selected using Future-B.
+
