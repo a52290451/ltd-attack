@@ -1,0 +1,49 @@
+{
+  "stage": "11H_frozen_temporal_environment_ensemble",
+  "created_at_utc": "2026-09-22T13:38:29.988731+00:00",
+  "git_commit": "47baf74e0c7c904c58058c8b4e4b3b16b2f37efb",
+  "scientific_status": "FROZEN_MODEL_TEMPORAL_GENERALIZATION",
+  "research_objective": "Reduce longitudinal degradation without retraining, fine-tuning, test-time adaptation or memory updates.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "origin14_selection": true,
+    "origin28_selection": false
+  },
+  "experts": {
+    "UNIFORM": "all training samples weight 1",
+    "EARLY": "all training samples retained; earlier dates receive up to 4.0x relative edge weight",
+    "LATE": "all training samples retained; later dates receive up to 4.0x relative edge weight",
+    "edge_weight_ratio": 4.0
+  },
+  "candidate_ensembles": [
+    "TEMPORAL_SYMMETRIC3",
+    "TEMPORAL_RECENCY2"
+  ],
+  "selected": "TEMPORAL_SYMMETRIC3",
+  "promotion_gate": {
+    "mean_far_macro_f1_gain_min": 0.005,
+    "all_far_macro_f1_positive": true,
+    "mean_far_xgb_f1_positive": true,
+    "max_near_macro_f1_drop": 0.01,
+    "all_far_bootstrap_positive_fraction_min": 0.9,
+    "passed": false
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "base128_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "11F_source_sha256": "0aa80197f6a1953b45598b8ea691a2db4ab2a351698f174771a82253f7212f5c"
+  },
+  "outputs": {
+    "grid": "49832a742b7fa289fb34486271bd57a348c41743cd5a334ac7f1eeebcb615cb2",
+    "summary": "bbe32c42798024afb6cfbd4020dde6321949bd3c2720ec214b2becbe6c7d219f",
+    "transfer": "57eaa28ff8a7ba1378837e10a444121f5c50778e168fb7150e201a08547ec084",
+    "bootstrap": "31cd3144d0f05689f6fdef027c56cb7ebf63093e68a28eb691893eca236f4940",
+    "seed_training": "343488943e891f8af9d22f2ae225c19d74613d17723f5075e80c3180167fa4dd"
+  },
+  "next_if_pass": "11I frozen robust temporal training around selected temporal ensemble",
+  "next_if_fail": "11I temporal GroupDRO / worst-environment optimization with frozen inference"
+}

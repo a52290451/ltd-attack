@@ -663,3 +663,106 @@ Next:
 
 11H — Frozen Temporal Environment Ensemble.
 
+
+---
+
+## 11H — Frozen Temporal Environment Ensemble
+
+Status:
+CLOSED — POSITIVE SIGNAL, FAILED FORMAL PROMOTION.
+
+Scientific status:
+FROZEN MODEL TEMPORAL GENERALIZATION.
+
+No online adaptation.
+No parameter updates at inference.
+No memory updates at inference.
+Future-B not used.
+
+Control:
+UNIFORM XGB + canonical RECENT5 LTD.
+
+Candidate selected on ORIGIN14:
+TEMPORAL_SYMMETRIC3.
+
+The candidate combines:
+- EARLY-weighted XGB
+- UNIFORM XGB
+- LATE-weighted XGB
+
+All models use BASE128 and the same XGB architecture.
+
+Transfer result:
+
+ORIGIN14:
+
+NEAR:
+- XGB Macro-F1: +0.59 pp
+- Macro Fusion F1: +0.17 pp
+
+MID:
+- XGB Macro-F1: +0.69 pp
+- Macro Fusion F1: +0.66 pp
+
+FAR:
+- XGB Macro-F1: +0.61 pp
+- Macro Fusion F1: +0.47 pp
+
+ORIGIN28:
+
+NEAR:
+- XGB Macro-F1: +0.74 pp
+- Macro Fusion F1: +0.38 pp
+
+MID:
+- XGB Macro-F1: +0.49 pp
+- Macro Fusion F1: +0.34 pp
+
+FAR:
+- XGB Macro-F1: +0.72 pp
+- Macro Fusion F1: +0.27 pp
+
+The Macro-F1 improvement is positive in all six temporal
+origin/window evaluations.
+
+FAR Macro-F1 bootstrap:
+
+ORIGIN14:
+- delta: +0.47 pp
+- 95% interval fully positive
+- fraction_delta_gt_0 = 0.998
+
+ORIGIN28:
+- delta: +0.27 pp
+- fraction_delta_gt_0 = 0.941
+- confidence interval slightly crosses zero.
+
+Mean FAR Macro-F1 gain:
+approximately +0.371 pp.
+
+Promotion threshold:
++0.500 pp.
+
+Decision:
+
+Formal promotion gate fails only because the mean FAR effect does not
+reach the predeclared +0.50 pp threshold.
+
+TEMPORAL_SYMMETRIC3 is therefore NOT promoted, but it is retained as
+the strongest frozen temporal-generalization candidate of Phase 11.
+
+Interpretation:
+
+Training across multiple temporal distributions is a promising
+direction for reducing longitudinal degradation without adaptation.
+
+Next:
+
+11I — cross-fitted temporal worst-environment reweighting.
+
+Objective:
+
+Train one frozen XGB by assigning greater training importance to
+temporal environments that are hardest to generalize to from the
+other historical environments.
+
