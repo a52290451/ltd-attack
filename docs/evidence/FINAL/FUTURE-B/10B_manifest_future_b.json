@@ -1,0 +1,59 @@
+{
+  "stage": "10B_future_concept_drift_evaluation",
+  "created_at_utc": "2026-09-21T20:39:48.453870+00:00",
+  "git_commit": "98a09c406b39a5cd86150620d31d069d74b83ce5",
+  "status": "FUTURE_B_OPENED_AND_EVALUATED",
+  "future_population": {
+    "captures": 18543,
+    "sites": 65,
+    "date_min": "2026-03-23",
+    "date_max": "2026-04-07",
+    "date_source": "pcap_name"
+  },
+  "tracks": {
+    "DEV_FROZEN": {
+      "purpose": "exact same-checkpoint retention relative to INTERNAL_TEST",
+      "training_end": "2025-12-28"
+    },
+    "HISTORICAL_FINAL": {
+      "purpose": "final operational Future-B performance",
+      "training_end": "2026-01-08"
+    }
+  },
+  "frozen_configuration": {
+    "micro_epochs": 30,
+    "macro_context_days": 5,
+    "macro_internal_alpha": 0.375,
+    "hybrid_micro_weight": 0.45,
+    "hybrid_macro_weight": 0.55
+  },
+  "protocol": {
+    "future_observations_update_history": false,
+    "model_selection_after_future_open": false,
+    "hyperparameter_changes_after_future_open": false,
+    "bootstrap_unit": "future_query_date",
+    "bootstrap_iterations": 2000,
+    "bootstrap_fraction_is_p_value": false,
+    "cohort_membership_future_blind": false,
+    "cohort_caveat": "The 65-site cohort may historically have been conditioned by Future-B availability. Future feature values were not used for current feature or model selection."
+  },
+  "future_inputs": {
+    "macro": {
+      "path": "/home/bsierra/ltd-storage/datasets/future/CLEAN_final_features_sites_concept_drift.csv",
+      "sha256": "946ab42c0920f4b61b64212be48ec9fb52a1a46931b5c6561750c307fd40ca9d"
+    },
+    "micro": {
+      "path": "/home/bsierra/ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv",
+      "sha256": "eecf3cef8079aba6b52cfaa4ba125a6fcf3212e54bb009f2977c24e71ae418a4"
+    }
+  },
+  "outputs": {
+    "summary": "84fe366c3f955778138d0d8544e9ddb99b34005890e7c953d9ea0b4a2deecd41",
+    "retention": "bc3afc8a60003355a72bf24971c3157ff949a808f2ba3bebb89b207012074d5e",
+    "complementarity": "e780dfd5b3668764480107e3e0f106892e80d3e017e34b13fd913c892ab45acc",
+    "bootstrap": "23761142ed8b6416b3312c40f7366659f22eecf13ad2f0fc5f36c54b515400d7",
+    "per_day": "a08cf87e69ed8672c1aacab2c4f276b5f03b453ae3a7f7a47aafe52db3c0b1fc",
+    "per_class": "a4145bdb4c6265e33d5405278db14f5503d079fb179a64832c00e4b8ce11800d"
+  },
+  "next": "freeze Future-B evidence; then prepare virgin Dataset C external validation"
+}

@@ -1,0 +1,9 @@
+{
+  "stage": "10B_future_b_opening",
+  "opened_at_utc": "2026-09-21T20:38:21.620178+00:00",
+  "git_commit": "98a09c406b39a5cd86150620d31d069d74b83ce5",
+  "future_macro": "/home/bsierra/ltd-storage/datasets/future/CLEAN_final_features_sites_concept_drift.csv",
+  "future_micro": "/home/bsierra/ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv",
+  "purpose": "one-time frozen Concept Drift evaluation",
+  "model_changes_after_open": false
+}
