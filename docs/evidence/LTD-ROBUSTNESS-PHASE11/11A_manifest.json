@@ -1,0 +1,137 @@
+{
+  "stage": "11A_historical_robust_feature_basis",
+  "created_at_utc": "2026-09-22T08:50:38.966356+00:00",
+  "git_commit": "001215ee519a01626be75c338f6e3df2d89a227f",
+  "scientific_status": "POST_CONFIRMATORY_ROBUSTNESS_DEVELOPMENT",
+  "hypothesis": "Features preserving site identity while minimizing within-site temporal movement improve long-horizon Macro classification.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_used": false,
+    "future_b_scores_used": false,
+    "internal_period_is_now_development_data": true,
+    "future_b_may_not_select_this_model": true
+  },
+  "population": {
+    "captures": 72603,
+    "sites": 65,
+    "dates": 52,
+    "date_min": "2025-11-18",
+    "date_max": "2026-01-08"
+  },
+  "feature_scoring": {
+    "candidate_count": 311,
+    "metrics": [
+      "between-site separation / within-site temporal IQR",
+      "minimum quarter-to-quarter site rank Spearman",
+      "worst adjacent-quarter normalized site shift",
+      "Q1-to-Q4 p90 normalized site shift",
+      "site-day coverage"
+    ],
+    "aggregation": "equal-weight mean percentile"
+  },
+  "fixed_origin_backtest": {
+    "train_dates": [
+      "2025-11-18",
+      "2025-11-19",
+      "2025-11-20",
+      "2025-11-21",
+      "2025-11-22",
+      "2025-11-23",
+      "2025-11-24",
+      "2025-11-25",
+      "2025-11-26",
+      "2025-11-27",
+      "2025-11-28",
+      "2025-11-29",
+      "2025-11-30",
+      "2025-12-01"
+    ],
+    "test_windows": {
+      "NEAR": [
+        "2025-12-02",
+        "2025-12-03",
+        "2025-12-04",
+        "2025-12-05",
+        "2025-12-06",
+        "2025-12-07",
+        "2025-12-08"
+      ],
+      "MID": [
+        "2025-12-16",
+        "2025-12-17",
+        "2025-12-18",
+        "2025-12-19",
+        "2025-12-20",
+        "2025-12-21",
+        "2025-12-22"
+      ],
+      "FAR": [
+        "2025-12-30",
+        "2025-12-31",
+        "2026-01-01",
+        "2026-01-02",
+        "2026-01-03",
+        "2026-01-04",
+        "2026-01-05"
+      ]
+    },
+    "candidate_subset_sizes": [
+      32,
+      64,
+      96,
+      128
+    ],
+    "model": {
+      "n_estimators": 120,
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "min_child_weight": 1.0,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 1.0,
+      "objective": "multi:softprob",
+      "num_class": 65,
+      "eval_metric": "mlogloss",
+      "tree_method": "hist",
+      "random_state": 42,
+      "n_jobs": -1,
+      "verbosity": 0
+    }
+  },
+  "selection": {
+    "primary": "worst Macro-F1 across NEAR/MID/FAR",
+    "primary_tolerance": 0.003,
+    "secondary": "FAR Macro-F1",
+    "secondary_tolerance": 0.003,
+    "parsimony": "smallest eligible feature count",
+    "selected_candidate": "STABLE_TOP128",
+    "selected_size": 128
+  },
+  "promotion_gate": {
+    "far_macro_f1_improvement_required": 0.005,
+    "worst_macro_f1_not_below_BASE128": true,
+    "max_near_macro_f1_degradation": 0.01,
+    "passed": false
+  },
+  "inputs": {
+    "historical": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "candidates": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/00_candidate_features_nonconstant.txt",
+      "sha256": "c633556be66e515bbcd5ce7e3486cb9ad73ec647fd2e301db6b1c2da77911d1c"
+    },
+    "base128": {
+      "path": "/home/bsierra/ltd-storage/results/feature_engineering/MACRO-V2-HIST/06B_R1_selected_base_features.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    }
+  },
+  "outputs": {
+    "feature_stability": "c8fcc09c729366261922581721d0b38ba604ae58cb0123af3739f70678cb2871",
+    "backtest_runs": "31d25270d9572305e3671e6cda08c1b8b0433075271aa53c6d1c0e99963d805e",
+    "subset_summary": "a2bc1fbf99abd155771ca4cbb023129db595dc00de6cbddb2b8f4f95de207e4f",
+    "selected_features": "41f98440392f29da1497ef521de481c01ee1b751b1bec13bfe2ba05fbfb55fca"
+  },
+  "next": "11B multiscale longitudinal memory; use selected stable basis as candidate only if promotion gate passes."
+}

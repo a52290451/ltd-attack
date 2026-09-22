@@ -163,3 +163,65 @@ representations using Historical data only.
 Future-B remains frozen.
 No new model may be selected using Future-B.
 
+
+---
+
+## 11A — Historical Temporal-Stable Macro Basis
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Data:
+Historical only.
+72,603 captures.
+65 sites.
+52 dates.
+Future-B not used.
+
+Fixed-origin BASE128:
+
+NEAR:
+- Accuracy: 0.7715
+- Macro-F1: 0.7676
+
+MID:
+- Accuracy: 0.6561
+- Macro-F1: 0.6285
+
+FAR:
+- Accuracy: 0.6380
+- Macro-F1: 0.6112
+- Top-5: 0.8614
+
+Best temporal-stability-only candidate:
+STABLE_TOP128.
+
+STABLE_TOP128:
+
+NEAR Macro-F1:
+0.6771
+
+MID Macro-F1:
+0.5310
+
+FAR Macro-F1:
+0.5324
+
+Decision:
+
+The temporal-stability-only feature basis does not improve
+long-horizon robustness.
+
+BASE128 remains the canonical Macro representation.
+
+Interpretation:
+
+Low individual temporal drift is insufficient for feature selection.
+Some temporally variable features retain important cross-site
+discriminative information.
+
+No Stable-K feature subset is promoted.
+
+Next:
+11B — Multiscale Longitudinal Memory using BASE128.
+
