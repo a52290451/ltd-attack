@@ -497,3 +497,98 @@ Next:
 performance before implementing any deployable pseudo-label
 adaptation.
 
+
+---
+
+## 11F — Causal Oracle Memory Refresh
+
+Status:
+CLOSED — FEASIBILITY PASSED.
+
+Scientific status:
+NON-DEPLOYABLE MECHANISM DIAGNOSTIC.
+
+Data:
+Historical only.
+Future-B not used.
+
+Question:
+
+Would correctly refreshing the recent longitudinal history after each
+already-scored day improve stale-context robustness?
+
+Protocol:
+
+- predict current day using only previous history;
+- current-day ground-truth labels cannot affect current-day predictions;
+- after current day has been completely scored, construct true-label
+  site-day profiles;
+- make those profiles available only to subsequent days;
+- each evaluation window starts from the original frozen training history.
+
+Causal verification:
+
+For all six origin/window evaluations:
+
+first_day_max_probability_difference = 0.0
+
+Therefore the oracle update cannot affect the first/current day's
+prediction.
+
+FAR results:
+
+ORIGIN14:
+
+LTD:
+- Macro-F1: 0.5111 -> 0.5580
+- delta: +4.69 pp
+
+Fusion:
+- Macro-F1: 0.6117 -> 0.6333
+- delta: +2.16 pp
+- Accuracy delta: +2.57 pp
+- Top-5 delta: +4.49 pp
+- MRR delta: +2.83 pp
+
+ORIGIN28:
+
+LTD:
+- Macro-F1: 0.6479 -> 0.6743
+- delta: +2.63 pp
+
+Fusion:
+- Macro-F1: 0.7601 -> 0.7714
+- delta: +1.13 pp
+- Accuracy delta: +1.07 pp
+- Top-5 delta: +0.92 pp
+- MRR delta: +1.06 pp
+
+Day-block bootstrap:
+
+ORIGIN14 FAR Fusion Macro-F1:
+95% interval approximately [+1.18, +3.09] pp.
+
+ORIGIN28 FAR Fusion Macro-F1:
+95% interval approximately [+0.63, +1.63] pp.
+
+fraction_delta_gt_0 = 1.0 in both origins.
+
+Decision:
+
+The feasibility gate PASSES.
+
+Freshness of longitudinal candidate history is a real contributor to
+temporal robustness.
+
+This explains why frozen static prototypes and trajectory extrapolation
+failed while MULTISCALE5 showed a weaker positive effect.
+
+Interpretation:
+
+The current evidence supports tracking evolving site states rather than
+forcing invariant or deterministic temporal representations.
+
+Next:
+
+11G — deployable causal pseudo-label self-updating memory.
+
