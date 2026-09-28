@@ -1,0 +1,52 @@
+{
+  "stage": "11J_iterative_temporal_groupdro_xgb",
+  "created_at_utc": "2026-09-22T20:41:31.879416+00:00",
+  "git_commit": "9f941cf53b0471a96a78746adf728ec3fe323feb",
+  "scientific_status": "FROZEN_MODEL_TEMPORAL_GENERALIZATION",
+  "method": {
+    "name": "iterative cross-fitted temporal GroupDRO-style XGB",
+    "iterations": 5,
+    "eta": 1.0,
+    "environments": 3,
+    "probabilities_explicitly_renormalized": true,
+    "group_update": "multiplicative q_g <- q_g * exp(eta * centered_loss_g)",
+    "final_model": "single frozen XGB"
+  },
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "origin14_selection": false,
+    "origin28_selection": false
+  },
+  "promotion_gate": {
+    "mean_far_macro_f1_gain_vs_uniform_min": 0.005,
+    "all_far_positive": true,
+    "mean_far_xgb_positive": true,
+    "max_near_drop": 0.01,
+    "all_far_bootstrap_fraction_positive_min": 0.9,
+    "passed": false
+  },
+  "leading_candidate_gate": {
+    "promotion_pass_required": true,
+    "mean_far_macro_f1_vs_11H_nonnegative": true,
+    "mean_far_macro_f1_delta_vs_11H": -0.007185174025382712,
+    "passed": false
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "base128_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "11I_source_sha256": "176bb1e4e38466d46fbe4ca28355ae7245ab4486a9666f994d64140e4a241995"
+  },
+  "outputs": {
+    "iterations": "2c74b64307a1db6b5e11424b84580eb7a70a40d264883dbf33935fb6dede22d8",
+    "final_environment_weights": "2bb4d8e095a26a7115b98ebe8e5e4e95ec541c5ff4ec27d2cb58bd9b7a87e2a8",
+    "transfer": "be1d388a2c4ac79fc9abd0ded858f347dfded0445cd05783668510ad01cb86af",
+    "bootstrap": "6718f1e9f5ec223a4f1a5c7c72442101879405a1ec98a48d8d1e9dca20e25f82",
+    "seed_training": "27742d9450a7946d2624b9fba715d19f885e3cca1da9c20de82c90b940172cde"
+  },
+  "next_if_pass": "freeze 11J if it also matches or exceeds 11H",
+  "next_if_fail": "close temporal reweighting family; retain 11H and investigate frozen temporal expert diversity directly"
+}

@@ -835,3 +835,86 @@ Next:
 
 11J is the final planned experiment in the temporal-reweighting family.
 
+
+---
+
+## 11J — Iterative Temporal GroupDRO-style XGB
+
+Status:
+CLOSED — FAILED PROMOTION.
+
+Scientific status:
+FROZEN MODEL TEMPORAL GENERALIZATION.
+
+No Future-B.
+No test-time parameter updates.
+No test-time memory updates.
+
+Method:
+
+Three contiguous Historical temporal environments.
+
+Five iterative multiplicative GroupDRO-style updates were used to
+increase the importance of environments with larger cross-fitted loss.
+
+Final environment weights:
+
+ORIGIN14:
+- Early: 0.4531
+- Middle: 0.1964
+- Late: 0.3505
+
+ORIGIN28:
+- Early: 0.4214
+- Middle: 0.1342
+- Late: 0.4443
+
+FAR results:
+
+ORIGIN14:
+- XGB Macro-F1 vs Uniform: -0.51 pp
+- Macro Fusion F1 vs Uniform: -0.54 pp
+- Macro Fusion F1 vs 11H: -1.01 pp
+
+ORIGIN28:
+- XGB Macro-F1 vs Uniform: -0.10 pp
+- Macro Fusion F1 vs Uniform: -0.16 pp
+- Macro Fusion F1 vs 11H: -0.43 pp
+
+Mean FAR Macro-F1 delta vs 11H:
+approximately -0.72 pp.
+
+Both promotion and leading-candidate gates failed.
+
+Decision:
+
+Close the complete temporal-reweighting / worst-environment family.
+
+No further tuning of:
+- DRO eta
+- DRO iterations
+- temporal environment count
+- temporal group weights
+
+will be pursued.
+
+11H TEMPORAL_SYMMETRIC3 remains the leading frozen candidate.
+
+Interpretation:
+
+The benefit observed in 11H is not reproduced by collapsing temporal
+environment information into a single reweighted XGB.
+
+Current evidence instead supports preserving multiple temporal
+hypotheses simultaneously.
+
+Next:
+
+11K — Frozen Temporal Mixture of Experts.
+
+The same EARLY / UNIFORM / LATE experts from 11H will be retained.
+
+11K will test whether arithmetic mixture, which preserves alternative
+temporal hypotheses, is more robust than the geometric product used
+by 11H.
+
