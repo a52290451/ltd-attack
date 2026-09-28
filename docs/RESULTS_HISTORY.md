@@ -1162,3 +1162,114 @@ Hybrid fusion remains:
 
 Future-B remains unused during 12A development.
 
+
+---
+
+## 12A — Frozen Robust Hybrid Integration
+
+Status:
+CLOSED — POSITIVE SIGNAL, FAILED FORMAL PROMOTION.
+
+Scientific status:
+FROZEN HYBRID ROBUSTNESS DEVELOPMENT.
+
+Protocol:
+
+- Historical only.
+- Future-B not used.
+- MICRO-FINAL unchanged.
+- 30 epochs.
+- seed 42.
+- Hybrid Micro weight = 0.45.
+- Hybrid Macro weight = 0.55.
+- no alpha search.
+- no online adaptation.
+- no test-time memory updates.
+
+Question:
+
+Does the Phase-11 robust Macro improvement survive the final
+MICRO + MACRO fusion?
+
+FAR Hybrid Macro-F1:
+
+ORIGIN14:
+
+HA original:
+0.761426
+
+HD robust:
+0.764811
+
+Delta:
++0.338 pp.
+
+Bootstrap:
+95% interval approximately [+0.131, +0.655] pp.
+fraction_delta_gt_0 = 1.000.
+
+ORIGIN28:
+
+HA original:
+0.887521
+
+HD robust:
+0.888327
+
+Delta:
++0.081 pp.
+
+Bootstrap:
+95% interval approximately [-0.144, +0.274] pp.
+fraction_delta_gt_0 = 0.747.
+
+Mean FAR Hybrid Macro-F1 gain:
++0.2095 pp.
+
+Predeclared promotion threshold:
++0.2500 pp.
+
+PROMOTION PASS = FALSE.
+
+The candidate also produced a small Top-5 degradation in both
+FAR evaluations.
+
+Interpretation:
+
+The Phase-11 Macro robustness gain only partially survives the final
+Micro/Macro fusion.
+
+A substantial portion of the new Macro information appears redundant
+with the current Micro branch or is insufficient to change the final
+Hybrid decision.
+
+Decision:
+
+Do not change the frozen Hybrid alpha.
+
+Do not promote the robust Macro combination to the final Hybrid.
+
+Keep:
+
+LTD-HYBRID-FINAL
+
+as the current final architecture.
+
+Retain:
+
+TEMPORAL_SYMMETRIC3 + MULTISCALE5
+
+as a positive frozen Macro robustness result and mechanistic finding.
+
+Phase 12 development is closed.
+
+Next independent research direction:
+
+Phase 13 — Frozen Micro Temporal Robustness.
+
+Objective:
+
+Improve the temporal robustness of the Micro branch during training,
+without retraining, adaptation, memory refresh, or parameter updates
+during inference.
+

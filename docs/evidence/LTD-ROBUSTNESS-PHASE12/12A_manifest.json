@@ -1,0 +1,73 @@
+{
+  "stage": "12A_frozen_robust_hybrid_integration",
+  "created_at_utc": "2026-09-28T09:59:51.764284+00:00",
+  "git_commit": "4b8ead2fd9517738acce7a3f1e1bcc179f6e278b",
+  "scientific_status": "FROZEN_HYBRID_ROBUSTNESS_DEVELOPMENT",
+  "research_question": "Does the Phase-11 robust Macro gain survive the frozen MICRO + MACRO final fusion?",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "candidate_selection": false,
+    "alpha_search": false
+  },
+  "micro": {
+    "architecture": "MICRO-FINAL",
+    "epochs": 30,
+    "seed": 42,
+    "max_len": 3000,
+    "d_model": 256,
+    "heads": 8,
+    "layers": 4,
+    "learning_rate": 0.0002,
+    "weight_decay": 0.01,
+    "label_smoothing": 0.1
+  },
+  "macro": {
+    "A": "UNIFORM + RECENT5",
+    "B": "TEMPORAL_SYMMETRIC3 + RECENT5",
+    "C": "UNIFORM + MULTISCALE5",
+    "D": "TEMPORAL_SYMMETRIC3 + MULTISCALE5",
+    "ltd_weight": 0.375
+  },
+  "hybrid": {
+    "micro_weight": 0.45,
+    "macro_weight": 0.55,
+    "fusion": "weighted geometric probability"
+  },
+  "promotion_gate": {
+    "mean_far_HD_vs_HA_macro_f1_min": 0.0025,
+    "all_far_HD_vs_HA_positive": true,
+    "max_near_HD_vs_HA_drop": 0.01,
+    "all_far_HD_vs_HA_bootstrap_fraction_positive_min": 0.9,
+    "mean_far_HD_vs_HB_nonnegative": true,
+    "mean_far_HD_vs_HC_nonnegative": true,
+    "passed": false
+  },
+  "results_summary": {
+    "mean_far_HD_vs_HA_macro_f1": 0.0020952758391244997,
+    "mean_far_HD_vs_HB_macro_f1": 0.0012320918768268796,
+    "mean_far_HD_vs_HC_macro_f1": 0.0011956600809728268,
+    "mean_far_HD_vs_MICRO_macro_f1": 0.09132577399132108
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "base128_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "micro_source_sha256": "a8a88041c44e5627e126e2c29c7e068b17c8598a0b01c63a5ff1cd3105c2c7c9",
+    "micro_source_code_sha256": "eb8d3f80728b74e306123436aed4695ee06617e11c6843ed4dfeae028355b01a",
+    "11L_source_sha256": "399bfcfa5089f020240d95eef69961f3aa756db1e44593f4bc62a848c352f975"
+  },
+  "outputs": {
+    "summary": "41f653ab337773e1f051446c3c966c0159985643261ef6337eb13d5f319a686e",
+    "deltas": "b3108d69ebb3320471e9624ad9fb8677981e107d524da69e135470ec5dc2b09f",
+    "interaction": "fbdb40d054a0d22ec8243f4ba38687ead45887042f8a8aa6262421ee550492a4",
+    "bootstrap": "68375f9664c224fc21b4669adb709aac50c13cb146825fe13af80f27e07ac77b",
+    "micro_curves": "c7ebf875adb6893efb3ce47b378c5a00f10c38a0bfb0e82dd51acf31488a6323",
+    "micro_training": "7a3949c2b62467fa7b05606a3aa1ab5076aced55d9b77ee115a42720a7c7c380",
+    "ltd_seed_training": "7e8a0e16b15e08c884061eba1dee120e57da76b983de1ca7864b0cb09586b66e"
+  },
+  "next_if_pass": "freeze HD as LTD-HYBRID-ROBUST-CANDIDATE; refit robust architecture on full Historical; then perform one post-hoc Future-B evaluation",
+  "next_if_fail": "close Phase 12 development; retain Phase-11 Macro result as mechanistic evidence and keep original LTD-HYBRID-FINAL"
+}

@@ -1,0 +1,3 @@
+origin,epochs,seed,n_train,size_min,size_max,fit_seconds
+ORIGIN14,30,42,19098,0.0,8754.0,679.7916083480231
+ORIGIN28,30,42,39258,0.0,13098.0,1411.8844691449776
