@@ -1,0 +1,61 @@
+{
+  "stage": "11L_factorial_frozen_combination",
+  "created_at_utc": "2026-09-28T08:32:32.898214+00:00",
+  "git_commit": "bfc6aa56175af4ccc3a15ebe2b771739180f9616",
+  "scientific_status": "FROZEN_MODEL_TEMPORAL_GENERALIZATION",
+  "research_question": "Do the two independently positive frozen mechanisms from 11H and 11B combine additively or synergistically?",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "candidate_selection": false,
+    "alpha_search": false
+  },
+  "factorial_design": {
+    "A": "UNIFORM XGB + RECENT5 LTD",
+    "B": "11H TEMPORAL_SYMMETRIC3 XGB + RECENT5 LTD",
+    "C": "UNIFORM XGB + 11B MULTISCALE5 LTD",
+    "D": "11H TEMPORAL_SYMMETRIC3 XGB + 11B MULTISCALE5 LTD",
+    "features": "BASE128",
+    "alpha_ltd": 0.375,
+    "new_hyperparameters": false
+  },
+  "promotion_gate": {
+    "mean_far_D_vs_A_macro_f1_min": 0.005,
+    "all_far_D_vs_A_positive": true,
+    "max_near_D_vs_A_drop": 0.01,
+    "all_far_D_vs_A_bootstrap_fraction_positive_min": 0.9,
+    "mean_far_D_vs_B_nonnegative": true,
+    "mean_far_D_vs_C_nonnegative": true,
+    "passed": true
+  },
+  "results_summary": {
+    "mean_far_D_vs_A_macro_f1": 0.005792148837753641,
+    "mean_far_D_vs_B_macro_f1": 0.002084666980936789,
+    "mean_far_D_vs_C_macro_f1": 0.0024535646897634877,
+    "mean_far_factorial_interaction_macro_f1": -0.0012539171670533644
+  },
+  "inputs": {
+    "historical": {
+      "path": "/home/bsierra/ltd-storage/datasets/historical/CLEAN_final_features_sites.csv",
+      "sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
+    },
+    "base128": {
+      "path": "/home/bsierra/ltd-attack/configs/features/MACRO-V2-BASE-128.txt",
+      "sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4"
+    },
+    "11B_source_sha256": "0e15b743b9278ae09009bd34c4b38e658e780380760efccf3494534ee0d1c9ed",
+    "11H_source_sha256": "c976f49c103adfb859027bbcfca9592d66ec31849f355e7cefdd4d61fbb520e8"
+  },
+  "outputs": {
+    "factorial_summary": "0019b823d180bec8f7c73a9654b509e2d9ba4539b5083081ed658835e34ce3ab",
+    "combination_deltas": "310bf7cfd5883f7d5eefc2bde2e571e51c9b9858c245c08ffc517f2773baf488",
+    "factorial_interaction": "267e077b28c7401ed9f71161bd0c51573c881780b179ba7453daef2c11ebdf6a",
+    "bootstrap": "95227efe841a6b8c225eacdeda094b5c427fd085e3aaca58c705602080428b9b",
+    "seed_training": "8799e596336acf1b0b50cc591b22930c96671e0e65c6c2be8bed97886c4a7d83"
+  },
+  "next_if_pass": "freeze D as LTD-HYBRID-ROBUST-CANDIDATE; close Phase 11; only then perform one explicitly post-hoc exploratory Future-B evaluation",
+  "next_if_fail": "close Phase 11 without additional tuning; retain 11H as leading frozen XGB mechanism and 11B as positive mechanistic LTD result"
+}

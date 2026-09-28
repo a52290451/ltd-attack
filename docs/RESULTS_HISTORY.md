@@ -1067,3 +1067,98 @@ No Future-B.
 
 11L is the final planned combination experiment of Phase 11.
 
+
+---
+
+## Phase 11 Final — Frozen Temporal Robustness Development
+
+Status:
+CLOSED — SUCCESSFUL CANDIDATE IDENTIFIED.
+
+Final experiment:
+11L — Factorial Frozen Combination.
+
+Candidate:
+
+LTD-MACRO-ROBUST-CANDIDATE
+
+Components:
+
+XGB:
+- TEMPORAL_SYMMETRIC3
+- EARLY / UNIFORM / LATE temporal experts
+- geometric probability aggregation
+
+LTD:
+- MULTISCALE5
+- full-history median
+- last-10 median
+- last-5 median
+- last-3 median
+- most recent site-day
+
+Fusion:
+- fixed canonical Macro alpha
+- XGB weight = 0.625
+- LTD weight = 0.375
+
+No online adaptation.
+No test-time memory update.
+No Future-B values or scores used.
+
+11L FAR Macro-F1:
+
+ORIGIN14:
+- original Macro A: 0.611716
+- robust Macro D:   0.617309
+- delta: +0.559 pp
+
+ORIGIN28:
+- original Macro A: 0.760134
+- robust Macro D:   0.766126
+- delta: +0.599 pp
+
+Mean FAR Macro-F1 gain:
++0.579 pp.
+
+Day-block bootstrap:
+
+ORIGIN14:
+- 95% CI approximately [+0.169, +0.963] pp
+- fraction_delta_gt_0 = 0.997
+
+ORIGIN28:
+- 95% CI approximately [+0.397, +0.785] pp
+- fraction_delta_gt_0 = 1.000
+
+The combined candidate also exceeded the independently positive
+11H-only and 11B-only configurations in mean FAR Macro-F1.
+
+Factorial interaction was mildly negative, indicating partial
+redundancy between the mechanisms rather than full additivity.
+
+PROMOTION PASS = TRUE.
+
+Decision:
+
+Freeze D as LTD-MACRO-ROBUST-CANDIDATE.
+
+No additional Phase-11 Macro tuning is permitted.
+
+Next:
+
+Phase 12A — Frozen Hybrid Integration.
+
+Question:
+
+Does the Macro robustness improvement survive the final frozen
+Micro + Macro fusion?
+
+MICRO-FINAL architecture and training settings remain frozen.
+
+Hybrid fusion remains:
+- Micro weight = 0.45
+- Macro weight = 0.55
+
+Future-B remains unused during 12A development.
+
