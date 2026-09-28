@@ -918,3 +918,152 @@ The same EARLY / UNIFORM / LATE experts from 11H will be retained.
 temporal hypotheses, is more robust than the geometric product used
 by 11H.
 
+
+---
+
+## 11K — Frozen Temporal Mixture of Experts
+
+Status:
+CLOSED — POSITIVE VS BASELINE, DOES NOT BEAT 11H.
+
+No Future-B.
+No adaptation.
+No memory updates.
+
+Candidate:
+Arithmetic mixture of the same EARLY / UNIFORM / LATE experts used
+by 11H.
+
+Macro-F1 deltas vs UNIFORM:
+
+ORIGIN14:
+- NEAR: +0.20 pp
+- MID: +0.67 pp
+- FAR: +0.50 pp
+
+ORIGIN28:
+- NEAR: +0.28 pp
+- MID: +0.28 pp
+- FAR: +0.21 pp
+
+Mean FAR gain:
+approximately +0.354 pp.
+
+Formal promotion threshold:
++0.500 pp.
+
+Comparison vs 11H:
+
+ORIGIN14 FAR:
++0.034 pp.
+
+ORIGIN28 FAR:
+-0.067 pp.
+
+Mean FAR:
+approximately -0.016 pp.
+
+Therefore 11K does not beat 11H.
+
+Expert-diversity diagnostics confirm non-trivial temporal
+complementarity, with approximately 10–15% pairwise top-1
+disagreement and meaningful rescue of UNIFORM errors by EARLY
+and LATE experts.
+
+Decision:
+
+Stop temporal expert aggregation search.
+
+Retain 11H TEMPORAL_SYMMETRIC3 as the leading frozen temporal
+generalization candidate.
+
+Next:
+
+11L — factorial frozen combination:
+
+A: UNIFORM + RECENT5
+B: TEMPORAL_SYMMETRIC3 + RECENT5
+C: UNIFORM + MULTISCALE5
+D: TEMPORAL_SYMMETRIC3 + MULTISCALE5
+
+No new hyperparameters.
+
+11L is the final planned combination experiment of Phase 11.
+
+
+---
+
+## 11K — Frozen Temporal Mixture of Experts
+
+Status:
+CLOSED — POSITIVE VS UNIFORM, DOES NOT BEAT 11H.
+
+Scientific status:
+FROZEN MODEL TEMPORAL GENERALIZATION.
+
+No Future-B.
+No adaptation.
+No test-time memory or parameter updates.
+
+11K retained exactly the EARLY / UNIFORM / LATE experts from 11H
+and replaced geometric aggregation with an arithmetic probability
+mixture.
+
+FAR Macro-F1 deltas vs UNIFORM:
+
+ORIGIN14:
++0.502 pp
+
+ORIGIN28:
++0.207 pp
+
+Mean FAR gain:
+approximately +0.354 pp.
+
+This remained below the predeclared +0.500 pp promotion threshold.
+
+Comparison against 11H:
+
+ORIGIN14 FAR:
++0.034 pp
+
+ORIGIN28 FAR:
+-0.067 pp
+
+Mean FAR:
+approximately -0.016 pp.
+
+Therefore 11K does not beat 11H.
+
+Expert-diversity diagnostics nevertheless showed meaningful
+complementarity:
+
+- approximately 10–15% pairwise Top-1 disagreement;
+- EARLY and LATE each rescue a non-trivial fraction of UNIFORM errors;
+- the union oracle is substantially above the individual experts.
+
+Decision:
+
+Stop expert aggregation search.
+
+11H TEMPORAL_SYMMETRIC3 remains the leading frozen XGB mechanism.
+
+The other independently positive frozen mechanism remains
+11B MULTISCALE5 for the LTD branch.
+
+Next:
+
+11L — predeclared factorial combination.
+
+A = UNIFORM XGB + RECENT5 LTD
+B = TEMPORAL_SYMMETRIC3 XGB + RECENT5 LTD
+C = UNIFORM XGB + MULTISCALE5 LTD
+D = TEMPORAL_SYMMETRIC3 XGB + MULTISCALE5 LTD
+
+No new hyperparameters.
+No alpha search.
+No candidate selection.
+No Future-B.
+
+11L is the final planned combination experiment of Phase 11.
+

@@ -1,0 +1,67 @@
+{
+  "stage": "11K_frozen_temporal_mixture_of_experts",
+  "created_at_utc": "2026-09-28T06:47:14.983298+00:00",
+  "git_commit": "df97dba86e2f805645230f85c34124a53661a1b7",
+  "scientific_status": "FROZEN_MODEL_TEMPORAL_GENERALIZATION",
+  "hypothesis": "Temporal expert diversity is useful because different historical temporal states provide alternative valid hypotheses. Arithmetic mixture should therefore retain robustness better than geometric consensus.",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "origin14_selection": false,
+    "origin28_selection": false
+  },
+  "experts": {
+    "same_as_11H": true,
+    "members": [
+      "EARLY",
+      "UNIFORM",
+      "LATE"
+    ],
+    "features": "BASE128",
+    "edge_weight_ratio": 4.0
+  },
+  "control_11H": {
+    "aggregation": "geometric mean",
+    "interpretation": "product / consensus style"
+  },
+  "candidate_11K": {
+    "aggregation": "arithmetic probability mean",
+    "interpretation": "mixture / alternative-hypothesis style",
+    "new_hyperparameters": false
+  },
+  "promotion_gate_vs_uniform": {
+    "mean_far_macro_f1_gain_min": 0.005,
+    "all_far_positive": true,
+    "mean_far_xgb_positive": true,
+    "max_near_drop": 0.01,
+    "all_far_bootstrap_fraction_positive_min": 0.9,
+    "passed": false
+  },
+  "leading_gate_vs_11H": {
+    "mean_far_macro_f1_positive": true,
+    "all_far_macro_f1_positive": true,
+    "max_near_drop": 0.005,
+    "all_far_bootstrap_fraction_positive_min": 0.9,
+    "passed": false
+  },
+  "results_summary": {
+    "mean_far_macro_f1_delta_vs_uniform": 0.0035435664147207557,
+    "mean_far_macro_f1_delta_vs_11H": -0.00016391544209609643
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "base128_sha256": "8a80c2ec7bd8cf6c8c9b73e5970cc5c682e90fd3321ff064b1cff3e2c45dbdb4",
+    "11H_source_sha256": "c976f49c103adfb859027bbcfca9592d66ec31849f355e7cefdd4d61fbb520e8"
+  },
+  "outputs": {
+    "transfer": "c0a89464ac10c9cde735f72ef731dd8f8fdef7edfb39da05bf790e23353d47b6",
+    "bootstrap": "cf1d4a9763b70a603ff88164f90d7bd0847b78c5c1ae716e61ea1751b15a7c48",
+    "expert_diversity": "7ef7afceb46e18caa6c2907771022806f2ea4dfb21ade795fa957b77f02c580a",
+    "seed_training": "7539a33ac19ab3d31e24b5c44cd0668cf8f68d19fb378824f6b6903f6d64cbab"
+  },
+  "next_if_beats_11H": "retain arithmetic temporal mixture and test controlled combination with the independently positive MULTISCALE5 longitudinal mechanism",
+  "next_if_not": "retain 11H geometric temporal ensemble and combine it directly with MULTISCALE5; stop expert aggregation search"
+}
