@@ -23,7 +23,7 @@ def _find_project_root() -> Path:
 PROJECT_ROOT = _find_project_root()
 ENVIRONMENT_DIR = PROJECT_ROOT / "configs" / "environments"
 _REQUIRED_KEYS = ("data_root", "artifact_root", "result_root")
-_VALID_ENVIRONMENTS = {"local", "zeus"}
+_VALID_ENVIRONMENTS = {"local", "zeus", "perseo"}
 
 
 def _read_simple_yaml(path: Path) -> dict[str, Any]:

@@ -1,0 +1,3 @@
+data_root: /home/bsierra/ltd-storage/datasets
+artifact_root: /home/bsierra/ltd-storage/artifacts
+result_root: /home/bsierra/ltd-storage/results

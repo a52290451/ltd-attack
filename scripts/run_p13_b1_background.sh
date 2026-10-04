@@ -9,8 +9,8 @@ log() {
   echo "[$(timestamp)] $*"
 }
 
-if [[ "${LTD_ENV:-}" != "zeus" ]]; then
-  echo "[$(timestamp)] ERROR: LTD_ENV=zeus es obligatorio" >&2
+if [[ "${LTD_ENV:-}" != "zeus" && "${LTD_ENV:-}" != "perseo" ]]; then
+  echo "[$(timestamp)] ERROR: LTD_ENV debe ser zeus o perseo" >&2
   exit 2
 fi
 
