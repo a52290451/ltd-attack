@@ -1,0 +1,70 @@
+id,phase,family,question_or_hypothesis,method_or_algorithm,control_or_reference,key_result,status,decision,data_policy,evidence
+LEG-MICRO,P-LEGACY,Legacy Micro,Rendimiento original,Legacy deep Micro,N/A,Historical 97.26%; Future 33.08%,NON-CANONICAL,Conservar como antecedente,legacy,docs/RESULTS_HISTORY.md
+LEG-MICRO230,P-LEGACY,Legacy Micro,¿230F mejoraba Micro?,Legacy Micro + 230F,Legacy Micro,Historical 97.01%; Future 22.78%,NON-CANONICAL,No continuar como línea canónica,legacy,docs/RESULTS_HISTORY.md
+LEG-HYB45N,P-LEGACY,Legacy Hybrid,Hybrid 45F neutral,Legacy hybrid 45F,N/A,Historical 95.70%; Future 30.06%,NON-CANONICAL,Future-informed features,future-informed,docs/RESULTS_HISTORY.md
+LEG-HYB45M,P-LEGACY,Legacy Hybrid,Hybrid 45F Micro-biased,Legacy hybrid 45F,N/A,Historical 96.42%; Future 34.98%,NON-CANONICAL,Future-informed + preprocessing,future-informed,docs/RESULTS_HISTORY.md
+LEG-HYB003,P-LEGACY,Legacy Hybrid,Old strong hybrid,Legacy hybrid,N/A,Historical 96.02%; Future 37.02%,NON-CANONICAL,Historical only as trace,legacy,docs/RESULTS_HISTORY.md
+LEG-HYB005,P-LEGACY,Legacy Hybrid,Old strong hybrid,Legacy hybrid,N/A,Historical 95.15%; Future 41.38%,NON-CANONICAL,Historical only as trace,legacy,docs/RESULTS_HISTORY.md
+LEG-HYB006,P-LEGACY,Legacy Hybrid,Old strong hybrid,Legacy hybrid,N/A,Historical 95.02%; Future 40.65%,NON-CANONICAL,Historical only as trace,legacy,docs/RESULTS_HISTORY.md
+LEG-DML,P-LEGACY,DML,Old DML strong result,DML,N/A,Historical 95.40%; Future 43.37%,NON-CANONICAL,Historical only as trace,legacy,docs/RESULTS_HISTORY.md
+REP-MICRO002R,P-AUDIT,Reproduced baseline,Reproducir Micro limpiamente,Transformer direction+size,N/A,Historical 95.94%; Future 22.97%,CLOSED,Baseline reproducido,clean training,docs/RESULTS_HISTORY.md
+REP-DF,P-AUDIT,SOTA,Referencia deep estática,Deep Fingerprinting CNN,N/A,Historical 93.17%; Future 34.85%,CLOSED,Referencia limpia,clean reproduced,docs/RESULTS_HISTORY.md
+REP-RIMMER,P-AUDIT,SOTA,Referencia recurrente,Rimmer LSTM,N/A,Historical 84.22%; Future 9.49%,CLOSED,Referencia limpia,clean reproduced,docs/RESULTS_HISTORY.md
+REP-MACRO94,P-AUDIT,Legacy Macro,Reproducir Macro94,Temporal Macro 94F,N/A,Historical 86.76%; Future 15.34%,NON-CANONICAL,94F future-informed,future-informed,docs/DECISIONS.md
+REP-HYB006R,P-AUDIT,Reproduced Hybrid,Mejor clean-training 94F hybrid,Cross-Attention hybrid,other 94F hybrids,Historical 95.98%; Future 32.97%,NON-CANONICAL,"Training clean, features future-informed",no new Future selection,docs/DECISIONS.md
+00,P0,Dataset audit,Auditar cohorte Historical,dataset audit,N/A,"65 sites; 72,603 captures; 52 dates",CLOSED,Cohorte fijada,Historical only,docs/evidence/MACRO-V2-HIST/00_manifest_dataset_audit.json
+01,P0,Temporal split,Separar desarrollo/holdout,chronological split,N/A,"DEV 57,916/41d; Internal 14,687/11d",FROZEN,TEMPORAL-SPLIT-V1,Future excluded,docs/evidence/MACRO-V2-HIST/01_manifest_temporal_split.json
+01A,P0,Eligibility audit,¿Internal afectó elegibilidad?,DEV-only eligibility,Historical-wide eligibility,320 candidates; 311 DEV eligible; exact match,CLOSED,Stages 02-06A valid,DEV only,docs/evidence/MACRO-V2-HIST/01A_manifest_dev_feature_eligibility.json
+02,P1,Feature engineering,Discriminabilidad,MI / eta² / KW epsilon²,311 features,D scores,CLOSED,Use D axis,DEV only,docs/evidence/MACRO-V2-HIST/02_manifest_discriminability.json
+03,P1,Feature engineering,Estabilidad temporal,KS / Wasserstein,311 features,T scores,CLOSED,Use T axis,DEV only,docs/evidence/MACRO-V2-HIST/03_manifest_temporal_stability.json
+04,P1,Feature engineering,Persistencia de sitio,longitudinal persistence,311 features,P scores,CLOSED,Use P axis,DEV only,docs/evidence/MACRO-V2-HIST/04_manifest_site_persistence.json
+05,P1,Feature engineering,Reducir redundancia,dual-space clustering,311 features,311→148 effective dims,CLOSED,Retain clusters,DEV only,docs/evidence/MACRO-V2-HIST/05_manifest_redundancy.json
+06A,P1,Feature engineering,Representante por cluster,D/T/P robust ranking + Pareto,148 clusters,148 reps; 18 Pareto fronts,CLOSED,One rep/cluster,DEV only,docs/evidence/MACRO-V2-HIST/06A_manifest_representatives_pareto.json
+06B-R1,P1,Macro base,Elegir BASE size,nested subsets temporal selection,148 reps,TOP-128; primary .681121; mean F1 .688291,FROZEN,MACRO-V2-BASE-128,DEV only,docs/evidence/MACRO-V2-HIST/06B_R1_manifest_dev_model_selection.json
+BASE-XGB,P2,Macro base,Single-capture reference,XGBoost BASE-128,N/A,Fold-B Acc 76.74%; F1 75.36%,FROZEN,Reference,DEV only,docs/EXPERIMENT_MAP.md
+06C,P3,Longitudinal Macro,Daily profile identity,DAY-128 median profiles,BASE,"2,653 profiles; Fold-B prototype Acc ~66.63%",CLOSED,Keep daily signal,DEV only,docs/evidence/MACRO-V2-HIST/06C_manifest_daily_base_profiles.json
+06D,P3,Longitudinal Macro,Historical context usefulness,static prototypes,BASE-XGB,Fold-B Acc ~22.61%; Top-5 ~59.04%,CLOSED,Useful ranking only,DEV only,docs/evidence/MACRO-V2-HIST/06D_manifest_longitudinal_prototype_baseline.json
+06E,P3,Longitudinal Macro,Recency signal,recent-7 dynamic prototypes,static prototype,Fold-B Acc +3.00pp; F1 +2.74pp,CLOSED,Proceed learned temporal,DEV only,docs/evidence/MACRO-V2-HIST/06E_manifest_dynamic_prototype_baseline.json
+07A,P3,Longitudinal Macro,Can LTD replace BASE?,LTDPairScorer Transformer,matched BASE-MLP,Fold-B F1 66.41 vs 66.88; Top-5 95.19 vs 93.23,CLOSED,No replacement; test complementarity,DEV only,docs/evidence/MACRO-V2-HIST/07A_manifest_candidate_conditioned_temporal_encoder.json
+07B-1,P4,Macro fusion,Does LTD rescue XGB?,paired complementarity,XGB vs LTD,Fold-B oracle 84.45%; rescue 33.14%; +7.71pp,CLOSED-POSITIVE,Fusion justified,DEV only,docs/evidence/MACRO-V2-HIST/07B_01_manifest_complementarity_audit.json
+07B-2,P4,Macro fusion,Geometric fusion improves?,weighted geometric fusion,XGB,Fold-B Acc 76.74→79.46; F1 75.36→77.93,FROZEN-MILESTONE,MACRO-LTD-V1,DEV only,docs/evidence/MACRO-V2-HIST/07B_02_manifest_geometric_fusion.json
+07C-1,P5,Macro refinement,Confidence stratification,confidence audit,V1,Low-confidence LTD gain strong,DIAGNOSTIC-POSITIVE,Test hard gate,DEV only,docs/evidence/MACRO-V2-HIST/07C_01_manifest_confidence_audit.json
+07C-2,P5,Macro refinement,Hard gate transfers?,confidence-gated fusion,V1,Fold-B Acc -0.64pp; F1 -0.53pp,REJECTED,Keep global alpha,DEV only,docs/evidence/MACRO-V2-HIST/07C_02_manifest_gated_fusion.json
+07D-1,P5,Macro refinement,Best context window,W=1/3/5/7 ablation,V1 W7,W5; Fold-B Acc +0.34pp; F1 +0.41pp,PROMOTED,MACRO-LTD-V2,DEV only,docs/evidence/MACRO-V2-HIST/07D_01_manifest_context_ablation.json
+07E-1,P5,Macro refinement,Temporal order matters?,ordered vs no-pos,V2,Fold-A F1 -0.09pp; Fold-B +0.59pp,INCONCLUSIVE,Keep V2,DEV only,docs/evidence/MACRO-V2-HIST/07E_01_manifest_order_ablation.json
+07F-1,P5,Macro refinement,Query age corrects staleness?,age-aware LTD,V2,Fold-B Acc -0.41pp; F1 -0.55pp,REJECTED,No age encoding,DEV only,docs/evidence/MACRO-V2-HIST/07F_01_manifest_age_aware.json
+07G-1,P5,Macro refinement,Stale-context training?,stale sampling,V2,Fold-A F1 -0.61pp; Fold-B -0.31pp,REJECTED,Macro stop rule,DEV only,docs/evidence/MACRO-V2-HIST/07G_01_manifest_stale_training.json
+MACRO-FINAL,P6,Macro final,Freeze strongest Macro,XGB+LTD W5,V2,Fold-B Acc 79.80%; F1 78.34%,FROZEN,MACRO-LTD-FINAL,DEV only,configs/models/MACRO-LTD-FINAL.yaml
+08A,P7,Micro alignment,Exact capture bridge,pcap_uid alignment,N/A,Exact paired alignment,CLOSED,Enable comparison,Historical only,docs/evidence/MACRO-V2-HIST/08A_micro_alignment_manifest.json
+08B,P7,Micro baseline,Clean temporal Micro,CNN+Transformer direction/size,Macro final,Fold-B Acc 86.32%; F1 85.75%,FROZEN,MICRO-FINAL,Historical only,docs/evidence/MICRO-TEMPORAL-V1/08B_manifest.json
+08C,P8,Hybrid,Micro/Macro complementarity,paired audit,Micro vs Macro,Fold-B oracle 93.61%; rescue 53.29%,CLOSED-POSITIVE,Hybrid justified,Historical only,docs/evidence/LTD-HYBRID-DEV/08C_manifest.json
+08D,P9,Hybrid,Simple fusion,geometric Micro/Macro fusion,Micro,Fold-B Acc 92.05%; F1 91.74%,FROZEN-MILESTONE,LTD-HYBRID-V1,Historical only,docs/evidence/LTD-HYBRID-DEV/08D_manifest.json
+08E,P9,Hybrid diagnostic,Residual headroom,oracle/rank diagnostics,Hybrid V1,Any-alpha 95.27%; union Top5 99.53%,DIAGNOSTIC-POSITIVE,Justify 08F/08G,Historical only,docs/evidence/LTD-HYBRID-DEV/08E_manifest.json
+08F,P9,Hybrid refinement,Adaptive alpha transfers?,logistic gate,Hybrid V1,Fold-B Acc -0.41pp; F1 -0.46pp,REJECTED,Keep fixed fusion,Historical only,docs/evidence/LTD-HYBRID-DEV/08F_manifest.json
+08G,P9,Hybrid refinement,Residual reranker works?,shared candidate reranker,Hybrid V1,Fold-B Acc -0.38pp; F1 -0.43pp,REJECTED,Hybrid stop rule,Historical only,docs/evidence/LTD-HYBRID-DEV/08G_manifest.json
+HYBRID-FINAL,P10,Hybrid final,Freeze final Hybrid,Micro+Macro geometric fusion,08D,Fold-B Acc 92.05%; F1 91.74%,FROZEN,LTD-HYBRID-FINAL,Historical only,configs/models/LTD-HYBRID-FINAL.yaml
+09A,P10,Final refit,Refit on all DEV,frozen refit,frozen configs,Artifacts only; no Internal eval,CLOSED,Ready 09B,DEV only,docs/evidence/FINAL/09A_manifest_final_dev_refit.json
+09B,P11,Internal holdout,One-time Historical holdout,frozen models,09A,Micro 95.00; Macro 84.07; Hybrid 97.44 Acc,OPEN-FROZEN,No redesign,Internal opened once,docs/evidence/FINAL/09B_manifest_internal_test.json
+10A,P12,Operational refit,All Historical pre-Future,frozen architecture,09A,Secondary operational artifacts,CLOSED,No design change,Historical all,docs/evidence/FINAL/10A_manifest_full_historical_refit.json
+10B-A,P12,Future-B,Same-checkpoint retention,DEV_FROZEN,Internal,Micro 43.12; Macro 22.30; Hybrid 49.45; Top5 80.56,OPEN-FROZEN,Drift severe; Hybrid mitigates,Future opened once,docs/RESULTS_HISTORY.md
+10B-B,P12,Future-B,Operational refit track,HISTORICAL_FINAL,10A,Micro 22.20; Macro 23.55; Hybrid 30.24,SECONDARY,Analyze separately,Future open,docs/RESULTS_HISTORY.md
+10C,P12,Post-hoc mechanism,Which Macro branch helps?,stored prediction ablation,DEV_FROZEN,Micro+XGB 49.70; Micro+LTD 36.23; actual 49.45,DIAGNOSTIC,XGB dominant Macro robustness,Future post-hoc,docs/RESULTS_HISTORY.md
+11A,P13,Macro robustness,Stable features?,stable-only basis,BASE128,FAR F1 61.12 vs 53.24,REJECTED,Stability insufficient,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11A_manifest.json
+11B,P13,Macro robustness,Multiscale memory?,MULTISCALE5 LTD,RECENT5,LTD improves 6/6; mean fusion FAR ~+0.334pp,POSITIVE-NOT-PROMOTED,Retain mechanism,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11B_manifest.json
+11C,P13,Macro robustness,Temporal invariance?,contrastive representation,RAW128,FAR LTD F1 -2.07/-4.60pp,REJECTED,Hurts discriminability,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11C_manifest.json
+11D,P13,Macro robustness,Prototype identity?,longterm/dual anchor,RECENT5,FAR fusion -0.05/+0.05pp,REJECTED,Insufficient,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11D_manifest.json
+11E,P13,Macro robustness,Trajectory extrapolation?,ray scoring,RECENT5,FAR fusion ~0/+0.21pp,REJECTED,Direction unstable,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11E_manifest.json
+11F,P13,Mechanism diagnostic,Stale memory mechanism?,true-label oracle refresh,frozen memory,FAR fusion +2.16/+1.13pp,DIAGNOSTIC-POSITIVE,"Mechanism confirmed, not deployable",Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11F_manifest.json
+11G,P13,Adaptation diagnostic,Pseudo-refresh?,self-updating pseudo memory,frozen memory,FAR fusion -0.31/-0.37pp,REJECTED,Close adaptation branch,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11G_manifest.json
+11H,P13,Macro robustness,Temporal experts?,EARLY/UNIFORM/LATE XGB geometric ensemble,UNIFORM,Positive 6/6; FAR +0.47/+0.27pp,POSITIVE-LEADING,Keep leading XGB mechanism,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11H_manifest.json
+11I,P13,Macro robustness,Worst-env one-step?,cross-fit reweighting,Uniform/11H,Mean FAR +0.084pp vs uniform; -0.287pp vs 11H,REJECTED,Fails 11H,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11I_manifest.json
+11J,P13,Macro robustness,Iterative GroupDRO?,5-step GroupDRO-style,Uniform/11H,Mean FAR -0.72pp vs 11H,REJECTED-FAMILY-CLOSED,Close reweighting family,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11J_manifest.json
+11K,P13,Macro robustness,Arithmetic mixture?,arithmetic temporal experts,11H,Mean FAR +0.354pp vs uniform; -0.016pp vs 11H,POSITIVE-NOT-PROMOTED,Stop aggregation search,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11K_manifest.json
+11L,P13,Macro robustness,Combine 11B + 11H?,factorial Temporal-XGB × Multiscale-LTD,Uniform+Recent5,FAR +0.559/+0.599pp; mean +0.579pp,PROMOTED,Freeze robust Macro candidate,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE11/11L_manifest.json
+12A,P14,Hybrid robustness,Does robust Macro survive Hybrid?,frozen factorial Hybrid,canonical Hybrid,FAR +0.338/+0.081pp; mean +0.2095pp < gate,REJECTED-FOR-PROMOTION,Keep base Hybrid,Historical only,docs/evidence/LTD-ROBUSTNESS-PHASE12/12A_manifest.json
+13A,P15,Micro robustness,Temporal expert diversity?,EARLY/UNIFORM/LATE Micro geometric ensemble,UNIFORM Micro,FAR F1 69.88→73.47 and 77.39→86.71; mean +6.45pp,PROMOTED-DEVELOPMENT,Leading Micro signal,Historical only; no Future,verified run; remote evidence pending
+13B,P15,Mechanism control,Temporal-specific or generic ensemble?,U1 vs U3 seed ensemble vs T3 temporal,compute-matched,No result yet,NEXT,Run before final integration,Historical only; no Future,planned
+13C,P16,Final integration,Robust Micro × robust Macro?,factorial frozen integration,canonical vs robust,Pending,PLANNED,After 13B,Historical only,planned
+13D,P16,Final refit,Refit chosen candidate,full-Historical refit,13C,Pending,PLANNED,No selection after refit,Historical only,planned
+13E,P16,Post-hoc Future,Compare frozen candidate on known Future-B,Future-B evaluation,10B benchmark,Pending,PLANNED-POSTHOC,Not independent validation,Future already open,planned
+DATASET-C,P17,External validation,Virgin long-horizon validation,new untouched collection,final candidate,Unavailable,PARKED,Preferred independent evidence,must remain virgin,planned

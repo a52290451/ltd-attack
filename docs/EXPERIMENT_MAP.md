@@ -1,610 +1,645 @@
-# LTD-Attack — Experimental Roadmap
+# LTD-Attack — Mapa completo de ramas, experimentos y decisiones
 
-> Documento vivo. Actualizar al cierre de cada etapa.
+> **Documento vivo / source of truth de navegación experimental**
+>
+> Actualizado: **2026-10-04**  
+> Rama revisada: `feature/macro-v2-historical-only`  
+> Head remoto revisado: `1082eb31ad56c5f899333f2469ae68173c4e1718`
+>
+> Complementos:
+> - [Mapa ejecutivo](./EXPERIMENT_MAP_EXEC.md)
+> - [Registro maestro](./catalog/RESEARCH_BRANCHES.csv)
+> - [Histórico de resultados](./RESULTS_HISTORY.md)
+> - [Lineage técnico](./FEATURE_LINEAGE.md)
+> - [Decisiones metodológicas](./DECISIONS.md)
 
-## Estados
+## 0. Estado científico actual
 
-| Estado | Significado |
-|---|---|
-| CLOSED | Ejecutado, validado y documentado |
-| FROZEN | Artefacto congelado |
-| ACTIVE | Linea actualmente en desarrollo |
-| NEXT | Proximo experimento |
-| PARKED | Rama prometedora aplazada |
-| CLOSED DATA | Holdout aun no abierto |
+| Elemento | Estado | Resultado |
+|---|---|---|
+| Cohorte canónica | 🧊 FROZEN | 65 sitios; Historical 72,603 capturas, 52 días |
+| DEV | CLOSED | 57,916 capturas, 41 días |
+| Internal Test | 🔓 OPEN/FROZEN | 14,687 capturas, 11 días; abierto una sola vez en 09B |
+| Future-B | 🔓 OPEN/FROZEN | 18,543 capturas, 65 sitios; abierto en 10B |
+| BASE Macro | 🧊 FROZEN | 128 features estructurales |
+| Macro final base | 🧊 FROZEN | XGBoost + LTDPairScorer W=5; alpha LTD=.375 |
+| Micro final base | 🧊 FROZEN | CNN + Transformer; 30 epochs; seed 42 |
+| Hybrid final base | 🧊 FROZEN | Micro=.45 / Macro=.55 |
+| Robust Macro | 🟢 RETAINED | 11L: TEMPORAL_SYMMETRIC3 + MULTISCALE5 |
+| Robust Micro | 🟢 LEADING | 13A temporal expert ensemble |
+| Próximo control | 🚧 NEXT | 13B temporal ensemble vs ordinary seed ensemble |
+| Dataset C | 🅿️ PARKED | validación externa virgen preferida |
 
-## Flujo experimental
+### Métricas confirmatorias
+
+| Modelo | Internal Test | Future-B same checkpoint |
+|---|---:|---:|
+| MICRO-FINAL | Acc 95.00%, F1 94.82% | Acc 43.12%, F1 44.14% |
+| MACRO-LTD-FINAL | Acc 84.07%, F1 83.95% | Acc 22.30%, F1 18.33% |
+| LTD-HYBRID-FINAL | Acc 97.44%, F1 97.38% | Acc 49.45%, F1 49.26% |
+
+Hybrid Future-B Top-5 = **80.56%**.
+
+
+---
+
+## 1. Por qué se rehízo la línea
+
+La auditoría del código mostró que las generaciones antiguas **MACRO-45** y **MACRO-94** estaban informadas por Future:
+
+- MACRO-45: selección con comparación Historical/Future.
+- MACRO-94: selección mediante KS Historical/Future; 94 variables de 310 con KS <= 0.15.
+- Varias generaciones legacy tenían además problemas de preprocessing, scaler o split.
+
+**Decisión:** conservar los resultados legacy como trazabilidad, pero no utilizarlos como evidencia canónica Static / Unseen Future.
+
+### Resultados legacy relevantes
+
+| Generación | Historical | Future | Estado |
+|---|---:|---:|---|
+| Micro legacy | 97.26% | 33.08% | no canónico |
+| Micro + 230F | 97.01% | 22.78% | no canónico |
+| Hybrid 45F neutral | 95.70% | 30.06% | future-informed |
+| Hybrid 45F Micro-biased | 96.42% | 34.98% | future-informed + preprocessing |
+| HYB-003 old strong | 96.02% | 37.02% | no canónico |
+| HYB-005 old strong | 95.15% | 41.38% | no canónico |
+| HYB-006 old strong | 95.02% | 40.65% | no canónico |
+| DML old strong | 95.40% | 43.37% | no canónico |
+
+### Reconstrucción canónica
+
+- Primary cohort: **65 sitios**.
+- Historical: **72,603 capturas / 52 fechas**.
+- DEV: **57,916 capturas / 41 días**.
+- Internal Test: **14,687 capturas / 11 días**.
+- Future queda excluido de feature engineering, ranking, thresholds, tuning, architecture selection y model selection.
+
+> El repositorio mantiene `HIST-WIDE / 118 sites` como extensión aplazada; no es la cohorte primaria actual.
+
+
+---
+
+## 2. Mapa general por fases
 
 ```mermaid
 flowchart TD
-A["Historical 65 sites"] --> B["DEV: EARLY / MIDDLE / LATE"]
-B --> C["320 structural"]
-C --> D["311 DEV-eligible"]
-D --> E["D/T/P"]
-E --> F["Redundancy"]
-F --> G["148 representatives"]
-G --> H["06B + 06B-R1"]
-H --> I["FROZEN: BASE-128"]
-I --> J["06C: DAY-128"]
-J --> K["06D: Historical prototypes"]
-K --> L["06E: Recency"]
-L --> M["07A: Temporal Encoder"]
-M --> N["NEXT: 07B-1 Complementarity"]
-N --> O{"Complementarity?"}
-O -- yes --> P["07B-2 Fusion / Reranking"]
-O -- weak --> Q["Close / targeted redesign"]
-P --> R["Final Architecture Freeze"]
-Q --> R
-R --> S["CLOSED DATA: INTERNAL_TEST"]
-S --> T["CLOSED DATA: Future-B"]
-T --> U["Final Results / Paper"]
-I -.-> V["PARKED: DAY-128 optimized / 24h"]
-A -.-> W["PARKED: HIST-WIDE / 118 sites"]
-T -.-> X["PARKED: Dataset C"]
+    A["Audit legacy"] --> B["Rebuild Historical-only 65 sites"]
+    B --> C["320 → 311 eligible"]
+    C --> D["D/T/P + redundancy"]
+    D --> E["148 representatives"]
+    E --> F["🧊 BASE-128"]
+    F --> G["XGBoost"]
+    F --> H["LTD Transformer"]
+    G --> I["Macro fusion"]
+    H --> I
+    I --> J["🧊 MACRO-LTD-FINAL W=5"]
+
+    B --> K["08B Micro limpio"]
+    J --> L["08C complementarity"]
+    K --> L
+    L --> M["08D Hybrid fusion"]
+    M --> N["🧊 LTD-HYBRID-FINAL"]
+
+    N --> O["09B Internal Test"]
+    O --> P["10B Future-B"]
+    P --> Q["10C Mechanistic ablation"]
+
+    Q --> R1["11A stable ❌"]
+    Q --> R2["11B multiscale 🟢"]
+    Q --> R3["11C invariance ❌"]
+    Q --> R4["11D prototypes ❌"]
+    Q --> R5["11E trajectories ❌"]
+    Q --> R6["11F oracle refresh 🧪"]
+    Q --> R7["11G pseudo-refresh ❌"]
+    Q --> R8["11H temporal XGB 🟢"]
+    R8 --> R9["11I/J reweighting ❌"]
+    R8 --> R10["11K arithmetic 🟢"]
+    R2 --> S["11L robust Macro ✅"]
+    R8 --> S
+    R10 --> S
+    S --> T["12A robust Hybrid ❌"]
+    T --> U["13A temporal Micro ✅"]
+    U --> V["13B NEXT"]
+    V --> W["13C integration"]
+    W --> X["13D refit"]
+    X --> Y["13E Future-B post-hoc"]
+    Y --> Z["Dataset C virgin"]
 ```
 
-## Registro
 
-| Etapa | Estado | Resultado |
-|---|---|---|
-| Split temporal | CLOSED | DEV_EARLY / DEV_MIDDLE / DEV_LATE; INTERNAL_TEST aislado |
-| Eligibility | CLOSED | 320 -> 311 |
-| D/T/P + redundancy | CLOSED | 311 -> 148 dimensiones efectivas |
-| 06B + 06B-R1 | CLOSED | TOP-128 confirmado |
-| BASE-128 | FROZEN | baseline single-capture principal |
-| 06C | CLOSED | 2,653 perfiles DAY-128 / 41 fechas |
-| 06D | CLOSED | contexto historico aporta ranking |
-| 06E | CLOSED | recent-7 ayuda con mas historia, no de forma uniforme |
-| 07A | CLOSED | LTD mejora ranking/Top-5, no Top-1/F1 robustamente |
-| 07B-1 | CLOSED | complementarity confirmed; oracle gain ~+7.7 to +7.9 pp |
-| 07B-2A | CLOSED | geometric fusion alpha=0.375; positive temporal transfer |
-| 07B-2R | CLOSED | fixed-fusion robustness audit; no architecture tuning |
-| INTERNAL_TEST | CLOSED DATA | abrir una sola vez tras freeze |
-| Future-B | CLOSED DATA | benchmark externo tras INTERNAL_TEST |
-| DAY-128 optimized | PARKED | rama 24h |
-| HIST-WIDE / 118 sites | PARKED | extension posterior |
-| Dataset C | PARKED | benchmark virgen |
+---
 
-## Resultados clave
+## 3. Ingeniería Macro canónica — 00 a 06B-R1
+
+| Stage | Pregunta | Resultado | Decisión |
+|---|---|---|---|
+| 00 | ¿Qué contiene Historical? | 65 sitios / 72,603 capturas / 52 fechas | dataset auditado |
+| 01 | ¿Cómo separar temporalmente? | EARLY 19,098; MIDDLE 20,160; LATE 18,658; Internal 14,687 | split congelado |
+| 01A | ¿Internal alteró elegibilidad? | 320 candidatos; 311 DEV-eligible = 311 Historical-wide | stages 02–06A válidos |
+| 02 | ¿Qué separa sitios? | discriminability scores | eje D |
+| 03 | ¿Qué cambia poco en tiempo? | temporal stability scores | eje T |
+| 04 | ¿Qué preserva identidad por sitio? | site persistence scores | eje P |
+| 05 | ¿Cuánta redundancia hay? | 311 → 148 dimensiones efectivas | clustering dual-space |
+| 06A | ¿Qué representante conservar? | 148 representantes; 18 Pareto fronts | robust D/T/P ranking |
+| 06B-R1 | ¿Cuántas features? | TOP-128; primary 0.681121; mean F1 0.688291 | 🧊 BASE-128 |
 
 ### BASE-128 + XGBoost
-- Fold A: Accuracy ~73.69%, Macro-F1 ~73.11%
-- Fold B: Accuracy ~76.74%, Macro-F1 ~75.36%
 
-### DAY-128
-- 2,653 site-day profiles, 41 fechas, ~99.55% coverage
-- Fold B: Accuracy ~66.63%, Macro-F1 ~64.28%, Top-5 ~88.64%
+- Fold A: Accuracy ≈ **73.69%**, Macro-F1 ≈ **73.11%**.
+- Fold B: Accuracy ≈ **76.74%**, Macro-F1 ≈ **75.36%**.
 
-### 06D Historical Prototype
-- Fold B single-capture: Accuracy ~22.61%, Top-5 ~59.04%, MRR ~0.392
 
-### 06E Recent-7
-Fold B vs static:
-- Accuracy +3.00 pp
-- Macro-F1 +2.74 pp
-- Top-5 +1.55 pp
-- MRR +0.027
-- Mean rank 8.72 -> 7.22
+---
 
-### 07A Temporal Encoder
-Fold A:
-- BASE-MLP F1 ~60.61%, Top-5 ~88.90%
-- LTD F1 ~59.74%, Top-5 ~89.20%
+## 4. Macro longitudinal — 06C a 07G
 
+### 06C — DAY-128
+- 2,653 site-day profiles, 41 fechas, ≈99.55% coverage.
+- Mejor prototipo Fold B: Acc ≈66.63%, F1 ≈64.28%, Top-5 ≈88.64%.
+- Lectura: señal diaria útil, no suficiente como clasificador principal.
+
+### 06D — Historical prototype
+Fold B single-capture:
+- Top-1 ≈22.61%.
+- Top-5 ≈59.04%.
+- MRR ≈0.392.
+- Lectura: historia útil para ranking, débil como Top-1 standalone.
+
+### 06E — Recency
+Recent-7 vs static, Fold B:
+- Accuracy +3.00 pp.
+- Macro-F1 +2.74 pp.
+- Top-5 +1.55 pp.
+- Mean rank 8.72 → 7.22.
+
+### 07A — LTDPairScorer Transformer
+- Candidate-conditioned temporal Transformer.
+- Fold B: BASE-MLP F1 ≈66.88%, LTD F1 ≈66.41%.
+- Top-5: BASE ≈93.23%, LTD ≈95.19%.
+- Decisión: no reemplazar BASE; medir complementariedad.
+
+### 07B-1 — XGB/LTD complementarity
 Fold B:
-- BASE-MLP F1 ~66.88%, Top-5 ~93.23%
-- LTD F1 ~66.41%, Top-5 ~95.19%
+- XGB Acc 76.74%.
+- LTD Acc 71.58%.
+- Oracle union 84.45%.
+- LTD rescata 33.14% de errores XGB.
+- Headroom ≈+7.71 pp.
 
-Conclusion: LTD no reemplaza BASE directamente; aporta ranking complementario.
+### 07B-2 — Geometric fusion
+- Alpha LTD=.375 / XGB=.625, elegido solo en Fold A.
+- Fold B: Acc 76.74→79.46%; F1 75.36→77.93%.
+- Resultado: MACRO-LTD-V1.
 
-## Camino activo
+### 07C — Confidence gating
+- 07C-1: señal de que LTD ayuda más con baja confianza XGB.
+- 07C-2: regla dura no transfiere; Fold-B Acc -0.64 pp, F1 -0.53 pp.
+- Decisión: gate rechazado.
 
-07B-1 CLOSED -> 07B-2A CLOSED -> 07B-2R CLOSED -> MACRO-LTD-V1 FROZEN -> MACRO-LTD-V2 EXPLORATION
+### 07D — Context length
+- Candidatos W={1,3,5,7}.
+- Ganador W=5.
+- Fold-B vs W=7: Acc +0.34 pp; F1 +0.41 pp.
+- Resultado: MACRO-LTD-V2.
 
-## Regla de cierre
+### 07E — Temporal order
+- Fold A ordered-noPos F1 -0.09 pp.
+- Fold B +0.59 pp.
+- Decisión: efecto interesante pero inconsistente; no cambiar arquitectura.
 
-Una etapa solo se considera CLOSED cuando:
-1. todos los runs declarados fueron ejecutados;
-2. leakage audit paso;
-3. evidencia fue guardada;
-4. resultados fueron interpretados;
-5. decision/status fue documentado;
-6. existe commit normal, sin amend ni force.
+### 07F — Query-age aware
+- Fold B Acc -0.41 pp; F1 -0.55 pp.
+- Decisión: rejected.
 
-## 07B-1 Decision Gate
+### 07G — Stale-context training
+- Fold A F1 -0.61 pp.
+- Fold B F1 -0.31 pp.
+- Stop rule Macro activado.
 
-Pregunta: **Cuando BASE-XGB falla, LTD contiene informacion complementaria?**
-
-Medidas:
-- both correct
-- XGB-only correct
-- LTD-only correct
-- both wrong
-- oracle union
-- rescue rate
-- true-class rank improvement
-- Top-5 overlap
-- per-class rescues
-
-Solo pasar a 07B-2 si hay rescue pool no trivial o complementariedad clara de ranking.
-
-## Holdout rule
-
-DEV -> Final Architecture Freeze -> INTERNAL_TEST -> Future-B
-
-Despues de abrir INTERNAL_TEST no se cambia feature set, arquitectura,
-context window, preprocessing ni regla de fusion a partir de sus resultados.
+### 🧊 MACRO-LTD-FINAL
+- BASE-128 + XGBoost.
+- LTDPairScorer.
+- W=5 site-days.
+- LTD seeds 11/42/73.
+- geometric fusion alpha LTD=.375.
+- Fold-B DEV: **Acc 79.80%, F1 78.34%, Top-5 96.93%, MRR .8701**.
 
 
-## Macro Continued Exploration
+---
 
-MACRO-LTD-V1 is a frozen milestone, not the end of the Macro research line.
+## 5. Micro + Hybrid base — 08A a 08G
 
-Rule:
-- MACRO-LTD-V1 is immutable.
-- Improvements are developed as MACRO-LTD-V2+.
-- All V2 development remains DEV-only.
-- INTERNAL_TEST remains closed.
-- Future-B remains closed.
-- The future Micro/Hybrid phase remains planned but does not stop Macro exploration.
+### 08A — Alignment
+Bridge exacto por `pcap_uid` entre Micro y Macro.
+
+### 08B — Clean temporal Micro baseline
+- Fold A: Acc 77.54%, F1 76.55%.
+- Fold B: **Acc 86.32%, F1 85.75%, Top-5 98.27%, MRR .9146**.
+- Resultado: MICRO-FINAL base.
+
+### 08C — Complementarity
+Fold B:
+- Micro Acc 86.32%.
+- Macro Acc 79.80%.
+- Oracle union 93.61%.
+- Headroom +7.29 pp.
+- Macro rescata **53.29%** de errores Micro.
+- Conclusión: ramas complementarias.
+
+### 08D — Simple Hybrid fusion
+- geometric probability fusion.
+- Micro=.45 / Macro=.55.
+- Fold B: **Acc 92.05%, F1 91.74%, Top-5 99.27%, MRR .9519**.
+- Gain vs Micro: +5.72 pp Accuracy.
+- Resultado: LTD-HYBRID-V1.
+
+### 08E — Residual headroom
+Fold B:
+- Hybrid errors: 1,484.
+- any-alpha oracle 95.27%.
+- union Top-3 98.60%.
+- union Top-5 99.53%.
+- 40.57% de errores recuperables por algún alpha.
+- 80.93% de errores ocurren con desacuerdo Micro/Macro.
+
+### 08F — Adaptive alpha gate
+- Fold-B Acc -0.41 pp.
+- F1 -0.46 pp.
+- Rejected.
+
+### 08G — Candidate reranker
+- Fold-B Acc -0.38 pp.
+- F1 -0.43 pp.
+- net correct -70.
+- Rejected; stop rule híbrido.
+
+### 🧊 LTD-HYBRID-FINAL
+Se congela la solución 08D.
+
+
+---
+
+## 6. Holdout y Concept Drift — 09A a 10C
+
+### 09A — all-DEV refit
+Refit de componentes congelados sin abrir Internal Test.
+
+### 09B — Internal Test one-time
+14,687 capturas; 65 sitios; 2025-12-29..2026-01-08.
+
+| Modelo | Accuracy | Macro-F1 | Top-5 | MRR |
+|---|---:|---:|---:|---:|
+| MICRO-FINAL | 95.00% | 94.82% | 99.02% | .9685 |
+| MACRO-XGB | 82.48% | 82.36% | 98.02% | .8926 |
+| MACRO-LTD | 76.03% | 75.37% | 96.53% | .8489 |
+| MACRO-LTD-FINAL | 84.07% | 83.95% | 98.52% | .9039 |
+| LTD-HYBRID-FINAL | **97.44%** | **97.38%** | **99.82%** | **.9853** |
+
+Hybrid vs Micro: +2.44 pp Accuracy, +2.56 pp Macro-F1.
+
+### 10A — Full Historical refit
+Secondary operational refit; no architecture changes.
+
+### 10B — Future-B confirmatory
+18,543 capturas; 65 sitios; 2026-03-23..2026-04-07.
+
+#### Track A — DEV_FROZEN, primary
+| Modelo | Acc | Macro-F1 | Top-5 |
+|---|---:|---:|---:|
+| Micro | 43.12% | 44.14% | 72.39% |
+| XGB | 23.34% | 19.47% | 60.57% |
+| LTD | 11.17% | 7.81% | 32.47% |
+| Macro final | 22.30% | 18.33% | 57.99% |
+| Hybrid | **49.45%** | **49.26%** | **80.56%** |
+
+Hybrid vs Micro:
+- Accuracy +6.34 pp.
+- Macro-F1 +5.13 pp.
+- Top-5 +8.17 pp.
+- MRR +6.91 pp.
+
+#### Track B — HISTORICAL_FINAL
+- Micro 22.20% Acc.
+- Macro 23.55%.
+- Hybrid 30.24%.
+- Secondary/operational; no mezclar con primary same-checkpoint.
+
+### 10C — Post-hoc mechanism
+DEV_FROZEN:
+- Micro 43.12%.
+- Micro+XGB 49.70%.
+- Micro+LTD 36.23%.
+- Hybrid sin LTD 49.16%.
+- Hybrid sin XGB 44.66%.
+- Actual Hybrid 49.45%.
+
+**Hallazgo:** XGBoost es la principal fuente Macro de robustez Future-B; LTD aporta identidad, pero no de forma estable a largos gaps.
+
+
+---
+
+## 7. Phase 11 — todas las ramas de robustez Macro
+
+| ID | Hipótesis / técnica | Resultado clave | Estado |
+|---|---|---|---|
+| 11A | stable-only features | FAR F1 BASE128 61.12% vs stable128 53.24% | ❌ |
+| 11B | MULTISCALE5 LTD | LTD mejora 6/6; FAR hasta +2.00 pp; fusion mean FAR +0.334 pp | 🟢 |
+| 11C | temporal contrastive invariance | FAR LTD F1 -2.07 / -4.60 pp | ❌ |
+| 11D | long-term + recent prototypes | FAR fusion -0.05 / +0.05 pp | ❌ |
+| 11E | early-middle-late trajectory ray | FAR fusion ≈0 / +0.21 pp, no robusto | ❌ |
+| 11F | true-label oracle refresh | FAR fusion +2.16 / +1.13 pp | 🧪 |
+| 11G | pseudo-label self-refresh | FAR fusion -0.31 / -0.37 pp | ❌ |
+| 11H | EARLY/UNIFORM/LATE XGB experts | positive 6/6; FAR +0.47/+0.27 pp | 🟢 leading |
+| 11I | one-step worst-env weighting | mean FAR +0.084 pp vs uniform; -0.287 pp vs 11H | ❌ |
+| 11J | iterative GroupDRO-style | mean FAR -0.72 pp vs 11H | ❌ family closed |
+| 11K | arithmetic expert mixture | mean FAR +0.354 pp vs uniform; -0.016 pp vs 11H | 🟢 no beat |
+| 11L | factorial 11B×11H | mean FAR +0.579 pp; gate pass | ✅ |
+
+### 11A
+Estabilidad individual no basta: se pierde discriminabilidad.
+
+### 11B — Multiscale memory
+Memorias:
+- all-history median
+- last-10
+- last-5
+- last-3
+- most-recent day
+
+Standalone LTD mejora F1 en las seis ventanas. La mejora de fusión media FAR (~+0.334 pp) no alcanza gate +0.5 pp. Se retiene como mecanismo.
+
+### 11C
+Forzar invariancia temporal borra información útil; rejected.
+
+### 11D
+Prototipo long-term + recent anchor casi neutro; rejected.
+
+### 11E
+Trayectoria lineal por sitio no es consistente; rejected.
+
+### 11F — Oracle refresh
+- ORIGIN14 FAR LTD +4.69 pp; Fusion +2.16 pp.
+- ORIGIN28 FAR LTD +2.63 pp; Fusion +1.13 pp.
+- Diagnóstico positivo: **stale memory sí es mecanismo de degradación**.
+- No desplegable: requiere true labels y actualización online.
+
+### 11G — Pseudo-refresh
+- ORIGIN14 FAR Fusion -0.31 pp.
+- ORIGIN28 FAR Fusion -0.37 pp.
+- Online adaptation / pseudo-memory branch cerrada.
+
+### 11H — Temporal XGB experts
+- Mismos datos; EARLY prioriza pasado, UNIFORM igual, LATE reciente.
+- edge ratio ~4x.
+- geometric probability ensemble.
+- Macro-F1 positivo en 6/6.
+- FAR Macro fusion: +0.47 pp / +0.27 pp.
+- Mean ≈+0.371 pp < formal +0.5 pp gate.
+- Retenido como leading frozen XGB mechanism.
+
+### 11I / 11J
+Reweighting / GroupDRO no reproduce 11H; familia cerrada sin tuning adicional.
+
+### 11K
+Arithmetic mixture positiva vs uniform, pero no supera 11H; búsqueda de agregadores cerrada.
+
+### 11L — Phase 11 final
+A = UNIFORM + RECENT5  
+B = TEMPORAL_SYMMETRIC3 + RECENT5  
+C = UNIFORM + MULTISCALE5  
+D = TEMPORAL_SYMMETRIC3 + MULTISCALE5
+
+FAR Macro-F1:
+- ORIGIN14 0.611716→0.617309 = **+0.559 pp**.
+- ORIGIN28 0.760134→0.766126 = **+0.599 pp**.
+- Mean = **+0.579 pp**.
+
+Bootstrap:
+- ORIGIN14 CI ~[+0.169,+0.963] pp, fraction positive .997.
+- ORIGIN28 CI ~[+0.397,+0.785] pp, fraction 1.000.
+
+**PROMOTION PASS = TRUE.**
+
+
+---
+
+## 8. Phase 12 — robust Macro dentro del Hybrid
+
+### 12A — Frozen Robust Hybrid Integration
+
+No cambia:
+- MICRO-FINAL.
+- Micro weight=.45.
+- Macro weight=.55.
+- no alpha search.
+- no adaptation.
+
+FAR Hybrid Macro-F1:
+- ORIGIN14 0.761426→0.764811 = +0.338 pp.
+- ORIGIN28 0.887521→0.888327 = +0.081 pp.
+- Mean = **+0.2095 pp**.
+- Gate = **+0.2500 pp**.
+
+**PROMOTION PASS = FALSE.**
+
+Conclusión:
+- robust Macro aporta, pero gran parte es redundante con Micro;
+- no se cambia LTD-HYBRID-FINAL;
+- 11L se conserva como hallazgo Macro positivo.
+
+
+---
+
+## 9. Phase 13 — robustez temporal Micro
+
+### 13A — Frozen Temporal Micro Ensemble
+
+> Ejecución verificada sobre el commit remoto `1082eb31...`.  
+> A 2026-10-04, los CSV/manifest de 13A aún no aparecen archivados en `docs/evidence/` del remoto; deben incorporarse cuando se normalice el flujo local/Git.
+
+Protocolo:
+- Historical only.
+- Future-B no usado.
+- arquitectura MICRO-FINAL sin cambios.
+- 30 epochs, seed 42.
+- no adaptation / no memory update.
+- no ensemble-weight search.
+
+Expertos:
+- UNIFORM: todos los días pesan igual.
+- EARLY: **mismos datos**, más peso a fechas antiguas.
+- LATE: **mismos datos**, más peso a fechas recientes.
+- edge weight ratio 4.0.
+- geometric probability mean.
+
+| Escenario | Ventana | Micro original F1 | Temporal Micro F1 | Delta |
+|---|---|---:|---:|---:|
+| 14 días | NEAR | 82.25% | 86.19% | +3.94 pp |
+| 14 días | MID | 71.56% | 75.28% | +3.72 pp |
+| 14 días | FAR | 69.88% | 73.47% | **+3.59 pp** |
+| 28 días | NEAR | 80.78% | 89.71% | +8.93 pp |
+| 28 días | MID | 77.60% | 86.48% | +8.89 pp |
+| 28 días | FAR | 77.39% | 86.71% | **+9.32 pp** |
+
+FAR mean gain: **+6.45 pp**.
+
+Bootstrap:
+- ORIGIN14 FAR CI ~[+3.12,+3.99] pp; fraction 1.0.
+- ORIGIN28 FAR CI ~[+8.65,+9.89] pp; fraction 1.0.
+
+Accuracy FAR:
+- 14 días: 72.79→75.97%.
+- 28 días: 78.97→87.76%.
+
+Pairwise expert Top-1 disagreement ~14–27%.
+
+**PROMOTION PASS = TRUE.**
+
+### 13B — NEXT: temporal vs seed ensemble
+
+U1 = UNIFORM seed42  
+U3 = geometric ensemble UNIFORM seeds 11/42/73  
+T3 = EARLY42 + UNIFORM42 + LATE42
+
+Pregunta:
+**¿T3 supera U3, no solo U1?**
+
+Interpretación:
+- T3 > U3: temporalidad específica.
+- T3 ≈ U3: beneficio principal de ensemble.
+- U3 > T3: temporal weighting innecesario.
+
+No existe todavía un resultado 13B en la rama remota revisada.
+
+
+---
+
+## 10. Ruta inmediata
 
 ```mermaid
-flowchart TD
-A["MACRO-LTD-V1<br/>FROZEN"] --> B["07C-1 CLOSED<br/>Confidence-Stratified Audit"]
-B --> C["07C-2 CLOSED<br/>Hard confidence gate failed transfer"]
-C -- yes --> D["07C-2<br/>Adaptive Fusion"]
-C -- no --> E["Keep V1 fusion"]
-D --> F["MACRO-LTD-V2 candidate"]
-E --> F
-F --> G{"Remaining justified Macro hypothesis?"}
-G -- yes --> H["07D+<br/>Targeted Macro experiment"]
-G -- no --> I["Macro candidate freeze"]
-H --> I
-I --> J["Later: Micro + Macro-LTD Hybrid"]
-J --> K["FINAL HYBRID FREEZE"]
-K --> L["INTERNAL_TEST"]
-L --> M["Future-B"]
+flowchart LR
+    A["13A ✅"] --> B["13B 🚧 temporal vs seed ensemble"]
+    B --> C{"Resultado"}
+    C -- "T3 > U3" --> D["Retener temporal"]
+    C -- "T3 ≈ U3" --> E["Atribuir a ensemble"]
+    C -- "U3 > T3" --> F["Simplificar"]
+    D --> G["13C robust Micro × robust Macro"]
+    E --> G
+    F --> G
+    G --> H["13D full-Historical refit"]
+    H --> I["13E Future-B post-hoc"]
+    I --> J["Dataset C virgin external validation"]
 ```
 
-### MACRO-LTD-V1
-
-Status: FROZEN DEV MILESTONE.
-
-Configuration:
-- MACRO-V2-BASE-128
-- XGBoost BASE
-- LTDPairScorer
-- 7-day candidate context
-- LTD seeds: 11, 42, 73
-- mean probability ensemble
-- geometric fusion alpha = 0.375
-
-Robustness:
-- Fold A: Accuracy improves on 14/14 dates
-- Fold B: Accuracy improves on 13/13 dates
-- Fold B delta Accuracy: +2.72 pp
-- Fold B delta Macro-F1: +2.57 pp
-- alpha near-optimal region: 0.30–0.40
-
-Remaining weakness:
-- gains are heterogeneous across classes;
-- Fold-A Macro-F1 improvement is modest;
-- Fold-A Top-5 decreases;
-- fixed global alpha may over-trust LTD for some queries/classes.
-
-Next:
-07C-1 Confidence-Stratified Fusion Audit.
-
-Goal:
-determine whether the optimal contribution of LTD depends on
-BASE-XGB confidence, disagreement, entropy or margin.
-
-The result will determine whether MACRO-LTD-V2 should use
-query-adaptive fusion instead of the global alpha=0.375.
-
-
-### 07C-1 result:
-
-Adaptive signal confirmed.
-
-- Fold-B low-confidence fusion gain: +6.53 pp average
-- Fold-B high-confidence fusion gain: +0.08 pp average
-- Fold-B disagreement net correct: +507
-- confidence thresholds were defined only on Fold A
-
-Next:
-07C-2 Confidence-Gated Fusion.
-
-
-### 07C-2 result
-
-Hard confidence gating did not transfer.
-
-- Fold A: small improvement over MACRO-LTD-V1
-- Fold B: Accuracy -0.64 pp
-- Fold B: Macro-F1 -0.53 pp
-- Fold B net correct: -120
-
-Decision:
-retain MACRO-LTD-V1.
-
-No post-hoc threshold adjustment using Fold B.
-
-### 07D-1 ACTIVE — LTD Context-Length Ablation
-
-Question:
-Is the frozen 7-day context optimal for the longitudinal component?
-
-Candidate windows:
-1, 3, 5, 7 days.
-
-Protocol:
-- all candidate windows evaluated on Fold A;
-- select exactly one window using Fold-A Macro-F1;
-- Freeze selected window;
-- only the selected window is then evaluated on Fold B;
-- XGB and fusion alpha=0.375 remain unchanged;
-- INTERNAL_TEST and Future-B remain closed.
-
-
-
-### 07D-1 result
-
-Context-length ablation passed.
-
-Selected:
-- context = 5 days
-
-Versus MACRO-LTD-V1 context=7:
-
-Fold A:
-- Accuracy +0.09 pp
-- Macro-F1 +0.04 pp
-
-Fold B temporal transfer:
-- Accuracy +0.34 pp
-- Macro-F1 +0.41 pp
-- MRR +0.18 pp
-
-Candidate:
-MACRO-LTD-V2 = MACRO-LTD-V1 with context 5.
-
-Important:
-all contexts retained the same number of causal training queries.
-The gain is therefore contextual/representational, not caused by
-additional training data.
-
-Status:
-07D-1 CLOSED — POSITIVE.
-
-Next:
-07D-1R CLOSED — promotion gate passed.
-
-
-
-### MACRO-LTD-V2
-
-Status:
-FROZEN DEV MILESTONE.
-
-Difference from V1:
-- longitudinal context: 7 -> 5 site-days
-
-Unchanged:
-- BASE-128
-- XGBoost
-- LTD architecture
-- seeds [11,42,73]
-- geometric fusion alpha=0.375
-
-Fold-B DEV:
-- Accuracy: 79.80%
-- Macro-F1: 78.34%
-- Top-5: 96.93%
-- MRR: 0.8701
-
-Paired Fold-B gain vs V1:
-- Accuracy: +0.34 pp
-- Macro-F1: +0.41 pp
-- MRR: +0.18 pp
-- net correct: +63
-
-11/13 dates improve Accuracy.
-
-Next:
-07E-1 ACTIVE — Temporal Order Ablation.
-
-Question:
-Does ordered temporal information itself contribute beyond having the
-same set of five historical daily profiles?
-
-Control:
-same architecture, same capacity, same W=5, but without positional encoding.
-
-
-
-## Master Research Plan
-
-The experimental program is divided into bounded phases.
-
-### Phase P0 — Provenance and leakage control — CLOSED
-Historical-only feature design, chronological DEV splits and immutable evidence.
-
-### Phase P1 — Static Macro representation — CLOSED
-Structural features -> D/T/P -> redundancy -> BASE-128.
-
-### Phase P2 — Strong Macro baseline — CLOSED
-BASE-128 + XGBoost.
-
-### Phase P3 — Longitudinal Macro — CLOSED
-Historical prototypes, recency and candidate-conditioned LTD.
-
-### Phase P4 — Macro fusion — CLOSED
-Complementarity audit and geometric BASE-XGB/LTD fusion.
-
-### Phase P5 — Macro refinement — CLOSED
-V1 context=7.
-V2 context=5.
-Temporal-order ablation completed.
-Next hypothesis: explicit query-to-history age/staleness.
-
-Macro stop rule:
-after the explicit age/staleness experiment, continue with at most one
-additional Macro architecture hypothesis only if a concrete failure mode
-is identified prospectively. Otherwise freeze the strongest Macro milestone.
-
-### Phase P6 — Macro Final Freeze — CLOSED — CLOSED
-Select the strongest reproducible DEV Macro architecture.
-
-### Phase P7 — Clean Micro temporal baseline — CLOSED — ACTIVE
-Rebuild Micro under the same chronological 65-site protocol.
-
-### Phase P8 — Micro/Macro complementarity — ACTIVE
-Measure both-correct, Micro-only, Macro-only, oracle union, ranks and rescues.
-
-### Phase P9 — Hybrid development
-Start with calibrated probability fusion.
-Use learned Cross-Attention/gating only if residual complementarity justifies it.
-
-### Phase P10 — Final Hybrid Freeze
-Freeze all features, architectures, preprocessing and fusion rules.
-
-### Phase P11 — INTERNAL_TEST
-One-time historical holdout evaluation.
-No architecture changes based on its result.
-
-### Phase P12 — Future-B
-One-time external temporal-drift benchmark.
-
-### Phase P13 — Dataset C
-Preferred truly untouched external longitudinal benchmark.
-
-### Phase P14 — Sensitivity / extensions
-HIST-WIDE 118-site cohort, DAY/24h branch and secondary analyses.
-
-Primary target:
-a temporally robust hybrid Website Fingerprinting model combining
-current-session Micro information with longitudinal Macro dynamics.
-
-
-### 07E-1 result
-
-Status:
-CLOSED — ORDER EFFECT INCONCLUSIVE.
-
-Fold B strongly favors ordered W=5, but Fold A does not reproduce the
-Top-1 / Macro-F1 advantage.
-
-MACRO-LTD-V2 remains frozen.
-
-Next:
-07F-1 ACTIVE — Query-Age-Aware LTD.
-
-
-
-### 07F-1 result
-
-Status:
-CLOSED — NEGATIVE.
-
-Query-age encoding degraded MACRO-LTD-V2 in both temporal folds.
-
-Important diagnostic:
-
-training histories are predominantly fresh, whereas frozen evaluation
-histories become progressively stale.
-
-This identifies a train/inference temporal-context mismatch.
-
-### 07G-1 ACTIVE — Stale-Context Training
-
-Final planned Macro hypothesis.
-
-Question:
-
-Can MACRO-LTD learn a more robust longitudinal identity if training
-explicitly exposes it to candidate contexts that are older than the query?
-
-Architecture:
-unchanged from MACRO-LTD-V2.
-
-Changed component:
-training context sampling only.
-
-Stop rule:
-
-- positive robust transfer -> candidate V3 -> robustness audit -> MACRO FINAL;
-- no robust transfer -> MACRO-LTD-V2 -> MACRO FINAL;
-- no additional Macro architecture search after this stage.
-
-
-
-### 07G-1 result
-
-Status:
-CLOSED — NEGATIVE.
-
-Stale-context training degraded MACRO-LTD-V2 in both DEV temporal folds.
-
-Decision:
-the predeclared Macro stop rule is activated.
-
-MACRO-LTD-V2 -> MACRO-LTD-FINAL.
-
-No additional Macro architecture search.
-
-## MACRO-LTD-FINAL
-
-Status:
-FROZEN DEV ARCHITECTURE.
-
-Fold-B DEV:
-- Accuracy: 79.80%
-- Macro-F1: 78.34%
-- Top-5: 96.93%
-- MRR: 0.8701
-
-Next:
-Phase P7 — Clean Temporal Micro.
-
-First stage:
-08A — Micro/Macro Capture Alignment Audit.
-
-
-
-### 08B result
-
-Status:
-CLOSED — CLEAN TEMPORAL MICRO BASELINE ESTABLISHED.
-
-Fold A:
-- Accuracy 77.54%
-- Macro-F1 76.55%
-
-Fold B:
-- Accuracy 86.32%
-- Macro-F1 85.75%
-- Top-5 98.27%
-- MRR 0.9146
-
-Micro is stronger than MACRO-LTD-FINAL as a standalone classifier.
-
-This does not answer whether the Macro representation contains
-complementary information.
-
-Next:
-
-08C ACTIVE — exact capture-level Micro/Macro complementarity audit.
-
-No model training.
-No fusion tuning.
-No holdout access.
-
-
-
-### 08C result
-
-Status:
-CLOSED — STRONG COMPLEMENTARITY CONFIRMED.
-
-Fold B:
-- Micro Accuracy: 86.32%
-- Macro Accuracy: 79.80%
-- Oracle union: 93.61%
-- Oracle headroom over Micro: +7.29 pp
-- Macro rescues 53.29% of Micro errors
-
-Fold A:
-- Oracle headroom over Micro: +12.34 pp
-- Macro rescues 54.95% of Micro errors
-
-Conclusion:
-Micro and Macro contain strongly complementary classification information.
-
-### 08D ACTIVE — Simple Probability Fusion
-
-Rule:
-weighted geometric probability fusion.
-
-Selection:
-alpha chosen only on Fold A.
-
-Transfer:
-selected alpha applied unchanged to Fold B.
-
-No new model training.
-No class-specific gating.
-No neural meta-model.
-
-
-
-### 08E result
-
-Status:
-CLOSED — RESIDUAL STRUCTURE CONFIRMED.
-
-Fold B:
-- LTD-HYBRID-V1 Accuracy: 92.05%
-- Hybrid errors: 1,484
-- any-alpha oracle: 95.27%
-- union Top-2: 97.35%
-- union Top-3: 98.60%
-- union Top-5: 99.53%
-- 40.57% of Hybrid errors recoverable by some scalar alpha
-- 80.93% of Hybrid errors occur during Micro/Macro disagreement
-
-Decision:
-
-08F ACTIVE — low-DOF query-adaptive alpha gate.
-
-Predeclared follow-up:
-
-08G — one final candidate-level learned reranker, justified by the
-large gap between scalar-alpha headroom and candidate-ranking headroom.
-
-No manual class-specific rules.
-
-
-
-### 08F result
-
-Status:
-CLOSED — NEGATIVE.
-
-Adaptive query-level alpha failed temporal transfer.
-
-Fold B vs LTD-HYBRID-V1:
-- Accuracy: -0.41 pp
-- Macro-F1: -0.46 pp
-- MRR: -0.22 pp
-
-Reference remains:
-LTD-HYBRID-V1.
-
-### 08G ACTIVE — Final Candidate-Level Residual Reranker
-
-Purpose:
-
-Exploit candidate-ranking information that cannot be expressed by a
-single scalar Micro/Macro alpha.
-
-Constraints:
-
-- shared scorer across all 65 candidates;
-- no candidate/site identity;
-- no manual class rules;
-- no architecture search;
-- relative/rank-based features;
-- Fold A only for learning;
-- Fold B temporal transfer only.
-
-Stop rule:
-
-08G is the final DEV hybrid architecture experiment.
-
-PASS:
-promote candidate and freeze HYBRID-FINAL.
-
-FAIL:
-LTD-HYBRID-V1 becomes HYBRID-FINAL.
-
+### Caveats
+
+- Future-B ya está abierto: 13E será **post-hoc**, no validación independiente.
+- Internal Test también está abierto permanentemente.
+- ORIGIN14/ORIGIN28 han sido reutilizados muchas veces; son desarrollo, no holdout virgen.
+- Dataset C sigue siendo la mejor opción de evidencia externa independiente.
+
+
+---
+
+## 11. Ramas cerradas vs activas
+
+### Cerradas por evidencia negativa
+- future-informed feature selection como protocolo canónico;
+- stable-only feature basis;
+- forced temporal invariance / contrastive;
+- long-term / dual-anchor prototypes;
+- explicit linear trajectories;
+- pseudo-label self-refresh;
+- query-age encoding;
+- stale-context training;
+- hard confidence gating;
+- adaptive Hybrid alpha;
+- candidate residual reranking;
+- worst-environment / GroupDRO reweighting;
+- further temporal expert aggregation search.
+
+### Cerradas porque cumplieron su papel
+- BASE-128 selection;
+- Macro base development;
+- clean Micro baseline;
+- base Hybrid development;
+- Internal Test;
+- Future-B confirmatory opening;
+- Phase 11 Macro robustness;
+- Phase 12 robust Hybrid integration.
+
+### Activas / siguientes
+1. 13B mechanism attribution.
+2. 13C robust Micro × robust Macro.
+3. 13D full-Historical refit.
+4. 13E Future-B post-hoc comparison.
+5. Dataset C virgin validation.
+
+
+---
+
+## 12. Hipótesis científica emergente
+
+La evidencia acumulada **no** apoya como estrategia principal:
+- escoger solo features que cambian poco;
+- forzar una representación completamente invariante;
+- resumir identidad en un prototipo;
+- extrapolar una trayectoria lineal;
+- actualizar continuamente memoria/pesos en inferencia.
+
+La señal más consistente apunta a:
+
+> **preservar múltiples perspectivas temporales durante entrenamiento, mantenerlas congeladas en inferencia y combinar señales complementarias en lugar de colapsarlas prematuramente en una única representación.**
+
+Matiz:
+- 11H/11L: patrón positivo en Macro, efecto pequeño.
+- 13A: efecto mucho mayor en Micro.
+- 13B debe separar temporalidad específica de ensembling genérico.
+
+
+---
+
+## 13. Guardrails
+
+1. Future-B no se usa para nueva selección.
+2. Internal Test no vuelve a ser holdout independiente.
+3. ORIGIN14/ORIGIN28 son desarrollo repetido.
+4. No reabrir familias cerradas por tuning oportunista.
+5. `fraction_delta_gt_0` de bootstrap no es p-value.
+6. No mezclar DEV_FROZEN Future-B 49.45% con HISTORICAL_FINAL 30.24%.
+7. No afirmar “robusto al concept drift” sin cualificar: se mitiga, no se elimina.
+8. La cohorte de 65 sitios no debe describirse como completamente future-blind; los valores Future no se usaron en el modelado actual, pero la disponibilidad futura pudo influir históricamente en membresía.
+9. Cada cambio científico significativo debe tener nuevo experiment ID.
+10. Evidencia histórica inmutable; no amend/force-push.
+11. Dataset C debe permanecer virgen.
+
+## 14. Evidencia por carpeta
+
+| Bloque | Ruta |
+|---|---|
+| Macro feature engineering | `docs/evidence/MACRO-V2-HIST/` |
+| Micro temporal base | `docs/evidence/MICRO-TEMPORAL-V1/` |
+| Hybrid DEV | `docs/evidence/LTD-HYBRID-DEV/` |
+| Internal / Future | `docs/evidence/FINAL/` |
+| Phase 11 | `docs/evidence/LTD-ROBUSTNESS-PHASE11/` |
+| Phase 12 | `docs/evidence/LTD-ROBUSTNESS-PHASE12/` |
+| Phase 13A | run verificado; archive remoto pendiente |
+| Catálogo histórico | `docs/catalog/` |
+
+## 15. Objetivo operativo
+
+El proyecto **no busca continual learning**.
+
+> **Objetivo:** adquirir robustez temporal durante entrenamiento para que un modelo congelado degrade más lentamente y necesite reentrenarse con menor frecuencia.
+
+Permitido:
+- mayor complejidad de training;
+- frozen ensembles;
+- temporal diversity;
+- historical memory construida antes del deployment.
+
+Fuera del objetivo final:
+- test-time parameter updates;
+- pseudo-label continual updates;
+- memory refresh con tráfico futuro;
+- dependencia de etiquetas nuevas durante operación.
