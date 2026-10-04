@@ -1,0 +1,58 @@
+{
+  "stage": "13A_frozen_temporal_micro_ensemble",
+  "created_at_utc": "2026-09-28T12:56:21.657774+00:00",
+  "git_commit": "1082eb31ad56c5f899333f2469ae68173c4e1718",
+  "scientific_status": "FROZEN_MICRO_TEMPORAL_ROBUSTNESS_DEVELOPMENT",
+  "research_question": "Can training-time temporal expert diversity reduce Micro degradation while keeping inference fully frozen?",
+  "data_policy": {
+    "historical_only": true,
+    "future_b_values_used": false,
+    "future_b_scores_used": false,
+    "test_time_parameter_updates": false,
+    "test_time_memory_updates": false,
+    "candidate_selection": false,
+    "ensemble_weight_search": false
+  },
+  "architecture": {
+    "source": "MICRO-FINAL",
+    "epochs": 30,
+    "seed": 42,
+    "max_len": 3000,
+    "d_model": 256,
+    "heads": 8,
+    "layers": 4
+  },
+  "experts": {
+    "UNIFORM": "canonical MICRO-FINAL training",
+    "EARLY": "all training captures retained; earlier dates weighted more",
+    "LATE": "all training captures retained; later dates weighted more",
+    "edge_weight_ratio": 4.0,
+    "aggregation": "geometric probability mean"
+  },
+  "promotion_gate": {
+    "mean_far_macro_f1_gain_min": 0.005,
+    "all_far_macro_f1_positive": true,
+    "max_near_macro_f1_drop": 0.01,
+    "all_far_bootstrap_fraction_positive_min": 0.9,
+    "passed": true
+  },
+  "results_summary": {
+    "mean_far_macro_f1_gain": 0.06452918808389058
+  },
+  "inputs": {
+    "historical_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "micro_source_sha256": "a8a88041c44e5627e126e2c29c7e068b17c8598a0b01c63a5ff1cd3105c2c7c9",
+    "micro_code_sha256": "eb8d3f80728b74e306123436aed4695ee06617e11c6843ed4dfeae028355b01a",
+    "11H_source_sha256": "c976f49c103adfb859027bbcfca9592d66ec31849f355e7cefdd4d61fbb520e8"
+  },
+  "outputs": {
+    "summary": "787e76c42279d7afec7418828f94162d71a2b248e8c5afb9f8f5f74d1f649fd3",
+    "deltas": "b559cb175bd9295a24effdb4f1807ee11264ada59cba81439e98e296344760ab",
+    "bootstrap": "a1379d8a7362b7f9bcb433b69e060303d624bfa55c9b575db362b9973196bde5",
+    "diversity": "c7c145dbae686ecf6e33717190911327468e4b960a6fdc4b1db557bd5ae3d33d",
+    "training_curves": "366b226038767637483bdb0c2b9ac41467862854be0722e0e25d848f5bfe1d3d",
+    "training_summary": "e0ca913eaca40d9c73bf7a84b65920b7252c548e9d889867e04a2ba58e2cb6b3"
+  },
+  "next_if_pass": "13B factorial integration: canonical vs robust Micro crossed with canonical vs Phase-11 robust Macro",
+  "next_if_fail": "close temporal-expert transfer to Micro; test one distinct single-model frozen temporal-regularization hypothesis"
+}
