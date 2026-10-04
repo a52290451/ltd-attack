@@ -1,0 +1,42 @@
+stage: P13_B1
+status: PREDECLARED
+micro:
+  architecture: MICRO-FINAL
+  max_len: 3000
+  d_model: 256
+  heads: 8
+  layers: 4
+  epochs: 30
+  seeds: [11, 42, 73]
+  temporal_modes: [EARLY, UNIFORM, LATE]
+  edge_weight_ratio: 4.0
+origins: [ORIGIN14, ORIGIN28]
+windows: [NEAR, MID, FAR]
+micro_candidates: [U1, U3, T3_S11, T3_S42, T3_S73, T9]
+hybrid_micro_candidates: [U1, U3, T3_S42, T9]
+macro_candidates: [M0, M1]
+ensemble_definitions:
+  U1: [UNIFORM/42]
+  U3: [UNIFORM/11, UNIFORM/42, UNIFORM/73]
+  T3_S11: [EARLY/11, UNIFORM/11, LATE/11]
+  T3_S42: [EARLY/42, UNIFORM/42, LATE/42]
+  T3_S73: [EARLY/73, UNIFORM/73, LATE/73]
+  T9: [EARLY/11, UNIFORM/11, LATE/11, EARLY/42, UNIFORM/42, LATE/42, EARLY/73, UNIFORM/73, LATE/73]
+hybrid_weights:
+  micro: 0.45
+  macro: 0.55
+metrics: [accuracy, macro_f1, top5_accuracy, mrr, mean_true_rank]
+bootstrap:
+  unit: day_block
+  iterations: 2000
+  seed: 20261004
+guardrails:
+  historical_only: true
+  future_b_scores_used: false
+  adaptive_selection_during_run: false
+  inference_updates: false
+  dataset_c_opened: false
+paths:
+  result_13b: [micro, MICRO-ROBUSTNESS-PHASE13-BATTERY]
+  result_13c: [hybrid, LTD-ROBUSTNESS-PHASE13-BATTERY]
+  cache: [experiments, PHASE13_BATTERY_V1]

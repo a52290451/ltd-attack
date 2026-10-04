@@ -52,12 +52,11 @@ flowchart TD
     L10 --> M
 
     M --> N["❌ 12A Robust Hybrid<br/>mean FAR gain +0.2095 pp<br/>gate +0.25 pp"]
-    N --> O["✅ 13A Temporal Micro ensemble<br/>mean FAR F1 +6.45 pp"]
-    O --> P["🚧 13B Mechanism control<br/>Temporal vs seed ensemble"]
-    P --> Q["13C Robust Micro × Robust Macro"]
-    Q --> R["13D Full-Historical refit"]
-    R --> S["13E Future-B post-hoc"]
-    S --> T["🅿️ Dataset C virgen"]
+    N --> O["✅ 13A Temporal Micro ensemble<br/>evidence archived"]
+    O --> P["🚧 P13-B1 checkpoint<br/>13B + 13C + 14A"]
+    P --> Q["Next decision"]
+    Q --> R["13D solo después del checkpoint"]
+    R --> S["🅿️ Dataset C virgen"]
 ```
 
 ## Qué está demostrado
@@ -71,17 +70,20 @@ flowchart TD
 7. **11L pasa el gate Macro:** +0.579 pp FAR Macro-F1 medio.
 8. **12A no pasa al Hybrid:** +0.2095 pp < +0.2500 pp.
 9. **13A es la señal más fuerte actual:** FAR Macro-F1 **69.88→73.47** y **77.39→86.71**; media **+6.45 pp**.
-10. **13B es obligatorio antes de integrar:** debe separar temporalidad específica de ensemble genérico.
+10. **P13-B1 es obligatorio antes de integrar:** 13B debe separar temporalidad específica de ensemble genérico; 13C y 14A se ejecutan en la misma batería sin selección adaptativa.
 
 ## Estado actual
 
 - Arquitectura confirmatoria: **LTD-HYBRID-FINAL**.
 - Candidato Macro robusto: **TEMPORAL_SYMMETRIC3 + MULTISCALE5**.
 - Candidato Micro robusto principal: **13A temporal ensemble**.
-- Próximo experimento: **13B**.
+- Próximo checkpoint: **P13-B1 (13B + 13C + 14A)**.
 - Future-B: **abierto y congelado**; no se usa para selección nueva.
 - ORIGIN14/ORIGIN28: **desarrollo repetido**, no validación externa.
 - Dataset C: **validación externa virgen preferida**.
+
+13A tiene `evidence archived`, `promotion_gate passed` y `Future-B unused`.
+Los resultados de P13-B1 aún no existen y no se escriben en este mapa.
 
 ## Regla científica central
 

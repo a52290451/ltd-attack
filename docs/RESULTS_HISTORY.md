@@ -1273,3 +1273,32 @@ Improve the temporal robustness of the Micro branch during training,
 without retraining, adaptation, memory refresh, or parameter updates
 during inference.
 
+---
+
+## 13A — Frozen Temporal Micro Ensemble
+
+Status: `EVIDENCE ARCHIVED` — `PROMOTION_GATE_PASSED` en desarrollo
+Historical; `Future-B UNUSED`.
+
+Evidencia:
+`docs/evidence/MICRO-ROBUSTNESS-PHASE13/`.
+
+Protocolo congelado:
+
+- Historical only; ORIGIN14/ORIGIN28 son desarrollo repetido.
+- MICRO-FINAL sin cambios: max_len 3000, d_model 256, 8 heads, 4 layers,
+  30 epochs.
+- EARLY/UNIFORM/LATE usan las mismas capturas y ratio de borde 4.0.
+- Inferencia congelada; sin continual learning, memory refresh ni búsqueda de
+  pesos de ensemble.
+
+Accuracy FAR documentada:
+
+- ORIGIN14: 72.79% → 75.97%, +3.17 pp.
+- ORIGIN28: 78.97% → 87.76%, +8.80 pp.
+- Media FAR Accuracy gain: aproximadamente +5.99 pp.
+
+Macro-F1 FAR mean gain: +6.45 pp.
+
+No se añaden aquí resultados de 13B, 13C ni 14A. El siguiente artefacto es
+P13-B1: 13B + 13C + 14A → checkpoint conjunto.

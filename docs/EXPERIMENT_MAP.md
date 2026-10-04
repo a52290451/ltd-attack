@@ -26,8 +26,8 @@
 | Micro final base | 🧊 FROZEN | CNN + Transformer; 30 epochs; seed 42 |
 | Hybrid final base | 🧊 FROZEN | Micro=.45 / Macro=.55 |
 | Robust Macro | 🟢 RETAINED | 11L: TEMPORAL_SYMMETRIC3 + MULTISCALE5 |
-| Robust Micro | 🟢 LEADING | 13A temporal expert ensemble |
-| Próximo control | 🚧 NEXT | 13B temporal ensemble vs ordinary seed ensemble |
+| Robust Micro | 🧊 FROZEN / EVIDENCE ARCHIVED | 13A temporal expert ensemble |
+| Próximo checkpoint | 🚧 NEXT | P13-B1: 13B + 13C + 14A → checkpoint conjunto |
 | Dataset C | 🅿️ PARKED | validación externa virgen preferida |
 
 ### Métricas confirmatorias
@@ -118,12 +118,16 @@ flowchart TD
     R8 --> S
     R10 --> S
     S --> T["12A robust Hybrid ❌"]
-    T --> U["13A temporal Micro ✅"]
-    U --> V["13B NEXT"]
-    V --> W["13C integration"]
-    W --> X["13D refit"]
-    X --> Y["13E Future-B post-hoc"]
-    Y --> Z["Dataset C virgin"]
+    T --> U["13A temporal Micro ✅ / evidence archived"]
+    U --> V["P13-B1 checkpoint"]
+    V --> W["13B mechanism battery"]
+    V --> X["13C factorial Hybrid"]
+    V --> Y["14A Future-B rank-gap post-hoc"]
+    W --> Z["Next decision"]
+    X --> Z
+    Y --> Z
+    Z --> AA["13D/next phase only after checkpoint"]
+    AA --> AB["Dataset C virgin"]
 ```
 
 
@@ -455,7 +459,7 @@ Conclusión:
 ### 13A — Frozen Temporal Micro Ensemble
 
 > Ejecución verificada sobre el commit remoto `1082eb31...`.  
-> A 2026-10-04, los CSV/manifest de 13A aún no aparecen archivados en `docs/evidence/` del remoto; deben incorporarse cuando se normalice el flujo local/Git.
+> Evidencia archivada en `docs/evidence/MICRO-ROBUSTNESS-PHASE13/`.
 
 Protocolo:
 - Historical only.
@@ -495,21 +499,32 @@ Pairwise expert Top-1 disagreement ~14–27%.
 
 **PROMOTION PASS = TRUE.**
 
-### 13B — NEXT: temporal vs seed ensemble
+Estado documental: `evidence archived`; `promotion_gate passed`; Future-B
+unused. La promoción se refiere al gate de desarrollo Historical de 13A,
+no a una validación independiente de Future-B.
 
-U1 = UNIFORM seed42  
-U3 = geometric ensemble UNIFORM seeds 11/42/73  
-T3 = EARLY42 + UNIFORM42 + LATE42
+### P13-B1 — Experimental Battery Checkpoint
 
-Pregunta:
-**¿T3 supera U3, no solo U1?**
+La batería queda predeclarada antes de cualquier ejecución:
+
+- 13B: U1, U3, T3_S11, T3_S42, T3_S73 y T9.
+- 13C: U1/U3/T3_S42/T9 × M0/M1, con Micro=0.45 y Macro=0.55.
+- 14A: rank-gap Future-B estrictamente post-hoc sobre el NPZ congelado.
+- 18 entrenamientos Micro: ORIGIN14/ORIGIN28 × EARLY/UNIFORM/LATE ×
+  seeds 11/42/73.
+- cache/resume validado por hashes; ningún resultado intermedio modifica la
+  matriz ni crea un candidato nuevo.
+
+Pregunta primaria:
+**¿T3_S42 supera U3, no solo U1?**
 
 Interpretación:
 - T3 > U3: temporalidad específica.
 - T3 ≈ U3: beneficio principal de ensemble.
 - U3 > T3: temporal weighting innecesario.
 
-No existe todavía un resultado 13B en la rama remota revisada.
+No existen todavía resultados numéricos de 13B, 13C ni 14A; este bloque solo
+describe el protocolo del checkpoint.
 
 
 ---
@@ -518,17 +533,11 @@ No existe todavía un resultado 13B en la rama remota revisada.
 
 ```mermaid
 flowchart LR
-    A["13A ✅"] --> B["13B 🚧 temporal vs seed ensemble"]
-    B --> C{"Resultado"}
-    C -- "T3 > U3" --> D["Retener temporal"]
-    C -- "T3 ≈ U3" --> E["Atribuir a ensemble"]
-    C -- "U3 > T3" --> F["Simplificar"]
-    D --> G["13C robust Micro × robust Macro"]
-    E --> G
-    F --> G
-    G --> H["13D full-Historical refit"]
-    H --> I["13E Future-B post-hoc"]
-    I --> J["Dataset C virgin external validation"]
+    A["13A ✅ evidence archived"] --> B["P13-B1: 13B + 13C + 14A"]
+    B --> C["Checkpoint conjunto"]
+    C --> D["Próxima decisión"]
+    D --> E["13D solo después del checkpoint"]
+    E --> F["Dataset C virgin external validation"]
 ```
 
 ### Caveats
@@ -569,11 +578,10 @@ flowchart LR
 - Phase 12 robust Hybrid integration.
 
 ### Activas / siguientes
-1. 13B mechanism attribution.
-2. 13C robust Micro × robust Macro.
-3. 13D full-Historical refit.
-4. 13E Future-B post-hoc comparison.
-5. Dataset C virgin validation.
+1. P13-B1: 13B mechanism attribution, 13C factorial y 14A rank-gap.
+2. Checkpoint conjunto y decisión siguiente.
+3. 13D full-Historical refit solo si el checkpoint lo autoriza.
+4. Dataset C virgin validation.
 
 
 ---
@@ -623,7 +631,7 @@ Matiz:
 | Internal / Future | `docs/evidence/FINAL/` |
 | Phase 11 | `docs/evidence/LTD-ROBUSTNESS-PHASE11/` |
 | Phase 12 | `docs/evidence/LTD-ROBUSTNESS-PHASE12/` |
-| Phase 13A | run verificado; archive remoto pendiente |
+| Phase 13A | `docs/evidence/MICRO-ROBUSTNESS-PHASE13/` (evidence archived) |
 | Catálogo histórico | `docs/catalog/` |
 
 ## 15. Objetivo operativo

@@ -1,0 +1,28 @@
+stage: 14A
+status: POSTHOC_DIAGNOSTIC_ONLY
+source:
+  result_stage: final
+  result_name: FUTURE-B
+  file: 10B_scores_DEV_FROZEN.npz
+components: [MICRO, MACRO_XGB, MACRO_LTD, MACRO_FINAL, HYBRID_FINAL]
+metrics: [accuracy, top5_accuracy, mrr, mean_true_rank, entropy, top1_top2_margin]
+micro:
+  max_len: 3000
+per_site_category_rules:
+  high_top1: "accuracy >= 0.75"
+  recoverable_gap: "accuracy < 0.75 and top5_minus_top1 >= 0.25"
+  lost_beyond_top5: "otherwise"
+guardrails:
+  future_b_open: true
+  future_b_use: POSTHOC_DIAGNOSTIC_ONLY
+  selection_allowed: false
+  training_allowed: false
+paths:
+  result_stage: final
+  result_name: FUTURE-RANK-GAP-PHASE14
+  source_stage: final
+  source_name: FUTURE-B
+  source_file: 10B_scores_DEV_FROZEN.npz
+  micro_source: CLEAN_final_vectors_sites_concept_drift.csv
+  future_macro_source: CLEAN_final_features_sites_concept_drift.csv
+  historical_macro_source: CLEAN_final_features_sites.csv

@@ -2288,3 +2288,30 @@ availability during dataset construction. Future feature values were not
 used for current feature/model selection, but cohort membership must not
 be described as wholly future-blind.
 
+---
+
+## F13 — Ensemble Micro temporal congelado 13A
+
+Fuente:
+`src/models/micro/13A_frozen_temporal_micro_ensemble.py`.
+
+Archivo de evidencia:
+`docs/evidence/MICRO-ROBUSTNESS-PHASE13/`.
+
+Estado: `evidence archived`; `promotion_gate passed`; `Future-B unused`.
+
+Los tres expertos usan las mismas capturas Historical y la arquitectura
+MICRO-FINAL. Solo difiere la importancia temporal de muestras durante el
+entrenamiento: UNIFORM, EARLY y LATE, con `EDGE_WEIGHT_RATIO=4.0`. La
+inferencia permanece congelada y ninguna muestra futura actualiza el modelo o
+la memoria.
+
+Accuracy FAR documentada:
+
+- ORIGIN14: 72.79% → 75.97%, +3.17 pp.
+- ORIGIN28: 78.97% → 87.76%, +8.80 pp.
+- Ganancia FAR media: aproximadamente +5.99 pp.
+
+El siguiente checkpoint de lineage es P13-B1: control de mecanismo 13B,
+integración factorial 13C y diagnóstico post-hoc de gap de rank 14A sobre
+Future-B. Esta entrada aún no contiene resultados numéricos de P13-B1.
