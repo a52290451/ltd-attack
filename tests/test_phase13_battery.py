@@ -6,6 +6,12 @@ import pytest
 from src.experiments.phase13_battery import (
     BATTERY_MODES,
     CacheState,
+    EXPECTED_MICRO_ARCHITECTURE,
+    LEGACY_CACHE_SOURCE_COMMIT,
+    LEGACY_CACHE_SOURCE_CODE_FINGERPRINT,
+    LEGACY_CACHE_SOURCE_CONFIG_SHA256,
+    LEGACY_CACHE_SOURCE_FINGERPRINT,
+    LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT,
     MICRO_SEEDS,
     ORIGINS,
     build_experiment_matrix,
@@ -118,27 +124,79 @@ def _prediction(identity, *, pcap_uid=None, dates=None, y=None, labels=None):
     }
 
 
+def _nine_expert_predictions():
+    return [
+        _prediction({"origin": "ORIGIN14", "window": "FAR", "temporal_mode": mode, "seed": seed})
+        for mode in BATTERY_MODES
+        for seed in MICRO_SEEDS
+    ]
+
+
+def test_nueve_expertos_predeclarados_con_mismos_captures_pasan():
+    validate_expert_prediction_alignment(_nine_expert_predictions())
+
+
+def test_expert_alignment_permite_modes_y_seeds_validos_diferentes():
+    records = _nine_expert_predictions()
+
+    validate_expert_prediction_alignment(records)
+
+
 def test_expert_alignment_falla_con_filas_permutadas_uid_fecha_y_label():
-    identity = {"origin": "ORIGIN14", "window": "FAR", "temporal_mode": "UNIFORM", "seed": 42}
-    reference = _prediction(identity)
     for field, value in (
         ("pcap_uid", ["p2", "p1"]),
-        ("dates", ["2026-01-02", "2026-01-01"]),
-        ("y", [1, 0]),
-        ("labels", ["b", "a", "c"]),
+        ("query_date", ["2026-01-02", "2026-01-01"]),
+        ("y_true", [1, 0]),
+        ("candidate_labels", ["b", "a", "c"]),
     ):
-        altered = _prediction(identity, **{field: value})
+        records = _nine_expert_predictions()
+        records[1] = dict(records[1])
+        records[1][field] = np.asarray(value)
         with pytest.raises(RuntimeError, match="alineación"):
-            validate_expert_prediction_alignment([reference, altered])
+            validate_expert_prediction_alignment(records)
 
 
-@pytest.mark.parametrize("field,value", [("origin", "ORIGIN28"), ("window", "NEAR"), ("seed", 73)])
+@pytest.mark.parametrize("field,value", [("origin", "ORIGIN28"), ("window", "NEAR")])
 def test_expert_alignment_falla_con_identidad_incorrecta(field, value):
-    reference = _prediction({"origin": "ORIGIN14", "window": "FAR", "temporal_mode": "UNIFORM", "seed": 42})
-    identity = {"origin": "ORIGIN14", "window": "FAR", "temporal_mode": "UNIFORM", "seed": 42}
-    identity[field] = value
+    records = _nine_expert_predictions()
+    records[1][field] = value
     with pytest.raises(RuntimeError, match="identidad"):
-        validate_expert_prediction_alignment([reference, _prediction(identity)])
+        validate_expert_prediction_alignment(records)
+
+
+def test_expert_alignment_falla_con_seed_inesperado():
+    records = _nine_expert_predictions()
+    records[0]["seed"] = 999
+    with pytest.raises(RuntimeError, match="seed inesperado"):
+        validate_expert_prediction_alignment(records)
+
+
+def test_expert_alignment_falla_con_mode_inesperado():
+    records = _nine_expert_predictions()
+    records[0]["temporal_mode"] = "UNKNOWN"
+    with pytest.raises(RuntimeError, match="mode inesperado"):
+        validate_expert_prediction_alignment(records)
+
+
+def test_expert_alignment_falla_con_duplicado():
+    records = _nine_expert_predictions()
+    records[-1]["temporal_mode"] = records[0]["temporal_mode"]
+    records[-1]["seed"] = records[0]["seed"]
+    with pytest.raises(RuntimeError, match="duplicado"):
+        validate_expert_prediction_alignment(records)
+
+
+def test_expert_alignment_falla_con_experto_faltante():
+    records = _nine_expert_predictions()[:-1]
+    with pytest.raises(RuntimeError, match="faltante"):
+        validate_expert_prediction_alignment(records)
+
+
+def test_expert_alignment_falla_con_shape_de_probabilidades_distinta():
+    records = _nine_expert_predictions()
+    records[1]["probs"] = np.full((2, 2), 0.5, dtype=float)
+    with pytest.raises(RuntimeError, match="shape"):
+        validate_expert_prediction_alignment(records)
 
 
 def test_micro_macro_alignment_falla_si_uid_se_intercambia_con_misma_etiqueta():
@@ -219,3 +277,111 @@ def test_dry_run_expone_estado_de_cache(monkeypatch, tmp_path):
     result = phase13_battery.run_phase13(dry_run=True, only="13B")
     assert set(result["cache_states"].values()) == {CacheState.ABSENT.value}
     assert result["factorial_state"] == CacheState.ABSENT.value
+
+
+def _write_legacy_cache(tmp_path, *, manifest_overrides=None, corrupt=None):
+    import hashlib
+
+    cache_dir = tmp_path / "ORIGIN14" / "EARLY" / "11"
+    cache_dir.mkdir(parents=True)
+    scaler = {
+        "origin": "ORIGIN14",
+        "temporal_mode": "EARLY",
+        "seed": 11,
+        "architecture": EXPECTED_MICRO_ARCHITECTURE,
+        "config_sha256": LEGACY_CACHE_SOURCE_CONFIG_SHA256,
+        "input_fingerprint": LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT,
+        "code_fingerprint": LEGACY_CACHE_SOURCE_CODE_FINGERPRINT,
+    }
+    (cache_dir / "scaler.json").write_text(json.dumps(scaler), encoding="utf-8")
+    scaler_sha256 = hashlib.sha256((cache_dir / "scaler.json").read_bytes()).hexdigest()
+    checkpoint = {
+        "state_dict": {},
+        "origin": "ORIGIN14",
+        "temporal_mode": "EARLY",
+        "seed": 11,
+        "fingerprint": LEGACY_CACHE_SOURCE_FINGERPRINT,
+        "architecture": EXPECTED_MICRO_ARCHITECTURE,
+        "config_sha256": LEGACY_CACHE_SOURCE_CONFIG_SHA256,
+        "input_fingerprint": LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT,
+        "code_fingerprint": LEGACY_CACHE_SOURCE_CODE_FINGERPRINT,
+        "scaler_sha256": scaler_sha256,
+    }
+    (cache_dir / "model.pt").write_text(json.dumps(checkpoint), encoding="utf-8")
+    checkpoint_sha256 = hashlib.sha256((cache_dir / "model.pt").read_bytes()).hexdigest()
+    outputs = {}
+    for window in ("NEAR", "MID", "FAR"):
+        np.savez_compressed(
+            cache_dir / f"{window}.npz",
+            probs=np.asarray([[0.8, 0.1, 0.1], [0.1, 0.8, 0.1]], dtype=np.float32),
+            pcap_uid=np.asarray(["p1", "p2"]),
+            query_date=np.asarray(["2026-01-01", "2026-01-02"], dtype="datetime64[D]"),
+            y_true=np.asarray([0, 1], dtype=np.int64),
+            origin=np.asarray("ORIGIN14"),
+            window=np.asarray(window),
+            temporal_mode=np.asarray("EARLY"),
+            seed=np.asarray(11),
+            candidate_labels=np.asarray(["a", "b", "c"]),
+            fingerprint=np.asarray(LEGACY_CACHE_SOURCE_FINGERPRINT),
+            checkpoint_sha256=np.asarray(checkpoint_sha256),
+            scaler_sha256=np.asarray(scaler_sha256),
+            config_sha256=np.asarray(LEGACY_CACHE_SOURCE_CONFIG_SHA256),
+            input_fingerprint=np.asarray(LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT),
+            code_fingerprint=np.asarray(LEGACY_CACHE_SOURCE_CODE_FINGERPRINT),
+        )
+        outputs[window] = hashlib.sha256((cache_dir / f"{window}.npz").read_bytes()).hexdigest()
+    manifest = {
+        "fingerprint": LEGACY_CACHE_SOURCE_FINGERPRINT,
+        "identity": {"origin": "ORIGIN14", "temporal_mode": "EARLY", "seed": 11},
+        "training": {"git_commit": LEGACY_CACHE_SOURCE_COMMIT},
+        "architecture": EXPECTED_MICRO_ARCHITECTURE,
+        "provenance": {
+            "config_sha256": LEGACY_CACHE_SOURCE_CONFIG_SHA256,
+            "input_fingerprint": LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT,
+            "code_fingerprint": LEGACY_CACHE_SOURCE_CODE_FINGERPRINT,
+            "checkpoint_sha256": checkpoint_sha256,
+            "scaler_sha256": scaler_sha256,
+        },
+        "outputs_sha256": outputs,
+    }
+    if manifest_overrides:
+        for path, value in manifest_overrides.items():
+            target = manifest
+            parts = path.split(".")
+            for part in parts[:-1]:
+                target = target[part]
+            target[parts[-1]] = value
+    (cache_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    if corrupt:
+        (cache_dir / corrupt).write_bytes(b"corrupto")
+    return cache_dir
+
+
+def test_legacy_cache_exacto_aceptado(tmp_path):
+    from src.experiments.phase13_battery import classify_expert_cache_state
+
+    cache_dir = _write_legacy_cache(tmp_path)
+    assert classify_expert_cache_state(cache_dir, "ORIGIN14", "EARLY", 11, "nuevo") == CacheState.COMPLETE_COMPATIBLE_LEGACY
+
+
+@pytest.mark.parametrize(
+    "override",
+    [
+        ("training.git_commit", "otro-commit"),
+        ("provenance.config_sha256", "otro-config"),
+        ("provenance.input_fingerprint", "otro-input"),
+    ],
+)
+def test_legacy_cache_con_provenance_distinta_rechazado(tmp_path, override):
+    from src.experiments.phase13_battery import classify_expert_cache_state
+
+    cache_dir = _write_legacy_cache(tmp_path, manifest_overrides={override[0]: override[1]})
+    assert classify_expert_cache_state(cache_dir, "ORIGIN14", "EARLY", 11, "nuevo") == CacheState.COMPLETE_INCOMPATIBLE
+
+
+@pytest.mark.parametrize("corrupt", ["model.pt", "FAR.npz"])
+def test_legacy_cache_corrupto_rechazado(tmp_path, corrupt):
+    from src.experiments.phase13_battery import classify_expert_cache_state
+
+    cache_dir = _write_legacy_cache(tmp_path, corrupt=corrupt)
+    assert classify_expert_cache_state(cache_dir, "ORIGIN14", "EARLY", 11, "nuevo") == CacheState.COMPLETE_INCOMPATIBLE

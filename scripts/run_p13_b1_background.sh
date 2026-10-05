@@ -15,6 +15,7 @@ if [[ "${LTD_ENV:-}" != "zeus" && "${LTD_ENV:-}" != "perseo" ]]; then
 fi
 
 export PYTHONPATH=.
+export PYTHONUNBUFFERED=1
 SKIP_14A=false
 if [[ "${1:-}" == "--skip-14a" ]]; then
   SKIP_14A=true

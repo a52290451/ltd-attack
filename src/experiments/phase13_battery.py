@@ -41,6 +41,24 @@ EPS = 1e-12
 BOOTSTRAP_ITERATIONS = 2000
 BOOTSTRAP_SEED = 20261004
 
+EXPECTED_MICRO_ARCHITECTURE = {
+    "max_len": MAX_LEN,
+    "d_model": 256,
+    "heads": 8,
+    "layers": 4,
+    "epochs": MICRO_EPOCHS,
+    "edge_weight_ratio": EDGE_WEIGHT_RATIO,
+}
+
+# Contrato inmutable para reutilizar exclusivamente los caches producidos por
+# la ejecución Micro histórica de P13-B1 en el commit original.
+LEGACY_CACHE_SOURCE_COMMIT = "7cbf0627334ee6c1be59a56199a5f2abc9bbd62d"
+LEGACY_CACHE_SOURCE_FINGERPRINT = "345f49ca1dfeddf93e8fa2ee4bf2b43a8f6990b10b9ae9f045586cd38535eeb8"
+LEGACY_CACHE_SOURCE_CODE_FINGERPRINT = "7beffe2de894fb185bd334fca1909e809a23bbb3f43247da29ac87c31d8633a7"
+LEGACY_CACHE_SOURCE_CONFIG_SHA256 = "f12bb55d513df8a81344a950a5d8f38e21a7085b03736a3215d05c4e4d8887c6"
+LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT = "89f2b1fa344a1cb0e543583e36ee4ce437fb27e2096986078989bb3d5025f9cd"
+EXPECTED_EXPERT_IDENTITIES = frozenset((mode, seed) for mode in BATTERY_MODES for seed in MICRO_SEEDS)
+
 OUTPUT_13B = Path(result_path("micro", "MICRO-ROBUSTNESS-PHASE13-BATTERY"))
 OUTPUT_13C = Path(result_path("hybrid", "LTD-ROBUSTNESS-PHASE13-BATTERY"))
 CACHE_ROOT = Path(artifact_path("experiments", "PHASE13_BATTERY_V1"))
@@ -72,6 +90,7 @@ class CacheState(str, Enum):
 
     ABSENT = "ABSENT"
     COMPLETE_COMPATIBLE = "COMPLETE_COMPATIBLE"
+    COMPLETE_COMPATIBLE_LEGACY = "COMPLETE_COMPATIBLE_LEGACY"
     COMPLETE_INCOMPATIBLE = "COMPLETE_INCOMPATIBLE"
     PARTIAL = "PARTIAL"
 
@@ -433,22 +452,44 @@ def _array_equal(left: Any, right: Any) -> bool:
 
 
 def validate_expert_prediction_alignment(records: list[dict[str, Any]]) -> None:
-    """Exige identidad exacta antes de cualquier ensemble Micro."""
+    """Valida captures comunes y el producto completo de expertos Micro."""
     if not records:
         raise RuntimeError("No hay artefactos para validar alineación")
     reference = records[0]
-    identity_fields = ("origin", "window", "temporal_mode", "seed")
+    for field in ("origin", "window"):
+        if field not in reference:
+            raise RuntimeError(f"Fallo de identidad en alineación: falta {field}")
     for index, current in enumerate(records):
-        for field in identity_fields:
+        for field in ("origin", "window"):
             if current.get(field) != reference.get(field):
                 raise RuntimeError(f"Fallo de identidad en alineación del experto {index}: {field}")
+        mode = current.get("temporal_mode")
+        seed = current.get("seed")
+        if mode not in BATTERY_MODES:
+            raise RuntimeError(f"Fallo de identidad en alineación del experto {index}: mode inesperado")
+        if seed not in MICRO_SEEDS:
+            raise RuntimeError(f"Fallo de identidad en alineación del experto {index}: seed inesperado")
         for field in ("pcap_uid", "query_date", "y_true", "candidate_labels"):
             if not _array_equal(current.get(field), reference.get(field)):
                 raise RuntimeError(f"Fallo de alineación del experto {index}: {field}")
         probs = np.asarray(current.get("probs"))
         labels = np.asarray(current.get("candidate_labels"))
-        if probs.ndim != 2 or len(probs) != len(np.asarray(reference["pcap_uid"])) or probs.shape[1] != len(labels):
-            raise RuntimeError(f"Fallo de alineación del experto {index}: número de filas")
+        reference_probs = np.asarray(reference.get("probs"))
+        if probs.ndim != 2 or reference_probs.ndim != 2 or probs.shape != reference_probs.shape:
+            raise RuntimeError(f"Fallo de alineación del experto {index}: shape de probabilidades")
+        if len(probs) != len(np.asarray(reference["pcap_uid"])) or probs.shape[1] != len(labels):
+            raise RuntimeError(f"Fallo de alineación del experto {index}: número de filas/clases")
+
+    identities = [(record.get("temporal_mode"), record.get("seed")) for record in records]
+    seen = set(identities)
+    if len(seen) != len(identities):
+        raise RuntimeError("Fallo de identidad en alineación: experto duplicado")
+    missing = sorted(EXPECTED_EXPERT_IDENTITIES - seen)
+    unexpected = sorted(seen - EXPECTED_EXPERT_IDENTITIES)
+    if missing:
+        raise RuntimeError(f"Fallo de identidad en alineación: experto faltante {missing[0]}")
+    if unexpected:
+        raise RuntimeError(f"Fallo de identidad en alineación: experto inesperado {unexpected[0]}")
 
 
 def validate_hybrid_alignment(micro: dict[str, Any], macro: dict[str, Any]) -> None:
@@ -531,6 +572,21 @@ def validate_file_sha256(path: str | Path, expected: str, label: str) -> str:
     return observed
 
 
+def _load_checkpoint_metadata(path: Path) -> dict[str, Any]:
+    try:
+        import torch
+    except ModuleNotFoundError:
+        # Permite auditar fixtures sintéticos sin instalar el runtime de
+        # entrenamiento. En Perseo, donde existe Torch, siempre se usa el
+        # formato real producido por torch.save.
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        payload = torch.load(path, map_location="cpu", weights_only=False)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"Checkpoint ilegible: {path}")
+    return payload
+
+
 def _save_prediction(path: Path, *, probs: np.ndarray, pcap_uid: np.ndarray, query_date: np.ndarray, y: np.ndarray, origin: str, window: str, temporal_mode: str, seed: int, candidate_labels: np.ndarray, fingerprint: str, checkpoint_sha256: str, scaler_sha256: str, config_sha256: str, input_fingerprint: str, code_fingerprint: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(path, probs=probs.astype(np.float32), pcap_uid=np.asarray(pcap_uid).astype(str), query_date=np.asarray(query_date).astype("datetime64[D]"), y_true=y.astype(np.int64), origin=np.asarray(origin), window=np.asarray(window), temporal_mode=np.asarray(temporal_mode), seed=np.asarray(seed), candidate_labels=np.asarray(candidate_labels).astype(str), fingerprint=np.asarray(fingerprint), checkpoint_sha256=np.asarray(checkpoint_sha256), scaler_sha256=np.asarray(scaler_sha256), config_sha256=np.asarray(config_sha256), input_fingerprint=np.asarray(input_fingerprint), code_fingerprint=np.asarray(code_fingerprint))
@@ -548,25 +604,116 @@ def _load_prediction(path: Path, fingerprint: str, expected: dict[str, Any] | No
         result = {key: payload[key] for key in required}
     if expected:
         for key in ("origin", "window", "temporal_mode", "seed"):
-            observed_value = result[key].item()
-            if observed_value != expected[key]:
+            if key in expected and result[key].item() != expected[key]:
                 raise RuntimeError(f"Predicción incompatible {path}: identidad {key}")
         for key in ("pcap_uid", "query_date", "y_true", "candidate_labels"):
-            if not _array_equal(result[key], expected[key]):
+            if key in expected and not _array_equal(result[key], expected[key]):
                 raise RuntimeError(f"Predicción incompatible {path}: alineación {key}")
     result["probs"] = result["probs"].astype(np.float64)
     result["y_true"] = result["y_true"].astype(np.int64)
     return result
 
 
-def classify_expert_cache_state(cache_dir: Path, origin: str, mode: str, seed: int, expected_fingerprint: str) -> CacheState:
+def _validate_prediction_payload(path: Path, fingerprint: str, expected: dict[str, Any], provenance: dict[str, Any], expected_output_sha256: str) -> dict[str, Any]:
+    if sha256(path) != expected_output_sha256:
+        raise RuntimeError(f"Predicción incompatible {path}: SHA256 NPZ")
+    loaded = _load_prediction(path, fingerprint, expected=expected)
+    probs = np.asarray(loaded["probs"])
+    pcap_uid = np.asarray(loaded["pcap_uid"])
+    query_date = np.asarray(loaded["query_date"])
+    y_true = np.asarray(loaded["y_true"])
+    candidate_labels = np.asarray(loaded["candidate_labels"])
+    if probs.ndim != 2 or candidate_labels.ndim != 1:
+        raise RuntimeError(f"Predicción incompatible {path}: shape de metadata")
+    if len(probs) != len(pcap_uid) or len(probs) != len(query_date) or len(probs) != len(y_true) or probs.shape[1] != len(candidate_labels):
+        raise RuntimeError(f"Predicción incompatible {path}: filas/clases")
+    for field in ("checkpoint_sha256", "scaler_sha256", "config_sha256", "input_fingerprint", "code_fingerprint"):
+        if str(loaded[field].item()) != str(provenance[field]):
+            raise RuntimeError(f"Predicción incompatible {path}: provenance {field}")
+    return loaded
+
+
+def _validate_legacy_cache(cache_dir: Path, origin: str, mode: str, seed: int, expected_windows: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Valida un cache histórico completo sin escribir ni reparar artefactos."""
+    manifest_path = cache_dir / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        scaler = json.loads((cache_dir / "scaler.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Cache legacy ilegible en {cache_dir}") from exc
+
+    if manifest.get("fingerprint") != LEGACY_CACHE_SOURCE_FINGERPRINT:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: fingerprint")
+    if manifest.get("training", {}).get("git_commit") != LEGACY_CACHE_SOURCE_COMMIT:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: training.git_commit")
+    provenance = manifest.get("provenance", {})
+    expected_provenance = {
+        "config_sha256": LEGACY_CACHE_SOURCE_CONFIG_SHA256,
+        "input_fingerprint": LEGACY_CACHE_SOURCE_INPUT_FINGERPRINT,
+        "code_fingerprint": LEGACY_CACHE_SOURCE_CODE_FINGERPRINT,
+    }
+    for field, expected in expected_provenance.items():
+        if provenance.get(field) != expected:
+            raise RuntimeError(f"Cache legacy incompatible {cache_dir}: {field}")
+    identity = {"origin": origin, "temporal_mode": mode, "seed": seed}
+    if manifest.get("identity") != identity:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: identidad manifest")
+    if manifest.get("architecture") != EXPECTED_MICRO_ARCHITECTURE:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: arquitectura manifest")
+    if scaler.get("origin") != origin or scaler.get("temporal_mode") != mode or scaler.get("seed") != seed:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: identidad scaler")
+    if scaler.get("architecture") != EXPECTED_MICRO_ARCHITECTURE:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: arquitectura scaler")
+    for field, expected in expected_provenance.items():
+        if scaler.get(field) != expected:
+            raise RuntimeError(f"Cache legacy incompatible {cache_dir}: metadata scaler {field}")
+
+    scaler_sha256 = provenance.get("scaler_sha256")
+    checkpoint_sha256 = provenance.get("checkpoint_sha256")
+    if not isinstance(scaler_sha256, str) or not isinstance(checkpoint_sha256, str):
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: hashes de artefactos ausentes")
+    validate_file_sha256(cache_dir / "scaler.json", scaler_sha256, "scaler")
+    validate_file_sha256(cache_dir / "model.pt", checkpoint_sha256, "checkpoint")
+    try:
+        checkpoint = _load_checkpoint_metadata(cache_dir / "model.pt")
+    except Exception as exc:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: checkpoint ilegible") from exc
+    checkpoint_expected = {**identity, "fingerprint": LEGACY_CACHE_SOURCE_FINGERPRINT, **expected_provenance, "scaler_sha256": scaler_sha256}
+    for field, expected in checkpoint_expected.items():
+        if checkpoint.get(field) != expected:
+            raise RuntimeError(f"Cache legacy incompatible {cache_dir}: metadata checkpoint {field}")
+    if checkpoint.get("architecture") != EXPECTED_MICRO_ARCHITECTURE:
+        raise RuntimeError(f"Cache legacy incompatible {cache_dir}: arquitectura checkpoint")
+
+    outputs_sha256 = manifest.get("outputs_sha256", {})
+    for window in WINDOWS:
+        path = cache_dir / f"{window}.npz"
+        expected = {**identity, "window": window}
+        if expected_windows and window in expected_windows:
+            expected.update(expected_windows[window])
+        loaded = _validate_prediction_payload(path, LEGACY_CACHE_SOURCE_FINGERPRINT, expected, {**expected_provenance, "checkpoint_sha256": checkpoint_sha256, "scaler_sha256": scaler_sha256}, outputs_sha256.get(window, ""))
+        if loaded["origin"].item() != origin or loaded["window"].item() != window or loaded["temporal_mode"].item() != mode or loaded["seed"].item() != seed:
+            raise RuntimeError(f"Cache legacy incompatible {path}: metadata identity")
+    return manifest
+
+
+def classify_expert_cache_state(cache_dir: Path, origin: str, mode: str, seed: int, expected_fingerprint: str, expected_windows: dict[str, dict[str, Any]] | None = None) -> CacheState:
     state = classify_cache_state(_expert_expected_paths(cache_dir), cache_dir / "manifest.json", expected_fingerprint)
+    if state == CacheState.COMPLETE_INCOMPATIBLE:
+        try:
+            _validate_legacy_cache(cache_dir, origin, mode, seed, expected_windows=expected_windows)
+        except (OSError, RuntimeError, ValueError, KeyError, TypeError):
+            return state
+        return CacheState.COMPLETE_COMPATIBLE_LEGACY
     if state != CacheState.COMPLETE_COMPATIBLE:
         return state
     try:
         for window in WINDOWS:
-            _load_prediction(cache_dir / f"{window}.npz", expected_fingerprint, expected={"origin": origin, "window": window, "temporal_mode": mode, "seed": seed})
-    except (OSError, RuntimeError, ValueError, KeyError):
+            expected = {"origin": origin, "window": window, "temporal_mode": mode, "seed": seed}
+            if expected_windows and window in expected_windows:
+                expected.update(expected_windows[window])
+            _load_prediction(cache_dir / f"{window}.npz", expected_fingerprint, expected=expected)
+    except (OSError, RuntimeError, ValueError, KeyError, TypeError):
         return CacheState.COMPLETE_INCOMPATIBLE
     return state
 
@@ -585,17 +732,26 @@ def _print_plan(only: str | None, config: BatteryConfig) -> dict[str, Any]:
     trainable = []
     states: dict[str, str] = {}
     planned_fingerprint = _planned_phase13_fingerprint(config)
+    metadata_context = None
+    if planned_fingerprint is not None:
+        metadata_context = _load_micro_context()
     print("P13-B1 — DRY-RUN; no se entrenará ningún modelo")
     print("Configuración: PHASE13_BATTERY_V1.yaml")
     print("Origins/windows: ORIGIN14, ORIGIN28 × NEAR, MID, FAR")
     print("Micro training (18):")
     for item in matrix["micro_training"]:
         cache_dir = CACHE_ROOT / item["origin"] / item["temporal_mode"] / str(item["seed"])
-        state = classify_expert_cache_state(cache_dir, item["origin"], item["temporal_mode"], int(item["seed"]), planned_fingerprint or "__INPUTS_UNAVAILABLE__")
+        expected_windows = None
+        if metadata_context is not None:
+            expected_windows = {window: _window_metadata(metadata_context, item["origin"], window) for window in tuple(config.payload["windows"])}
+        state = classify_expert_cache_state(cache_dir, item["origin"], item["temporal_mode"], int(item["seed"]), planned_fingerprint or "__INPUTS_UNAVAILABLE__", expected_windows=expected_windows)
         states[item["id"]] = state.value
         if state == CacheState.COMPLETE_COMPATIBLE:
             reusable.append(item["id"])
             state_text = "COMPLETE_COMPATIBLE — reutilizable bajo --resume"
+        elif state == CacheState.COMPLETE_COMPATIBLE_LEGACY:
+            reusable.append(item["id"])
+            state_text = "COMPLETE_COMPATIBLE_LEGACY — reutilizable bajo --resume"
         elif state == CacheState.ABSENT:
             trainable.append(item["id"])
             state_text = "ABSENT — requiere entrenamiento"
@@ -615,6 +771,7 @@ def _print_plan(only: str | None, config: BatteryConfig) -> dict[str, Any]:
     print("Estados Macro: " + ", ".join(f"{origin}={state}" for origin, state in macro_states.items()))
     print("Macro reutilizable bajo --resume: " + (", ".join(origin for origin, state in macro_states.items() if state == CacheState.COMPLETE_COMPATIBLE.value) or "ninguno detectado"))
     print("Micro reutilizable detectado: " + (", ".join(reusable) if reusable else "ninguno detectado"))
+    print(f"Entrenamientos Micro requeridos: {len(trainable) if only in (None, '13B') else 0}")
     print(f"Resultados 13B: {OUTPUT_13B}")
     print(f"Resultados 13C: {OUTPUT_13C}")
     print("Future diagnostics: no training; carril separado y POSTHOC_DIAGNOSTIC_ONLY")
@@ -726,6 +883,7 @@ def run_13b(config: BatteryConfig, *, resume: bool = False) -> dict[str, Any]:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     expert_probs: dict[tuple[str, str, int], dict[str, Any]] = {}
     training_rows: list[dict[str, Any]] = []
+    legacy_cache_count = 0
     protocol = config.payload
     for item in build_experiment_matrix(config)["micro_training"]:
         origin, mode, seed = item["origin"], item["temporal_mode"], int(item["seed"])
@@ -740,38 +898,46 @@ def run_13b(config: BatteryConfig, *, resume: bool = False) -> dict[str, Any]:
             _raise_cache_state(cache_dir, state, expected_paths)
         if state == CacheState.COMPLETE_INCOMPATIBLE:
             _raise_cache_state(cache_dir, state, expected_paths)
-        if state == CacheState.COMPLETE_COMPATIBLE and not resume:
-            raise RuntimeError(f"Cache COMPLETE_COMPATIBLE en {cache_dir}; usar --resume para reutilizar")
-        if resume and state == CacheState.COMPLETE_COMPATIBLE:
-            cached = _validate_cache(cache_manifest, fingerprint)
+        if state in (CacheState.COMPLETE_COMPATIBLE, CacheState.COMPLETE_COMPATIBLE_LEGACY) and not resume:
+            raise RuntimeError(f"Cache {state.value} en {cache_dir}; usar --resume para reutilizar")
+        if resume and state in (CacheState.COMPLETE_COMPATIBLE, CacheState.COMPLETE_COMPATIBLE_LEGACY):
             identity = {"origin": origin, "temporal_mode": mode, "seed": seed}
-            if cached.get("identity") != identity:
-                raise RuntimeError(f"Cache incompatible {cache_dir}: identidad de entrenamiento")
-            provenance = cached.get("provenance", {})
-            if provenance.get("config_sha256") != config_hash or provenance.get("input_fingerprint") != input_fingerprint or provenance.get("code_fingerprint") != code_fingerprint:
-                raise RuntimeError(f"Cache incompatible {cache_dir}: provenance")
-            validate_file_sha256(checkpoint_path, provenance.get("checkpoint_sha256", ""), "checkpoint")
-            validate_file_sha256(scaler_path, provenance.get("scaler_sha256", ""), "scaler")
-            scaler = json.loads(scaler_path.read_text(encoding="utf-8"))
-            if scaler.get("origin") != origin or scaler.get("temporal_mode") != mode or int(scaler.get("seed")) != seed:
-                raise RuntimeError(f"Cache incompatible {cache_dir}: metadata scaler")
-            expected_architecture = {"max_len": int(protocol["micro"]["max_len"]), "d_model": int(protocol["micro"]["d_model"]), "heads": int(protocol["micro"]["heads"]), "layers": int(protocol["micro"]["layers"]), "epochs": int(protocol["micro"]["epochs"]), "edge_weight_ratio": float(protocol["micro"]["edge_weight_ratio"])}
-            if scaler.get("architecture") != expected_architecture or cached.get("architecture") != expected_architecture:
-                raise RuntimeError(f"Cache incompatible {cache_dir}: arquitectura")
-            try:
-                checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
-            except Exception as exc:
-                raise RuntimeError(f"Cache incompatible {cache_dir}: checkpoint ilegible") from exc
-            for field, expected_value in {"origin": origin, "temporal_mode": mode, "seed": seed, "fingerprint": fingerprint}.items():
-                if checkpoint.get(field) != expected_value:
-                    raise RuntimeError(f"Cache incompatible {cache_dir}: metadata checkpoint {field}")
-            if checkpoint.get("architecture") != expected_architecture or checkpoint.get("config_sha256") != config_hash or checkpoint.get("input_fingerprint") != input_fingerprint or checkpoint.get("code_fingerprint") != code_fingerprint or checkpoint.get("scaler_sha256") != provenance.get("scaler_sha256"):
-                raise RuntimeError(f"Cache incompatible {cache_dir}: provenance checkpoint")
+            expected_windows = {window: _window_metadata(context, origin, window) for window in tuple(protocol["windows"])}
+            if state == CacheState.COMPLETE_COMPATIBLE_LEGACY:
+                cached = _validate_legacy_cache(cache_dir, origin, mode, seed, expected_windows=expected_windows)
+                provenance = cached["provenance"]
+                prediction_fingerprint = LEGACY_CACHE_SOURCE_FINGERPRINT
+                legacy_cache_count += 1
+            else:
+                cached = _validate_cache(cache_manifest, fingerprint)
+                if cached.get("identity") != identity:
+                    raise RuntimeError(f"Cache incompatible {cache_dir}: identidad de entrenamiento")
+                provenance = cached.get("provenance", {})
+                if provenance.get("config_sha256") != config_hash or provenance.get("input_fingerprint") != input_fingerprint or provenance.get("code_fingerprint") != code_fingerprint:
+                    raise RuntimeError(f"Cache incompatible {cache_dir}: provenance")
+                validate_file_sha256(checkpoint_path, provenance.get("checkpoint_sha256", ""), "checkpoint")
+                validate_file_sha256(scaler_path, provenance.get("scaler_sha256", ""), "scaler")
+                scaler = json.loads(scaler_path.read_text(encoding="utf-8"))
+                if scaler.get("origin") != origin or scaler.get("temporal_mode") != mode or int(scaler.get("seed")) != seed:
+                    raise RuntimeError(f"Cache incompatible {cache_dir}: metadata scaler")
+                expected_architecture = {"max_len": int(protocol["micro"]["max_len"]), "d_model": int(protocol["micro"]["d_model"]), "heads": int(protocol["micro"]["heads"]), "layers": int(protocol["micro"]["layers"]), "epochs": int(protocol["micro"]["epochs"]), "edge_weight_ratio": float(protocol["micro"]["edge_weight_ratio"])}
+                if scaler.get("architecture") != expected_architecture or cached.get("architecture") != expected_architecture:
+                    raise RuntimeError(f"Cache incompatible {cache_dir}: arquitectura")
+                try:
+                    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+                except Exception as exc:
+                    raise RuntimeError(f"Cache incompatible {cache_dir}: checkpoint ilegible") from exc
+                for field, expected_value in {"origin": origin, "temporal_mode": mode, "seed": seed, "fingerprint": fingerprint}.items():
+                    if checkpoint.get(field) != expected_value:
+                        raise RuntimeError(f"Cache incompatible {cache_dir}: metadata checkpoint {field}")
+                if checkpoint.get("architecture") != expected_architecture or checkpoint.get("config_sha256") != config_hash or checkpoint.get("input_fingerprint") != input_fingerprint or checkpoint.get("code_fingerprint") != code_fingerprint or checkpoint.get("scaler_sha256") != provenance.get("scaler_sha256"):
+                    raise RuntimeError(f"Cache incompatible {cache_dir}: provenance checkpoint")
+                prediction_fingerprint = fingerprint
             values = {}
             for window, path in prediction_paths.items():
-                metadata = _window_metadata(context, origin, window)
+                metadata = expected_windows[window]
                 expected = {**identity, "window": window, **metadata}
-                loaded = _load_prediction(path, fingerprint, expected=expected)
+                loaded = _load_prediction(path, prediction_fingerprint, expected=expected)
                 for field in ("checkpoint_sha256", "scaler_sha256", "config_sha256", "input_fingerprint", "code_fingerprint"):
                     if str(loaded[field].item()) != str(provenance[field]):
                         raise RuntimeError(f"Cache incompatible {path}: provenance {field}")
@@ -875,6 +1041,17 @@ def run_13b(config: BatteryConfig, *, resume: bool = False) -> dict[str, Any]:
     manifest = build_manifest(stage="13B", research_question="¿El temporal weighting aporta un beneficio específico frente al ensemble genérico de seeds?", candidate_matrix=build_experiment_matrix(config), inputs=input_hashes, code_hashes=code_hashes, config_hash=config_hash, outputs=outputs)
     manifest["fingerprint"] = fingerprint
     manifest["provenance"] = {"config_sha256": config_hash, "input_fingerprint": input_fingerprint, "code_fingerprint": code_fingerprint}
+    if legacy_cache_count:
+        if legacy_cache_count != len(build_experiment_matrix(config)["micro_training"]):
+            raise RuntimeError("No se permite mezclar caches Micro legacy y actuales en un único manifest 13B")
+        manifest["training_cache_source_commit"] = LEGACY_CACHE_SOURCE_COMMIT
+        manifest["training_cache_source_fingerprint"] = LEGACY_CACHE_SOURCE_FINGERPRINT
+        manifest["training_cache_reuse"] = "VERIFIED_LEGACY_CACHE"
+    else:
+        manifest["training_cache_source_commit"] = _git_commit()
+        manifest["training_cache_source_fingerprint"] = fingerprint
+        manifest["training_cache_reuse"] = "NONE"
+    manifest["postprocessing_git_commit"] = _git_commit()
     manifest["execution"] = {"device": str(device), "resume": resume, "bootstrap_iterations": BOOTSTRAP_ITERATIONS, "fraction_delta_gt_0_is_not_p_value": True}
     manifest["gate_evaluation"] = {"primary_T3_S42_vs_U3": primary_gate, "replications": "descriptivas; sin umbral inventado después del resultado", "generic_ensemble_gain": "U3_vs_U1_reported_separately"}
     _write_json(manifest, OUTPUT_13B / "13B_manifest.json")
@@ -902,9 +1079,11 @@ def load_13b_result(config: BatteryConfig | None = None, *, resume: bool = True)
                 cache_manifest = path.parent / "manifest.json"
                 expected_paths = _expert_expected_paths(path.parent)
                 state = classify_expert_cache_state(path.parent, origin, mode, seed, expected_battery_fingerprint)
-                if state != CacheState.COMPLETE_COMPATIBLE:
+                if state not in (CacheState.COMPLETE_COMPATIBLE, CacheState.COMPLETE_COMPATIBLE_LEGACY):
                     _raise_cache_state(path.parent, state, expected_paths)
                 fingerprint = json.loads(cache_manifest.read_text(encoding="utf-8"))["fingerprint"]
+                if state == CacheState.COMPLETE_COMPATIBLE_LEGACY:
+                    fingerprint = LEGACY_CACHE_SOURCE_FINGERPRINT
                 metadata = {"origin": origin, "window": window, "temporal_mode": mode, "seed": seed}
                 loaded[(mode, seed)] = _load_prediction(path, fingerprint, expected={**metadata})
                 records.append({**loaded[(mode, seed)], **metadata})
