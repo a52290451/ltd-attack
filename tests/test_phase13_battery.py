@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import json
+from pathlib import Path
 import pytest
 
 from src.experiments.phase13_battery import (
@@ -116,10 +117,10 @@ def test_cache_incompatible_falla_explicitamente(tmp_path):
 def _prediction(identity, *, pcap_uid=None, dates=None, y=None, labels=None):
     return {
         "probs": np.full((2, 3), 1 / 3, dtype=float),
-        "pcap_uid": np.asarray(pcap_uid or ["p1", "p2"]),
-        "query_date": np.asarray(dates or ["2026-01-01", "2026-01-02"]),
-        "y_true": np.asarray(y or [0, 1]),
-        "candidate_labels": np.asarray(labels or ["a", "b", "c"]),
+        "pcap_uid": np.asarray(["p1", "p2"] if pcap_uid is None else pcap_uid),
+        "query_date": np.asarray(["2026-01-01", "2026-01-02"] if dates is None else dates),
+        "y_true": np.asarray([0, 1] if y is None else y),
+        "candidate_labels": np.asarray(["a", "b", "c"] if labels is None else labels),
         **identity,
     }
 
@@ -138,8 +139,48 @@ def test_nueve_expertos_predeclarados_con_mismos_captures_pasan():
 
 def test_expert_alignment_permite_modes_y_seeds_validos_diferentes():
     records = _nine_expert_predictions()
+    records[1]["query_date"] = np.asarray(["2026-01-01T00:00:00.000000000", "2026-01-02T00:00:00.000000000"], dtype="datetime64[ns]")
 
     validate_expert_prediction_alignment(records)
+
+
+def test_hybrid_alignment_acepta_fechas_del_mismo_dia_con_dtypes_distintos():
+    identity = {"origin": "ORIGIN14", "window": "FAR"}
+    micro = _prediction(identity, dates=np.asarray(["2025-12-02", "2025-12-03"], dtype="datetime64[D]"))
+    macro = _prediction(identity, dates=np.asarray(["2025-12-02T00:00:00.000000000", "2025-12-03T00:00:00.000000000"], dtype="datetime64[ns]"))
+
+    validate_hybrid_alignment(micro, macro)
+
+
+def test_hybrid_alignment_acepta_strings_y_datetime_del_mismo_dia():
+    identity = {"origin": "ORIGIN14", "window": "FAR"}
+    micro = _prediction(identity, dates=["2025-12-02", "2025-12-03"])
+    macro = _prediction(identity, dates=np.asarray(["2025-12-02", "2025-12-03"], dtype="datetime64[D]"))
+
+    validate_hybrid_alignment(micro, macro)
+
+
+def test_hybrid_alignment_rechaza_nat():
+    identity = {"origin": "ORIGIN14", "window": "FAR"}
+    micro = _prediction(identity, dates=["2025-12-02", "2025-12-03"])
+    macro = _prediction(identity, dates=np.asarray(["2025-12-02", "NaT"], dtype="datetime64[D]"))
+    with pytest.raises(RuntimeError, match="query_date"):
+        validate_hybrid_alignment(micro, macro)
+
+
+@pytest.mark.parametrize(
+    "dates",
+    [
+        ["2025-12-04", "2025-12-03"],
+        ["2025-12-03", "2025-12-02"],
+    ],
+)
+def test_hybrid_alignment_falla_si_fecha_distinta_o_permutada(dates):
+    identity = {"origin": "ORIGIN14", "window": "FAR"}
+    micro = _prediction(identity, dates=["2025-12-02", "2025-12-03"])
+    macro = _prediction(identity, dates=dates)
+    with pytest.raises(RuntimeError, match="query_date"):
+        validate_hybrid_alignment(micro, macro)
 
 
 def test_expert_alignment_falla_con_filas_permutadas_uid_fecha_y_label():
@@ -204,6 +245,32 @@ def test_micro_macro_alignment_falla_si_uid_se_intercambia_con_misma_etiqueta():
     micro = _prediction(identity)
     macro = _prediction(identity, pcap_uid=["p2", "p1"])
     with pytest.raises(RuntimeError, match="Micro/Macro"):
+        validate_hybrid_alignment(micro, macro)
+
+
+@pytest.mark.parametrize(
+    "field,altered",
+    [
+        ("y_true", [1, 1]),
+        ("candidate_labels", ["a", "c", "b"]),
+    ],
+)
+def test_micro_macro_alignment_falla_si_y_true_o_labels_cambian(field, altered):
+    identity = {"origin": "ORIGIN14", "window": "FAR"}
+    micro = _prediction(identity)
+    macro = dict(micro)
+    macro[field] = np.asarray(altered)
+    with pytest.raises(RuntimeError, match=field):
+        validate_hybrid_alignment(micro, macro)
+
+
+@pytest.mark.parametrize("field,value", [("origin", "ORIGIN28"), ("window", "NEAR")])
+def test_micro_macro_alignment_falla_si_origin_o_window_cambian(field, value):
+    identity = {"origin": "ORIGIN14", "window": "FAR"}
+    micro = _prediction(identity)
+    macro_identity = {**identity, field: value}
+    macro = _prediction(macro_identity)
+    with pytest.raises(RuntimeError, match="identidad"):
         validate_hybrid_alignment(micro, macro)
 
 
@@ -277,6 +344,66 @@ def test_dry_run_expone_estado_de_cache(monkeypatch, tmp_path):
     result = phase13_battery.run_phase13(dry_run=True, only="13B")
     assert set(result["cache_states"].values()) == {CacheState.ABSENT.value}
     assert result["factorial_state"] == CacheState.ABSENT.value
+
+
+def _macro_output_fixture():
+    dates = np.asarray(["2025-12-02", "2025-12-03"], dtype="datetime64[ns]")
+    return {
+        "M0": {window: np.asarray([[0.8, 0.2], [0.3, 0.7]], dtype=float) for window in ("NEAR", "MID", "FAR")},
+        "M1": {window: np.asarray([[0.7, 0.3], [0.4, 0.6]], dtype=float) for window in ("NEAR", "MID", "FAR")},
+        "y": {window: np.asarray([0, 1], dtype=np.int32) for window in ("NEAR", "MID", "FAR")},
+        "dates": {window: dates.copy() for window in ("NEAR", "MID", "FAR")},
+        "pcap_uid": {window: np.asarray(["p1", "p2"], dtype=object) for window in ("NEAR", "MID", "FAR")},
+        "candidate_labels": np.asarray(["a", "b"], dtype=object),
+    }
+
+
+def test_macro_cache_nuevo_es_pickle_free_y_tiene_dtypes_seguros(tmp_path):
+    from src.experiments.phase13_battery import _load_macro_cache_arrays, _write_macro_cache
+
+    path = tmp_path / "ORIGIN14.npz"
+    _write_macro_cache(path, _macro_output_fixture())
+
+    with np.load(path, allow_pickle=False) as payload:
+        arrays = {key: payload[key] for key in payload.files}
+    validated = _load_macro_cache_arrays(path)
+    assert all(array.dtype.kind != "O" for array in arrays.values())
+    assert all(validated[f"M0_{window}"].dtype == np.dtype(np.float32) for window in ("NEAR", "MID", "FAR"))
+    assert all(validated[f"M1_{window}"].dtype == np.dtype(np.float32) for window in ("NEAR", "MID", "FAR"))
+    assert all(validated[f"y_{window}"].dtype == np.dtype(np.int64) for window in ("NEAR", "MID", "FAR"))
+    assert all(validated[f"dates_{window}"].dtype == np.dtype("datetime64[D]") for window in ("NEAR", "MID", "FAR"))
+    assert all(validated[f"pcap_uid_{window}"].dtype.kind in {"U", "S"} for window in ("NEAR", "MID", "FAR"))
+    assert validated["candidate_labels"].dtype.kind in {"U", "S"}
+
+
+def test_macro_cache_corrupto_falla(tmp_path):
+    from src.experiments.phase13_battery import _load_macro_cache_arrays, _write_macro_cache
+
+    path = tmp_path / "ORIGIN14.npz"
+    _write_macro_cache(path, _macro_output_fixture())
+    path.write_bytes(b"corrupto")
+    with pytest.raises(RuntimeError, match="Macro cache"):
+        _load_macro_cache_arrays(path)
+
+
+def test_macro_cache_sha_mismatch_falla(tmp_path):
+    import hashlib
+
+    from src.experiments.phase13_battery import _load_macro_cache, _write_macro_cache
+
+    path = tmp_path / "ORIGIN14.npz"
+    manifest = tmp_path / "ORIGIN14.json"
+    _write_macro_cache(path, _macro_output_fixture())
+    manifest.write_text(json.dumps({"fingerprint": "fp", "identity": {"origin": "ORIGIN14"}, "outputs_sha256": {"cache": hashlib.sha256(b"otro").hexdigest()}}), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="SHA256 Macro cache"):
+        _load_macro_cache(path, manifest, "fp", "ORIGIN14")
+
+
+def test_launcher_declara_resume_directo_desde_13c_y_skip_independiente():
+    script = Path("scripts/run_p13_b1_background.sh").read_text(encoding="utf-8")
+    assert "--from-13c" in script
+    assert "--only 13C" in script
+    assert "--skip-14a" in script
 
 
 def _write_legacy_cache(tmp_path, *, manifest_overrides=None, corrupt=None):

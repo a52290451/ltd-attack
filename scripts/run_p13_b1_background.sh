@@ -17,12 +17,17 @@ fi
 export PYTHONPATH=.
 export PYTHONUNBUFFERED=1
 SKIP_14A=false
-if [[ "${1:-}" == "--skip-14a" ]]; then
-  SKIP_14A=true
-elif [[ "$#" -gt 0 ]]; then
-  echo "[$(timestamp)] ERROR: opción desconocida: $1" >&2
-  exit 2
-fi
+FROM_13C=false
+for arg in "$@"; do
+  case "$arg" in
+    --skip-14a) SKIP_14A=true ;;
+    --from-13c) FROM_13C=true ;;
+    *)
+      echo "[$(timestamp)] ERROR: opción desconocida: $arg" >&2
+      exit 2
+      ;;
+  esac
+done
 export P13_B1_SKIP_14A="$SKIP_14A"
 
 status=FAILED
@@ -36,10 +41,18 @@ on_exit() {
 }
 trap on_exit EXIT
 
-log "Inicio Phase 13B + 13C con --resume"
-python3 scripts/train/run_phase13_battery.py \
-  --config configs/experiments/PHASE13_BATTERY_V1.yaml \
-  --resume
+if [[ "$FROM_13C" == "true" ]]; then
+  log "Inicio Phase 13C directo con --resume"
+  python3 scripts/train/run_phase13_battery.py \
+    --config configs/experiments/PHASE13_BATTERY_V1.yaml \
+    --only 13C \
+    --resume
+else
+  log "Inicio Phase 13B + 13C con --resume"
+  python3 scripts/train/run_phase13_battery.py \
+    --config configs/experiments/PHASE13_BATTERY_V1.yaml \
+    --resume
+fi
 
 if [[ "$SKIP_14A" == "false" ]]; then
   log "Inicio diagnóstico 14A Future-B"

@@ -451,6 +451,30 @@ def _array_equal(left: Any, right: Any) -> bool:
     return np.array_equal(np.asarray(left).astype(str), np.asarray(right).astype(str))
 
 
+def _canonicalize_dates(value: Any) -> np.ndarray:
+    """Convierte fechas a datetime64[D] sin aceptar NaT ni reordenar."""
+    array = np.asarray(value)
+    try:
+        parsed = pd.to_datetime(array.reshape(-1), errors="coerce")
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("Fechas no canonicalizables") from exc
+    if bool(pd.isna(parsed).any()):
+        raise ValueError("Las fechas no pueden contener NaT")
+    return np.asarray(parsed.to_numpy(dtype="datetime64[D]")).reshape(array.shape)
+
+
+def _dates_equal(left: Any, right: Any) -> bool:
+    """Compara fechas por día, conservando shape y orden posicional."""
+    left_array = np.asarray(left)
+    right_array = np.asarray(right)
+    if left_array.shape != right_array.shape:
+        return False
+    try:
+        return np.array_equal(_canonicalize_dates(left_array), _canonicalize_dates(right_array))
+    except ValueError:
+        return False
+
+
 def validate_expert_prediction_alignment(records: list[dict[str, Any]]) -> None:
     """Valida captures comunes y el producto completo de expertos Micro."""
     if not records:
@@ -469,9 +493,11 @@ def validate_expert_prediction_alignment(records: list[dict[str, Any]]) -> None:
             raise RuntimeError(f"Fallo de identidad en alineación del experto {index}: mode inesperado")
         if seed not in MICRO_SEEDS:
             raise RuntimeError(f"Fallo de identidad en alineación del experto {index}: seed inesperado")
-        for field in ("pcap_uid", "query_date", "y_true", "candidate_labels"):
+        for field in ("pcap_uid", "y_true", "candidate_labels"):
             if not _array_equal(current.get(field), reference.get(field)):
                 raise RuntimeError(f"Fallo de alineación del experto {index}: {field}")
+        if not _dates_equal(current.get("query_date"), reference.get("query_date")):
+            raise RuntimeError(f"Fallo de alineación del experto {index}: query_date")
         probs = np.asarray(current.get("probs"))
         labels = np.asarray(current.get("candidate_labels"))
         reference_probs = np.asarray(reference.get("probs"))
@@ -494,9 +520,11 @@ def validate_expert_prediction_alignment(records: list[dict[str, Any]]) -> None:
 
 def validate_hybrid_alignment(micro: dict[str, Any], macro: dict[str, Any]) -> None:
     """Exige identidad exacta de captura y clases antes de fusionar Micro/Macro."""
-    for field in ("pcap_uid", "query_date", "y_true", "candidate_labels"):
+    for field in ("pcap_uid", "y_true", "candidate_labels"):
         if not _array_equal(micro.get(field), macro.get(field)):
             raise RuntimeError(f"Micro/Macro desalineados: {field}")
+    if not _dates_equal(micro.get("query_date"), macro.get("query_date")):
+        raise RuntimeError("Micro/Macro desalineados: query_date")
     for field in ("origin", "window"):
         if micro.get(field) != macro.get(field):
             raise RuntimeError(f"Micro/Macro desalineados: identidad {field}")
@@ -1098,6 +1126,88 @@ def load_13b_result(config: BatteryConfig | None = None, *, resume: bool = True)
     return {"13B": {"summary": summary, "manifest": battery_manifest, "candidate_store": candidate_store}}
 
 
+def _macro_cache_keys() -> set[str]:
+    return {*(f"M0_{window}" for window in WINDOWS), *(f"M1_{window}" for window in WINDOWS), *(f"y_{window}" for window in WINDOWS), *(f"dates_{window}" for window in WINDOWS), *(f"pcap_uid_{window}" for window in WINDOWS), "candidate_labels"}
+
+
+def _canonicalize_macro_cache_payload(out: dict[str, Any]) -> dict[str, np.ndarray]:
+    payload: dict[str, np.ndarray] = {}
+    for window in WINDOWS:
+        payload[f"M0_{window}"] = np.asarray(out["M0"][window], dtype=np.float32)
+        payload[f"M1_{window}"] = np.asarray(out["M1"][window], dtype=np.float32)
+        payload[f"y_{window}"] = np.asarray(out["y"][window], dtype=np.int64)
+        payload[f"dates_{window}"] = _canonicalize_dates(out["dates"][window])
+        payload[f"pcap_uid_{window}"] = np.asarray(out["pcap_uid"][window], dtype=str)
+    payload["candidate_labels"] = np.asarray(out["candidate_labels"], dtype=str)
+    return payload
+
+
+def _load_macro_cache_arrays(cache_path: Path) -> dict[str, np.ndarray]:
+    """Carga y valida un NPZ Macro sin permitir pickle ni arrays object."""
+    try:
+        with np.load(cache_path, allow_pickle=False) as payload:
+            if set(payload.files) != _macro_cache_keys():
+                raise RuntimeError(f"Macro cache incompatible {cache_path}: keys esperadas incompletas")
+            arrays = {key: np.asarray(payload[key]) for key in payload.files}
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise RuntimeError(f"Macro cache ilegible o pickle-dependent: {cache_path}") from exc
+    if any(array.dtype.hasobject for array in arrays.values()):
+        raise RuntimeError(f"Macro cache incompatible {cache_path}: dtype object")
+
+    labels = arrays["candidate_labels"]
+    if labels.ndim != 1 or labels.dtype.kind not in {"U", "S"}:
+        raise RuntimeError(f"Macro cache incompatible {cache_path}: candidate_labels")
+    arrays["candidate_labels"] = labels.astype(str)
+    for window in WINDOWS:
+        for prefix in ("M0", "M1"):
+            probs = arrays[f"{prefix}_{window}"]
+            if probs.ndim != 2 or probs.dtype != np.dtype(np.float32):
+                raise RuntimeError(f"Macro cache incompatible {cache_path}: {prefix}_{window}")
+        y = arrays[f"y_{window}"]
+        dates = arrays[f"dates_{window}"]
+        pcap_uid = arrays[f"pcap_uid_{window}"]
+        if y.ndim != 1 or y.dtype != np.dtype(np.int64):
+            raise RuntimeError(f"Macro cache incompatible {cache_path}: y_{window}")
+        if pcap_uid.ndim != 1 or pcap_uid.dtype.kind not in {"U", "S"}:
+            raise RuntimeError(f"Macro cache incompatible {cache_path}: pcap_uid_{window}")
+        try:
+            arrays[f"dates_{window}"] = _canonicalize_dates(dates)
+        except ValueError as exc:
+            raise RuntimeError(f"Macro cache incompatible {cache_path}: dates_{window}") from exc
+        if arrays[f"dates_{window}"].ndim != 1 or len(y) != len(arrays[f"dates_{window}"]) or len(y) != len(pcap_uid):
+            raise RuntimeError(f"Macro cache incompatible {cache_path}: filas {window}")
+        if arrays[f"M0_{window}"].shape != arrays[f"M1_{window}"].shape or arrays[f"M0_{window}"].shape[0] != len(y) or arrays[f"M0_{window}"].shape[1] != len(labels):
+            raise RuntimeError(f"Macro cache incompatible {cache_path}: shapes {window}")
+        arrays[f"pcap_uid_{window}"] = pcap_uid.astype(str)
+    return arrays
+
+
+def _write_macro_cache(cache_path: Path, out: dict[str, Any]) -> None:
+    payload = _canonicalize_macro_cache_payload(out)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(cache_path, **payload)
+    _load_macro_cache_arrays(cache_path)
+
+
+def _macro_result_from_arrays(arrays: dict[str, np.ndarray]) -> dict[str, Any]:
+    return {
+        "M0": {window: arrays[f"M0_{window}"] for window in WINDOWS},
+        "M1": {window: arrays[f"M1_{window}"] for window in WINDOWS},
+        "y": {window: arrays[f"y_{window}"] for window in WINDOWS},
+        "dates": {window: arrays[f"dates_{window}"] for window in WINDOWS},
+        "pcap_uid": {window: arrays[f"pcap_uid_{window}"] for window in WINDOWS},
+        "candidate_labels": arrays["candidate_labels"],
+    }
+
+
+def _load_macro_cache(cache_path: Path, cache_manifest: Path, fingerprint: str, origin: str) -> dict[str, Any]:
+    cached_manifest = _validate_cache(cache_manifest, fingerprint)
+    if cached_manifest.get("identity") != {"origin": origin}:
+        raise RuntimeError(f"Cache Macro incompatible {origin}: identidad")
+    validate_file_sha256(cache_path, cached_manifest.get("outputs_sha256", {}).get("cache", ""), "Macro cache")
+    return _macro_result_from_arrays(_load_macro_cache_arrays(cache_path))
+
+
 def _load_or_train_macro_candidates(context: dict[str, Any], origin: str, device: Any, resume: bool, config: BatteryConfig) -> dict[str, Any]:
     """Reconstrucción determinista bajo implementación y configuración Macro congeladas."""
     cache_path = CACHE_ROOT / "macro" / f"{origin}.npz"
@@ -1111,12 +1221,7 @@ def _load_or_train_macro_candidates(context: dict[str, Any], origin: str, device
     if state == CacheState.COMPLETE_COMPATIBLE and not resume:
         raise RuntimeError(f"Cache Macro COMPLETE_COMPATIBLE para {origin}; usar --resume para reutilizar")
     if resume and state == CacheState.COMPLETE_COMPATIBLE:
-        cached_manifest = _validate_cache(cache_manifest, fingerprint)
-        if cached_manifest.get("identity") != {"origin": origin}:
-            raise RuntimeError(f"Cache Macro incompatible {origin}: identidad")
-        with np.load(cache_path, allow_pickle=False) as payload:
-            result = {"M0": {window: payload[f"M0_{window}"] for window in WINDOWS}, "M1": {window: payload[f"M1_{window}"] for window in WINDOWS}, "y": {window: payload[f"y_{window}"] for window in WINDOWS}, "dates": {window: payload[f"dates_{window}"] for window in WINDOWS}, "pcap_uid": {window: payload[f"pcap_uid_{window}"] for window in WINDOWS}, "candidate_labels": payload["candidate_labels"].astype(str)}
-        return result
+        return _load_macro_cache(cache_path, cache_manifest, fingerprint, origin)
     mod = _load_module(root / "src/features/macro_v2/07A_candidate_conditioned_temporal_encoder.py", f"p13_macro_{origin}")
     helpers = _load_module(root / "src/features/macro_v2/11B_multiscale_longitudinal_memory.py", f"p13_macro_helpers_{origin}")
     m11h = context["temporal"]
@@ -1140,7 +1245,8 @@ def _load_or_train_macro_candidates(context: dict[str, Any], origin: str, device
         out["M1"][window] = helpers.fuse(data["xgb_candidates"]["TEMPORAL_SYMMETRIC3"][window], multiscale[window])
         out["pcap_uid"][window] = data["tests"][window]["pcap_uid"].astype(str).to_numpy()
     cache_path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(cache_path, **{f"{macro}_{window}": out[macro][window] for macro in HYBRID_MACRO_CANDIDATES for window in WINDOWS}, **{f"y_{window}": out["y"][window] for window in WINDOWS}, **{f"dates_{window}": out["dates"][window] for window in WINDOWS}, **{f"pcap_uid_{window}": out["pcap_uid"][window] for window in WINDOWS}, candidate_labels=out["candidate_labels"])
+    _write_macro_cache(cache_path, out)
+    out = _macro_result_from_arrays(_load_macro_cache_arrays(cache_path))
     _write_json({"fingerprint": fingerprint, "identity": {"origin": origin}, "config_sha256": _config_hash(config), "inputs": input_hashes, "code": code_hashes, "scientific_status": "DETERMINISTIC_RECONSTRUCTION_FROZEN_IMPLEMENTATION", "outputs_sha256": {"cache": sha256(cache_path)}}, cache_manifest)
     return out
 
