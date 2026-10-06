@@ -434,8 +434,14 @@ def _write_legacy_cache(tmp_path, *, manifest_overrides=None, corrupt=None):
         "code_fingerprint": LEGACY_CACHE_SOURCE_CODE_FINGERPRINT,
         "scaler_sha256": scaler_sha256,
     }
-    (cache_dir / "model.pt").write_text(json.dumps(checkpoint), encoding="utf-8")
-    checkpoint_sha256 = hashlib.sha256((cache_dir / "model.pt").read_bytes()).hexdigest()
+    checkpoint_path = cache_dir / "model.pt"
+    try:
+        import torch
+    except ModuleNotFoundError:
+        checkpoint_path.write_text(json.dumps(checkpoint), encoding="utf-8")
+    else:
+        torch.save(checkpoint, checkpoint_path)
+    checkpoint_sha256 = hashlib.sha256(checkpoint_path.read_bytes()).hexdigest()
     outputs = {}
     for window in ("NEAR", "MID", "FAR"):
         np.savez_compressed(
