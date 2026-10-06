@@ -1287,7 +1287,15 @@ def run_13c(config: BatteryConfig, result_13b: dict[str, Any], *, resume: bool =
                     y = micro_record["y"]
                     dates = micro_record["dates"]
                     macro_probs = macro[macro_name][window]
-                    validate_hybrid_alignment(micro_record, {"pcap_uid": macro["pcap_uid"][window], "query_date": macro["dates"][window], "y_true": macro["y"][window], "candidate_labels": macro["candidate_labels"], "origin": origin, "window": window})
+                    micro_alignment = {
+                        "pcap_uid": micro_record["pcap_uid"],
+                        "query_date": micro_record["query_date"],
+                        "y_true": micro_record["y"],
+                        "candidate_labels": micro_record["candidate_labels"],
+                        "origin": micro_record["origin"],
+                        "window": micro_record["window"],
+                    }
+                    validate_hybrid_alignment(micro_alignment, {"pcap_uid": macro["pcap_uid"][window], "query_date": macro["dates"][window], "y_true": macro["y"][window], "candidate_labels": macro["candidate_labels"], "origin": origin, "window": window})
                     micro_weight = float(protocol["hybrid_weights"]["micro"])
                     macro_weight = float(protocol["hybrid_weights"]["macro"])
                     hybrid = np.exp(micro_weight * np.log(np.clip(micro_record["probs"], EPS, 1.0)) + macro_weight * np.log(np.clip(macro_probs, EPS, 1.0)))

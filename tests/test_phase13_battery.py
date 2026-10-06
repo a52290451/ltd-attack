@@ -3,6 +3,8 @@ import pandas as pd
 import json
 from pathlib import Path
 import pytest
+import sys
+import types
 
 from src.experiments.phase13_battery import (
     BATTERY_MODES,
@@ -158,6 +160,92 @@ def test_hybrid_alignment_acepta_strings_y_datetime_del_mismo_dia():
     macro = _prediction(identity, dates=np.asarray(["2025-12-02", "2025-12-03"], dtype="datetime64[D]"))
 
     validate_hybrid_alignment(micro, macro)
+
+
+def _run_13c_schema_case(monkeypatch, tmp_path, *, macro_y):
+    from src.experiments import phase13_battery
+
+    fake_torch = types.ModuleType("torch")
+    fake_torch.device = lambda name: "cpu"
+    fake_torch.cuda = types.SimpleNamespace(is_available=lambda: False)
+    monkeypatch.setitem(sys.modules, "torch", fake_torch)
+
+    output_13b = tmp_path / "13B"
+    output_13c = tmp_path / "13C"
+    output_13b.mkdir()
+    (output_13b / "13B_manifest.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(phase13_battery, "OUTPUT_13B", output_13b)
+    monkeypatch.setattr(phase13_battery, "OUTPUT_13C", output_13c)
+    monkeypatch.setattr(phase13_battery, "_factorial_fingerprint", lambda config: ("fp", {}, {}))
+    monkeypatch.setattr(phase13_battery, "classify_cache_state", lambda *args: CacheState.ABSENT)
+    monkeypatch.setattr(phase13_battery, "_load_micro_context", lambda: {})
+    monkeypatch.setattr(phase13_battery, "bootstrap_delta", lambda *args, **kwargs: {metric: np.zeros(1) for metric in ("accuracy", "macro_f1", "top5_accuracy", "mrr")})
+
+    origin = "ORIGIN14"
+    window = "FAR"
+    labels = np.asarray(["a", "b", "c"])
+    pcap_uid = np.asarray(["p1", "p2"])
+    dates = np.asarray(["2026-01-01", "2026-01-02"], dtype="datetime64[D]")
+    micro_y = np.asarray([0, 1], dtype=np.int64)
+    probs = np.asarray([[0.8, 0.1, 0.1], [0.1, 0.8, 0.1]], dtype=float)
+    candidate_store = {}
+    for micro_name in ("U1", "U3"):
+        candidate_store[(origin, window, micro_name)] = {
+            "probs": probs.copy(),
+            "y": micro_y.copy(),
+            "dates": dates.copy(),
+            "pcap_uid": pcap_uid.copy(),
+            "query_date": dates.copy(),
+            "candidate_labels": labels.copy(),
+            "origin": origin,
+            "window": window,
+        }
+    macro = {
+        "M0": {window: probs.astype(np.float32)},
+        "M1": {window: probs.astype(np.float32)},
+        "y": {window: np.asarray(macro_y, dtype=np.int64)},
+        "dates": {window: dates.copy()},
+        "pcap_uid": {window: pcap_uid.copy()},
+        "candidate_labels": labels.copy(),
+    }
+    monkeypatch.setattr(phase13_battery, "_load_or_train_macro_candidates", lambda *args: macro)
+    config = phase13_battery.BatteryConfig(
+        tmp_path / "config.yaml",
+        {
+            "origins": [origin],
+            "windows": [window],
+            "hybrid_micro_candidates": ["U1", "U3"],
+            "macro_candidates": ["M0", "M1"],
+            "hybrid_weights": {"micro": 0.45, "macro": 0.55},
+            "metrics": ["accuracy"],
+        },
+    )
+    return phase13_battery, config, {"candidate_store": candidate_store}
+
+
+def test_run_13c_normaliza_y_del_candidate_store_antes_de_validar(monkeypatch, tmp_path):
+    phase13_battery, config, result_13b = _run_13c_schema_case(monkeypatch, tmp_path, macro_y=[0, 1])
+    captured = []
+    strict_validator = phase13_battery.validate_hybrid_alignment
+
+    def capture_alignment(micro, macro):
+        captured.append(micro)
+        strict_validator(micro, macro)
+
+    monkeypatch.setattr(phase13_battery, "validate_hybrid_alignment", capture_alignment)
+    phase13_battery.run_13c(config, result_13b)
+
+    assert len(captured) == 4
+    for micro_alignment in captured:
+        assert set(micro_alignment) == {"pcap_uid", "query_date", "y_true", "candidate_labels", "origin", "window"}
+        np.testing.assert_array_equal(micro_alignment["y_true"], [0, 1])
+
+
+def test_run_13c_rechaza_y_micro_distinto_de_y_true_macro(monkeypatch, tmp_path):
+    phase13_battery, config, result_13b = _run_13c_schema_case(monkeypatch, tmp_path, macro_y=[1, 1])
+
+    with pytest.raises(RuntimeError, match="Micro/Macro desalineados: y_true"):
+        phase13_battery.run_13c(config, result_13b)
 
 
 def test_hybrid_alignment_rechaza_nat():
