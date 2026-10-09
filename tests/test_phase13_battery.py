@@ -429,6 +429,7 @@ def test_dry_run_expone_estado_de_cache(monkeypatch, tmp_path):
     from src.experiments import phase13_battery
 
     monkeypatch.setattr(phase13_battery, "CACHE_ROOT", tmp_path / "cache")
+    monkeypatch.setattr(phase13_battery, "OUTPUT_13C", tmp_path / "13c")
     result = phase13_battery.run_phase13(dry_run=True, only="13B")
     assert set(result["cache_states"].values()) == {CacheState.ABSENT.value}
     assert result["factorial_state"] == CacheState.ABSENT.value
