@@ -331,15 +331,16 @@ def _reconstruct_future_identity(
 
     if not future_micro_path.is_file():
         raise FileNotFoundError(f"No existe el dataset Micro Future-B: {future_micro_path}")
+    # Replicar 10B: solo los UID presentes en la cohorte Macro seleccionada.
+    target_uids = set(uids)
     micro = pd.read_csv(future_micro_path, usecols=["pcap_uid"])
-    if micro["pcap_uid"].isna().any():
-        raise RuntimeError("El dataset Micro Future-B contiene pcap_uid nulo")
-    micro_uids = micro["pcap_uid"].astype(str).to_numpy()
+    micro_uids = micro["pcap_uid"].astype(str)
+    micro_uids = micro_uids[micro_uids.isin(target_uids)].to_numpy()
     if len(np.unique(micro_uids)) != len(micro_uids):
         raise RuntimeError("El dataset Micro Future-B contiene pcap_uid duplicado")
-    if set(micro_uids) != set(uids):
-        missing = sorted(set(uids) - set(micro_uids))
-        extra = sorted(set(micro_uids) - set(uids))
+    if len(micro_uids) != expected_n or set(micro_uids) != target_uids:
+        missing = sorted(target_uids - set(micro_uids))
+        extra = sorted(set(micro_uids) - target_uids)
         raise RuntimeError(f"Cobertura Micro Future-B incompleta; missing={missing[:5]}, extra={extra[:5]}")
 
     return uids, query_date, reconstructed_y
