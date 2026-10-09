@@ -205,6 +205,51 @@ def test_recovery_uses_historical_site_mapping_only_when_site_label_missing(tmp_
     np.testing.assert_array_equal(recovered["pcap_uid"], ["u-1", "u-2", "u-3"])
 
 
+def test_recovery_ignora_micro_fuera_de_cohorte_y_preserva_scores(tmp_path):
+    # Igual que 10B: UID ajenos (incluso duplicados) no entran a la cohorte.
+    micro = pd.DataFrame({"pcap_uid": ["15713", "u-3", "u-1", "15714", "u-2", "15713"]})
+    battery, score_path, macro_path, micro_path, expected_hash, values = _write_recovery_fixture(
+        tmp_path, micro=micro,
+    )
+    recovered = battery._load_npz(
+        score_path,
+        future_macro_path=macro_path,
+        future_micro_path=micro_path,
+        expected_sha256=expected_hash,
+        elite_sites={"site-a", "site-b"},
+        date_deriver=_date_deriver,
+        expected_n=3,
+        expected_classes=2,
+    )
+    np.testing.assert_array_equal(recovered["pcap_uid"], ["u-1", "u-2", "u-3"])
+    for field in ("micro_probs", "macro_xgb_probs", "macro_ltd_probs", "macro_final_probs", "hybrid_final_probs"):
+        np.testing.assert_array_equal(recovered[field], values[field])
+
+
+@pytest.mark.parametrize(
+    ("micro_uids", "error"),
+    [
+        (["u-1", "u-2", "15713"], "Cobertura Micro Future-B"),
+        (["u-1", "u-2", "u-2", "u-3", "15713"], "duplicado"),
+    ],
+)
+def test_recovery_detecta_faltantes_y_duplicados_dentro_de_cohorte(tmp_path, micro_uids, error):
+    battery, score_path, macro_path, micro_path, expected_hash, _ = _write_recovery_fixture(
+        tmp_path, micro=pd.DataFrame({"pcap_uid": micro_uids}),
+    )
+    with pytest.raises(RuntimeError, match=error):
+        battery._load_npz(
+            score_path,
+            future_macro_path=macro_path,
+            future_micro_path=micro_path,
+            expected_sha256=expected_hash,
+            elite_sites={"site-a", "site-b"},
+            date_deriver=_date_deriver,
+            expected_n=3,
+            expected_classes=2,
+        )
+
+
 def test_recovery_fails_on_label_discrepancy(tmp_path):
     battery, score_path, macro_path, micro_path, expected_hash, _ = _write_recovery_fixture(tmp_path, y_true=[1, 1, 0])
 
