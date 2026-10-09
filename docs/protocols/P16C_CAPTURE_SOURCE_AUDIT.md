@@ -29,10 +29,18 @@
 - UUID por visita, día por fecha UTC, registro de fallo e integridad PCAP, `flock` para evitar solapamientos, aislamiento de procesos y almacenamiento nuevo.
 - Un archivo TAR/ZIP de trabajo con código revisado y pruebas locales está disponible en la conversación de ChatGPT; **no se ha incorporado ni desplegado todavía en Perseo**.
 
+## Decisiones del investigador (09-10-2026)
+
+1. **No reemplazar las dos URL duplicadas.** Reproducir exactamente las 120 posiciones de las campañas A/B: 118 URL distintas y dos posiciones repetidas. Cada réplica se registra con `slot_index` y UID propios; NUNCA contar las réplicas como 120 clases/sitios únicos ni usarlas para cambiar los 65 sitios congelados de evaluación.
+2. **Almacenamiento histórico confirmado en el host**, montado con bind `/data:/data` en Docker, por ejemplo `/data/bs_1site/inst2/bancos` y `/data/bs_1site/inst2/salud`. No es un almacenamiento interno recuperable borrando el contenedor: `/data` es la partición del host llena al 100%. Se requiere un volumen NUEVO y aislado en otro filesystem o ampliar capacidad; `~/ltd-storage` comparte la partición raíz con ~692 GB libres, cuya suficiencia para 60 días NO está demostrada.
+3. El investigador autorizó continuar con diagnóstico de **NTP**. Se necesitan UTC y reloj sincronizado antes del primer registro científico. El smoke técnico puede ejecutarse sin ese requisito, registrando expresamente esa limitación.
+4. **Control de calidad de las visitas**: cada sitio debe generar navegación real y tráfico coherente. Consentimiento de cookies estándar es admisible mediante política declarada; no eludir CAPTCHA, inicio de sesión ni controles de acceso. Medir proporción OK/BLOCKED/AUTH/TIMEOUT, PCAP legible, tamaño y número de paquetes, y revisar casos problemáticos.
+5. Se preparó un **paquete local V2.1 de piloto** que permite duplicados históricos exactos, añade `capture_slot`, revisa texto de bloqueos en la respuesta DOM y limita visitas con `MAX_URLS=1` para smoke. No está aún desplegado en Perseo ni incorporado al repositorio como código de producción.
+
 ## Bloqueos obligatorios para arrancar C
 
 - `/data` saturado al 100 %. No escribir ni borrar allí.
 - `timedatectl`: `System clock synchronized: no`; confirmar NTP/UTC antes de generar series temporales.
-- Resolver/documentar dos duplicados y cerrar contrato de 120 sitios o 118 únicos.
+- Duplicados resueltos metodológicamente: preservar 120 posiciones históricas (118 URL distintas), con identificador independiente de réplica; validar listas sin alterar A/B.
 - Establecer destino de volumen nuevo y prueba real de Tor/Chrome/Cron por separado. Aún no se ha realizado smoke en Perseo.
 - Dataset C es holdout externo virgen; nunca escoger modelos/hiperparámetros usando sus resultados.
