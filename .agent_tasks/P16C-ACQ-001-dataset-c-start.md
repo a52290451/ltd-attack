@@ -27,6 +27,14 @@
 3. Recuperar lista de **120 sitios y seis categorías** con asignación exacta de 40 sitios por contenedor de los inventarios/configs existentes; validar URL y mapping únicos. Recuperar aparte la cohorte congelada de **65 sitios usada solo en evaluación** y documentar la relación 120→65 sin cambiar decisiones congeladas. Dejar SHA256 de las fuentes.
 4. Reportar en `.agent_results/P16C-ACQ-001-inventory.md` el inventario y una decisión reproducible sobre **qué recolector** utilizar. La ejecución y obtención de evidencias de Perseo la realizará el usuario manualmente; el asistente no debe asumir acceso SSH, docker exec ni ejecución de agentes en ese host.
 
+## Evidencia adicional recuperada el 2026-10-09
+
+- El código original de los tres contenedores detenidos ya fue copiado manualmente con `docker cp` a `~/ltd-dataset-c-recovery/inst{1,2,3}_1site/app/`, ~61 MB por contenedor (la mayor parte son dependencias `node_modules`).
+- **El ejecutable de visita/navegación es `capture_dom.js`** (uno por contenedor): auditar los tres antes de cambiar las envolturas `script_1site_*.sh`, tiempos, aislamiento Tor, sesiones, retry, timestamping y PCAP. Scripts: belleza/turismo, bancos/salud, deportes/politica. Revisar `package.json` y `package-lock.json` de cada instancia.
+- **Cron está fuera de los scripts**, en Linux; se recuperaron ficheros `_etc_crontab` y `_var_spool_cron_crontabs_root` por contenedor en `~/ltd-dataset-c-recovery/instN_1site/cron/`. `crontab -l` del usuario bsierra en el host mostró vacío. Verificar si el Cron activo fue el `root` del contenedor o host, y diferencias entre las tres configuraciones antes de habilitar nada.
+- **Riesgo de validez temporal:** `timedatectl` informó `System clock synchronized: no` aunque `NTP service: active`; comprobar sincronización NTP, desfase UTC y política TZ en host y contenedores antes de la primera captura científica. No modificar reloj sin autorización.
+- El primer archivo tar se creó con un **backslash literal** antes de `.tar.gz` (comillas dobles con `\\.`); regenerar el paquete con nombre limpio y extraerlo con SCP especificando la misma identidad privada SSH que se usa para entrar a Perseo. `Permission denied (publickey)` ocurre durante autenticación, no implica que falte el tar.
+
 ## Checkpoint 1 — Congelar contrato de adquisición ANTES del primer PCAP
 
 Crear `docs/protocols/P16C_DATASET_C_ACQUISITION_V1.md` (y config de colector si procede) con:
