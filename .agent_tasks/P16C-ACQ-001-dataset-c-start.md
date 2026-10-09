@@ -10,9 +10,9 @@
 
 - Dataset C **aún no existe ni se ha iniciado**. Es una **nueva campaña** externa, independiente de Historical e Future-B; **no reutilizar ni renombrar** sus capturas.
 - Ya se completó el análisis Top-1 frente a Top-5 (P15). En Future-B, Hybrid congelado: Top-1 49,45%, Top-5 80,56% sobre 18.543 capturas de 65 sitios. No intentar arreglar Top-1 seleccionando en Future-B o C.
-- Las cohortes de trabajo canónicas contienen 65 sitios, pero la **lista exacta de sitios, las URL y su correspondencia** deben extraerse del inventario histórico congelado; nunca adivinarlas.
-- **No tenemos documentado un comando válido de captura Dataset C ni un calendario C preacordado.** No asumir automáticamente el calendario ni cardinalidades de campañas A/B.
-- En GitHub predominan scripts de análisis, entrenamiento y preprocesamiento; la ubicación del recolector PCAP/Tor de A/B todavía debe auditarse en los hosts de investigación. No asumir que está en el repo.
+- **Universo de recolección confirmado por el investigador:** 120 sitios web distribuidos en seis categorías de 20. Existen tres contenedores de captura, con 40 sitios / dos categorías cada uno. **No confundir los 120 sitios de recolección con la cohorte congelada de evaluación de 65 sitios.** Recuperar lista exacta, URLs, categorías y asignación contenedor-sitio de los contenedores originales; preservar trazabilidad de 120→65 sin usar Dataset C para escoger clases.
+- **Calendario operativo confirmado:** en cada uno de los tres contenedores, una categoría de 20 sitios comienza cada hora a minuto `:00` y la otra a `:30`, las 24 horas. Confirmar zona horaria, orden de sitios, duración de cada visita y que 20 sitios se completen dentro de sus 30 minutos; si no, impedir solapamientos. El número de días de C no está aún confirmado. La tasa teórica es 120 capturas/hora y 2.880/día **solo si se produce exactamente una captura válida por sitio en cada turno**.
+- **Contenedores fuente identificados en Perseo:** `inst1_1site` (`06c7ded30d35`), `inst2_1site` (`13a2a63e885b`), `inst3_1site` (`dc4bfda535ff`), todos basados en `tor_1site_noise:final` (`02cc4a1fe754`) y todos detenidos con exit 137. Montaje existente compartido `/data:/data`, **no montar esta ruta en escritura para Dataset C** antes de auditarla. Recuperar código con `docker inspect` y `docker cp` de contenedores detenidos; no arrancarlos a ciegas ni inferir que 137 significa OOM sin comprobar `State.OOMKilled`.
 - El protocolo científico P16A sigue siendo borrador. **Se permite iniciar la adquisición de datos brutos tras congelar el contrato de adquisición, pero no inspeccionar C como conjunto de evaluación, puntuar modelos, usar C para tuning ni abrirlo para seleccionar hipótesis** hasta que el protocolo de evaluación externa quede preregistrado y fechado.
 - Trabajar sobre máquinas y sitios autorizados por la investigación. No romper jobs ni servicios existentes. Cualquier fallo deja evidencia; prohibido borrar datos ajenos.
 
@@ -23,15 +23,15 @@
 ## Checkpoint 0 — Auditar host y colector (solo lectura)
 
 1. Determinar host actual (`hostname`), cuenta, ruta del repositorio, rama, espacio libre, procesos Tor existentes, utilidades instaladas (Tor/Tor Browser, tshark/tcpdump, browser/automation), permisos de captura y almacenamiento. Consultar primero Perseo y, si el flujo original vive en Zeus u otro equipo, localizar allí la captura.
-2. Buscar **sin modificar** scripts, configs, unit files, crontabs, logs y manifiestos de las campañas originales A/B de recolección PCAP; extraer comando exacto de invocación, versión, flujo URL→Tor→PCAP→parsing, duración, frecuencia, retry y esquema de metadatos. Evitar recorridos de disco masivos o leer datasets completos para identificar scripts.
-3. Recuperar lista congelada de los 65 sitios y sus URL de fuentes históricas preexistentes; validar que el mapping es unívoco. Dejar hashes de los ficheros usados.
+2. Inspeccionar **sin iniciar** los tres contenedores `inst1_1site`, `inst2_1site`, `inst3_1site`: `docker inspect` (sin credenciales), `docker logs`, rutas de programa y `docker diff`. Usar `docker cp` sobre contenedores detenidos para recuperar código de aplicación, dependencias, Dockerfile si existe y config sanitizada. Buscar scripts/configs/logs originales de A/B y extraer flujo URL→Tor→PCAP→parsing, duración de 20 sitios por turno, timeouts, retry, circuitos, contaminación por tráfico ajeno, esquema de metadatos y causa real de exit 137. Evitar recorridos de disco masivos o leer datasets completos para identificar scripts.
+3. Recuperar lista de **120 sitios y seis categorías** con asignación exacta de 40 sitios por contenedor de los inventarios/configs existentes; validar URL y mapping únicos. Recuperar aparte la cohorte congelada de **65 sitios usada solo en evaluación** y documentar la relación 120→65 sin cambiar decisiones congeladas. Dejar SHA256 de las fuentes.
 4. Reportar en `.agent_results/P16C-ACQ-001-inventory.md` el inventario y una decisión reproducible sobre **qué recolector** utilizar. La ejecución y obtención de evidencias de Perseo la realizará el usuario manualmente; el asistente no debe asumir acceso SSH, docker exec ni ejecución de agentes en ese host.
 
 ## Checkpoint 1 — Congelar contrato de adquisición ANTES del primer PCAP
 
 Crear `docs/protocols/P16C_DATASET_C_ACQUISITION_V1.md` (y config de colector si procede) con:
-- `campaign_id` inmutable, fecha/hora UTC inicial, máquina, ruta de almacenamiento NUEVA Y EXCLUSIVA, responsable, versión Tor/Tor Browser, versión exacta del recolector, lista/URL/orden de 65 sitios y SHA256.
-- Frecuencia y duración propuestas **justificadas por capacidad real y el recolector auditado**, volumen/disk budget calculados y esquema horario UTC. No copiar por inercia el número de días/horas/capturas de A/B; si no consta la decisión, documentar valor propuesto antes de iniciar y declararlo provisional para extensión sin cambiar datos pasados.
+- `campaign_id` inmutable, fecha/hora UTC inicial, máquina, ruta de almacenamiento NUEVA Y EXCLUSIVA, responsable, versión Tor/Tor Browser, versión exacta del recolector, **120 sitios, seis categorías, asignación 40 sitios/2 categorías por cada uno de los tres contenedores**, lista/URL/orden de ejecución y SHA256. Guardar mapping independiente de la cohorte evaluada de 65.
+- Horarios obligatorios **cada hora: categoría A a `:00`, categoría B a `:30` por contenedor**, de forma 24/7. Verificar capacidad real de 20 visitas/30 minutos, con separación de circuitos/identidad Tor si corresponde y política de no solapamiento. Calcular presupuesto de disco, CPU/memoria, cuotas y carga. La **duración en días** requiere decisión previa y no se hereda sin validación de A/B; registrar propuesta y congelarla antes del primer PCAP de producción.
 - Reglas de timeouts/retries, fallo por sitio, deduplicación, UID únicos, nombre de fichero, fecha UTC, logs de fallos, checksums y QA, sin eliminar errores fallidos del denominador de calidad.
 - Política de datos: crudos PCAP inmutables, procesados derivados separados, ningún checkpoint/score de C durante captura; no sobrescribir Historical/Future-B.
 - No exponer datos o capturas sensibles en GitHub; subir solo código, contrato y resúmenes no sensibles. Calcular SHA256 y versionar el contrato antes de comenzar.
@@ -54,7 +54,7 @@ Con checkpoint 0-2 en verde:
 
 ## Checkpoint 4 — Monitorización y entrega
 
-- QA operativo: muestra de integridad, número de capturas completadas/intentos fallidos, 65 sitios esperados vs observados, distribución de horas/días, almacenamiento y continuidad temporal. No mirar predicciones de modelos.
+- QA operativo: muestra de integridad, intentos completados/fallidos, **120 sitios esperados agrupados en 6 categorías y 3 contenedores**, cobertura de turnos `:00`/`:30`, distribución de horas/días, almacenamiento y continuidad temporal. Reconciliar aparte la cohorte futura de evaluación de 65 sin examinar predicciones de modelos.
 - Elaborar `.agent_results/P16C-ACQ-001-final.md` con estado `RUNNING_CONFIRMED` o `BLOCKED`, pruebas, paths, riesgos y siguientes 24h.
 - Evitar `git push --force`, borrados, renombrado de A/B, cambios a pesos/modelos/flags `Future-B` o cualquier selección retrospectiva usando C.
 
