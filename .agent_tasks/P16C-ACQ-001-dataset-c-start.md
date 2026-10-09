@@ -3,6 +3,7 @@
 **Fecha de autorización de la tarea:** 2026-10-09  
 **Tipo:** tarea MACRO operacional de adquisición y verificación, no de entrenamiento.  
 **Prioridad:** ALTA: iniciar nuevas capturas Tor en cuanto se verifique el colector original y su autorización.  
+**Ejecución en Perseo:** EXCLUSIVAMENTE manual por bsierra; ChatGPT/Codex no tienen autorización de ejecución remota en Perseo. El asistente edita código pequeño únicamente en GitHub y proporciona instrucciones revisables para la ejecución manual.  
 **Fuente de verdad:** repositorio `a52290451/ltd-attack`, rama `feature/macro-v2-historical-only`, almacenamiento real del host de capturas.
 
 ## Contexto y límites
@@ -24,7 +25,7 @@
 1. Determinar host actual (`hostname`), cuenta, ruta del repositorio, rama, espacio libre, procesos Tor existentes, utilidades instaladas (Tor/Tor Browser, tshark/tcpdump, browser/automation), permisos de captura y almacenamiento. Consultar primero Perseo y, si el flujo original vive en Zeus u otro equipo, localizar allí la captura.
 2. Buscar **sin modificar** scripts, configs, unit files, crontabs, logs y manifiestos de las campañas originales A/B de recolección PCAP; extraer comando exacto de invocación, versión, flujo URL→Tor→PCAP→parsing, duración, frecuencia, retry y esquema de metadatos. Evitar recorridos de disco masivos o leer datasets completos para identificar scripts.
 3. Recuperar lista congelada de los 65 sitios y sus URL de fuentes históricas preexistentes; validar que el mapping es unívoco. Dejar hashes de los ficheros usados.
-4. Reportar en `.agent_results/P16C-ACQ-001-inventory.md` el inventario y una decisión reproducible sobre **qué recolector** utilizar. Si no hay acceso al host de captura, preparar un bloque de comandos read-only para que el usuario los ejecute allí; no inventar resultados.
+4. Reportar en `.agent_results/P16C-ACQ-001-inventory.md` el inventario y una decisión reproducible sobre **qué recolector** utilizar. La ejecución y obtención de evidencias de Perseo la realizará el usuario manualmente; el asistente no debe asumir acceso SSH, docker exec ni ejecución de agentes en ese host.
 
 ## Checkpoint 1 — Congelar contrato de adquisición ANTES del primer PCAP
 
@@ -48,7 +49,7 @@ Con checkpoint 0-2 en verde:
 - Inicializar ruta exclusiva `~/ltd-storage/datasets/dataset_c/` (o raíz documentada equivalente si ya existe otra ubicación canónica), respetando permisos y libre espacio.
 - Lanzar recolector en servicio persistente `systemd --user`, `tmux` o mecanismo canónico verificado, con reanudación segura, rotación de logs, control de tasas/carga y observabilidad.
 - **Mostrar evidencia verificable del arranque**: comando de inicio realmente ejecutado, hostname, PID o unidad, archivo de configuración congelado, hora UTC, primeros PCAP válidos producidos, tasa por sitio, ruta de logs y comando de estado/parada.
-- Si el agente no puede acceder al host, entregar **un único bloque listo para ejecutar** con preflight, smoke, start, status y logs; no afirmar que ya corre.
+- El asistente **no puede acceder remotamente a Perseo**: entregar bloques de comandos manuales por checkpoints (inventario, extracción de código, smoke, start, status y logs) y validar cada salida antes de continuar; no afirmar que ya corre.
 - No iniciar entrenamientos, evaluaciones ni reoptimización. No tocar la evidencia P13/P14/P15.
 
 ## Checkpoint 4 — Monitorización y entrega
@@ -59,4 +60,4 @@ Con checkpoint 0-2 en verde:
 
 ## Prioridades y forma de respuesta
 
-EJECUTAR checkpoints encadenados sin pedir aprobaciones triviales. Resolver detalles técnicos leyendo evidencia; pedir decisión solo ante un bloqueo genuino (sitios sin URL, permisos Tor/PCAP, ausencia de colector, necesidad de privilegios, presupuesto/disco). No fabricar tiempos ni métricas de capturas. Confirmar siempre estado final real. Todos los prompts e informes en español.
+EL USUARIO EJECUTA los checkpoints de Perseo manualmente; el asistente analiza los resultados y hace ajustes pequeños directamente en GitHub. Resolver detalles técnicos leyendo evidencia; pedir decisión solo ante un bloqueo genuino (sitios sin URL, permisos Tor/PCAP, ausencia de colector, necesidad de privilegios, presupuesto/disco). No fabricar tiempos ni métricas de capturas. Confirmar siempre estado final real. Todos los prompts e informes en español.
