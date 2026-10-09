@@ -10,10 +10,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import ast
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import sys
 from typing import Any
+import zipfile
 
 import numpy as np
 import pandas as pd
@@ -42,6 +44,18 @@ FUTURE_MICRO_PATH = Path(data_path("future", "CLEAN_final_vectors_sites_concept_
 FUTURE_MACRO_PATH = Path(data_path("future", "CLEAN_final_features_sites_concept_drift.csv"))
 HISTORICAL_MACRO_PATH = Path(data_path("historical", "CLEAN_final_features_sites.csv"))
 MAX_LEN = 3000
+FUTURE_SCORE_SHA256 = "d0edcd2780454b5cd39ef962ec45375d8822dc26b4b3c0b02cf4c06b0b29c7bb"
+_SAFE_NPZ_FIELDS = (
+    "query_date",
+    "y_true",
+    "candidate_labels",
+    "micro_probs",
+    "macro_xgb_probs",
+    "macro_ltd_probs",
+    "macro_final_probs",
+    "hybrid_final_probs",
+)
+_PROBABILITY_FIELDS = _SAFE_NPZ_FIELDS[3:]
 
 
 def _load_future_yaml(path: str | Path) -> dict[str, Any]:
@@ -175,18 +189,201 @@ def _parse_vector(value: Any) -> list[float]:
     return [float(item) for item in parsed]
 
 
-def _load_npz(score_path: Path = FUTURE_SCORE_PATH) -> dict[str, np.ndarray]:
+def _read_npy_header(archive: zipfile.ZipFile, member: str) -> tuple[tuple[int, ...], np.dtype, bool]:
+    try:
+        with archive.open(member, "r") as stream:
+            version = np.lib.format.read_magic(stream)
+            if version == (1, 0):
+                shape, fortran_order, dtype = np.lib.format.read_array_header_1_0(stream)
+                return shape, dtype, fortran_order
+            if version in {(2, 0), (3, 0)}:
+                shape, fortran_order, dtype = np.lib.format.read_array_header_2_0(stream)
+                return shape, dtype, fortran_order
+    except (KeyError, ValueError, OSError) as exc:
+        raise RuntimeError(f"Cabecera NPY inválida para {member}") from exc
+    raise RuntimeError(f"Versión NPY no soportada para {member}: {version}")
+
+
+def _validate_npz_headers(score_path: Path, *, expected_n: int, expected_classes: int) -> None:
+    expected_fields = set(_SAFE_NPZ_FIELDS) | {"pcap_uid"}
+    try:
+        with zipfile.ZipFile(score_path) as archive:
+            members = [name for name in archive.namelist() if name.endswith(".npy")]
+            fields = {name[:-4] for name in members}
+            missing = sorted(expected_fields - fields)
+            unexpected = sorted(fields - expected_fields)
+            if missing:
+                raise RuntimeError(f"NPZ Future-B incompleto; faltan: {missing}")
+            if unexpected:
+                raise RuntimeError(f"NPZ Future-B contiene campos inesperados: {unexpected}")
+
+            headers = {
+                field: _read_npy_header(archive, f"{field}.npy")
+                for field in sorted(fields)
+            }
+    except zipfile.BadZipFile as exc:
+        raise RuntimeError(f"NPZ Future-B no es un ZIP válido: {score_path}") from exc
+
+    uid_shape, uid_dtype, _ = headers["pcap_uid"]
+    if uid_dtype.kind != "O" or uid_shape != (expected_n,):
+        raise RuntimeError(
+            "La cabecera de pcap_uid debe ser dtype=object y shape "
+            f"({expected_n},); observado dtype={uid_dtype}, shape={uid_shape}"
+        )
+
+    query_shape, query_dtype, _ = headers["query_date"]
+    if query_dtype != np.dtype("datetime64[D]") or query_shape != (expected_n,):
+        raise RuntimeError("query_date debe ser datetime64[D] unidimensional con la longitud congelada")
+
+    y_shape, y_dtype, _ = headers["y_true"]
+    if y_dtype != np.dtype("int64") or y_shape != (expected_n,):
+        raise RuntimeError("y_true debe ser int64 unidimensional con la longitud congelada")
+
+    labels_shape, labels_dtype, _ = headers["candidate_labels"]
+    if labels_dtype.kind != "U" or labels_shape != (expected_classes,):
+        raise RuntimeError("candidate_labels debe ser Unicode unidimensional con 65 clases congeladas")
+
+    for field in _PROBABILITY_FIELDS:
+        shape, dtype, _ = headers[field]
+        if dtype != np.dtype("float32") or shape != (expected_n, expected_classes):
+            raise RuntimeError(
+                f"{field} debe ser float32 con shape ({expected_n}, {expected_classes})"
+            )
+
+
+def _load_10b_date_deriver():
+    root = Path(__file__).resolve().parents[2]
+    module_path = root / "src/features/macro_v2/07A_candidate_conditioned_temporal_encoder.py"
+    if str(module_path.parent) not in sys.path:
+        sys.path.insert(0, str(module_path.parent))
+    spec = importlib.util.spec_from_file_location("p14_10b_date_deriver", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("No se pudo cargar la función de fechas congelada de 10B")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.derive_dates
+
+
+def _load_10b_elite_sites() -> set[str]:
+    from src.features.macro_v2._common import load_elite_sites
+
+    return {str(value) for value in load_elite_sites()}
+
+
+def _reconstruct_future_identity(
+    *,
+    future_macro_path: Path,
+    historical_macro_path: Path,
+    future_micro_path: Path,
+    candidate_labels: np.ndarray,
+    expected_n: int,
+    expected_classes: int,
+    elite_sites: set[str] | None = None,
+    date_deriver=None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if not future_macro_path.is_file():
+        raise FileNotFoundError(f"No existe el CSV Macro canónico Future-B: {future_macro_path}")
+    future = pd.read_csv(future_macro_path)
+    if "pcap_uid" not in future.columns:
+        raise RuntimeError("Future Macro no contiene pcap_uid")
+
+    if "site_label" not in future.columns:
+        if "site" not in future.columns:
+            raise RuntimeError("Future Macro no contiene site_label ni site")
+        if not historical_macro_path.is_file():
+            raise FileNotFoundError(f"No existe la fuente histórica para site -> site_label: {historical_macro_path}")
+        historic_header = pd.read_csv(historical_macro_path, nrows=0).columns.tolist()
+        if "site" not in historic_header or "site_label" not in historic_header:
+            raise RuntimeError("La fuente histórica no permite reconstruir site -> site_label")
+        mapping_df = pd.read_csv(historical_macro_path, usecols=["site", "site_label"]).dropna().drop_duplicates()
+        conflicts = mapping_df.groupby("site")["site_label"].nunique()
+        if (conflicts > 1).any():
+            raise RuntimeError("Mapping histórico site -> site_label no único")
+        site_map = dict(zip(mapping_df["site"].astype(str), mapping_df["site_label"].astype(str)))
+        future["site_label"] = future["site"].astype(str).map(site_map)
+
+    future = future.dropna(subset=["site_label"]).copy()
+    future["site_label"] = future["site_label"].astype(str)
+    elite = {str(value) for value in (elite_sites if elite_sites is not None else _load_10b_elite_sites())}
+    future = future[future["site_label"].isin(elite)].copy().reset_index(drop=True)
+
+    if len(future) != expected_n:
+        raise RuntimeError(f"Unexpected Future-B capture count: {len(future)}; expected {expected_n}")
+    if future["site_label"].nunique() != expected_classes:
+        raise RuntimeError(f"Unexpected Future-B class count: {future['site_label'].nunique()}; expected {expected_classes}")
+    if future["pcap_uid"].isna().any():
+        raise RuntimeError("Future Macro contiene pcap_uid nulo")
+    uids = future["pcap_uid"].astype(str).to_numpy()
+    if np.any(uids == "") or len(np.unique(uids)) != len(uids):
+        raise RuntimeError("Future Macro contiene pcap_uid duplicado o vacío")
+
+    derive_dates = date_deriver or _load_10b_date_deriver()
+    dates, _ = derive_dates(future)
+    query_date = pd.to_datetime(dates, errors="coerce").to_numpy(dtype="datetime64[D]")
+    if np.isnat(query_date).any():
+        raise RuntimeError("Future Macro contiene fechas no derivables")
+
+    expected_labels = np.asarray(sorted(future["site_label"].unique()), dtype=str)
+    if not np.array_equal(candidate_labels, expected_labels):
+        raise RuntimeError("candidate_labels no coincide con el orden congelado de Future-B")
+    label_to_index = {label: index for index, label in enumerate(candidate_labels)}
+    reconstructed_y = np.asarray([label_to_index[label] for label in future["site_label"]], dtype=np.int64)
+
+    if not future_micro_path.is_file():
+        raise FileNotFoundError(f"No existe el dataset Micro Future-B: {future_micro_path}")
+    micro = pd.read_csv(future_micro_path, usecols=["pcap_uid"])
+    if micro["pcap_uid"].isna().any():
+        raise RuntimeError("El dataset Micro Future-B contiene pcap_uid nulo")
+    micro_uids = micro["pcap_uid"].astype(str).to_numpy()
+    if len(np.unique(micro_uids)) != len(micro_uids):
+        raise RuntimeError("El dataset Micro Future-B contiene pcap_uid duplicado")
+    if set(micro_uids) != set(uids):
+        missing = sorted(set(uids) - set(micro_uids))
+        extra = sorted(set(micro_uids) - set(uids))
+        raise RuntimeError(f"Cobertura Micro Future-B incompleta; missing={missing[:5]}, extra={extra[:5]}")
+
+    return uids, query_date, reconstructed_y
+
+
+def _load_npz(
+    score_path: Path = FUTURE_SCORE_PATH,
+    *,
+    future_macro_path: Path = FUTURE_MACRO_PATH,
+    historical_macro_path: Path = HISTORICAL_MACRO_PATH,
+    future_micro_path: Path = FUTURE_MICRO_PATH,
+    expected_sha256: str = FUTURE_SCORE_SHA256,
+    elite_sites: set[str] | None = None,
+    date_deriver=None,
+    expected_n: int = 18543,
+    expected_classes: int = 65,
+) -> dict[str, np.ndarray]:
+    score_path = Path(score_path)
     if not score_path.is_file():
         raise FileNotFoundError(f"No existe el NPZ congelado de Future-B; no se reejecuta 10B: {score_path}")
+    observed_sha256 = sha256(score_path)
+    if observed_sha256 != expected_sha256:
+        raise RuntimeError(f"SHA256 NPZ Future-B incompatible; expected={expected_sha256}; observed={observed_sha256}")
+
+    _validate_npz_headers(score_path, expected_n=expected_n, expected_classes=expected_classes)
     with np.load(score_path, allow_pickle=False) as payload:
-        required = {"pcap_uid", "query_date", "y_true", "candidate_labels", "micro_probs", "macro_xgb_probs", "macro_ltd_probs", "macro_final_probs", "hybrid_final_probs"}
-        missing = sorted(required - set(payload.files))
-        if missing:
-            raise RuntimeError(f"NPZ Future-B incompleto; faltan: {missing}")
-        result = {key: payload[key] for key in required}
-    lengths = {len(value) for key, value in result.items() if key.endswith("probs") or key in {"pcap_uid", "query_date", "y_true"}}
-    if len(lengths) != 1 or len(result["pcap_uid"]) != len(np.unique(result["pcap_uid"].astype(str))):
-        raise RuntimeError("NPZ Future-B desalineado: longitudes o pcap_uid duplicado")
+        # Deliberadamente no se accede a payload["pcap_uid"]: ese campo es object.
+        result = {field: np.array(payload[field], copy=True) for field in _SAFE_NPZ_FIELDS}
+
+    reconstructed_uids, reconstructed_dates, reconstructed_y = _reconstruct_future_identity(
+        future_macro_path=Path(future_macro_path),
+        historical_macro_path=Path(historical_macro_path),
+        future_micro_path=Path(future_micro_path),
+        candidate_labels=result["candidate_labels"].astype(str),
+        expected_n=expected_n,
+        expected_classes=expected_classes,
+        elite_sites=elite_sites,
+        date_deriver=date_deriver,
+    )
+    if not np.array_equal(result["y_true"], reconstructed_y):
+        raise RuntimeError("y_true del NPZ no coincide fila a fila con las etiquetas reconstruidas")
+    if not np.array_equal(result["query_date"], reconstructed_dates):
+        raise RuntimeError("query_date del NPZ no coincide fila a fila con las fechas reconstruidas")
+    result["pcap_uid"] = reconstructed_uids
     return result
 
 
