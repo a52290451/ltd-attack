@@ -36,12 +36,12 @@ def main() -> None:
             raise SystemExit("STOP: red piloto inesperada")
         text = text.replace("--network bridge", '--network "$SMOKE_NET"', 1)
         text = text.replace(network_anchor, (
-            'SMOKE_NET="ltd-c-smoke-net-$"\n'
+            'SMOKE_NET="ltd-c-smoke-net-$(date +%s%N)"\n'
             'docker network create --driver bridge "$SMOKE_NET" >/dev/null\n'
             "trap 'docker network rm \"$SMOKE_NET\" >/dev/null 2>&1 || true' EXIT\n"
             + network_anchor
         ), 1)
-    elif 'SMOKE_NET="ltd-c-smoke-net-$"' not in text:
+    elif 'SMOKE_NET="ltd-c-smoke-net-$(date +%s%N)"' not in text:
         raise SystemExit("STOP: red piloto no reconocida")
     if START in text:
         if text.count(START) != 1:
