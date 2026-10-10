@@ -26,9 +26,23 @@ def main() -> None:
     if script.name != "smoke_inst1_belleza.sh" or not script.is_file():
         raise SystemExit("STOP: ruta de piloto inexistente o nombre incorrecto")
     root = script.parent
-    text = script.read_text(encoding="utf-8")
+    original = script.read_text(encoding="utf-8")
+    text = original
     if "--privileged" in text or "SYS_TIME" in text:
         raise SystemExit("STOP: prohibido modificar el reloj del kernel")
+    network_anchor = "echo '===== ARRANCANDO TOR AISLADO Y UNA VISITA REAL ====='"
+    if "--network bridge" in text:
+        if text.count("--network bridge") != 1 or text.count(network_anchor) != 1:
+            raise SystemExit("STOP: red piloto inesperada")
+        text = text.replace("--network bridge", '--network "$SMOKE_NET"', 1)
+        text = text.replace(network_anchor, (
+            'SMOKE_NET="ltd-c-smoke-net-$"\n'
+            'docker network create --driver bridge "$SMOKE_NET" >/dev/null\n'
+            "trap 'docker network rm \"$SMOKE_NET\" >/dev/null 2>&1 || true' EXIT\n"
+            + network_anchor
+        ), 1)
+    elif 'SMOKE_NET="ltd-c-smoke-net-$"' not in text:
+        raise SystemExit("STOP: red piloto no reconocida")
     if START in text:
         if text.count(START) != 1:
             raise SystemExit("STOP: múltiple inicio de Tor; revisar manualmente")
@@ -50,7 +64,7 @@ def main() -> None:
     if not target.exists():
         target.write_bytes(data)
         target.chmod(0o644)
-    if patched != text:
+    if patched != original:
         script.write_text(patched, encoding="utf-8")
         print("PATCH_OK")
     else:
