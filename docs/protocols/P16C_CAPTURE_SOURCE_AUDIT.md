@@ -53,3 +53,10 @@ Verificada por el investigador, **sin modificación ni borrado de archivos**:
 - `/data/bs_1site_noise`: 150.668 PCAP en 48 días de modificación, 1473,09 GiB de PCAP. **Prohibido eliminar o modificar**; investigación separada pendiente.
 - `/data/tor_debug.log`: **661.703.057.408 bytes** (~616,26 GiB), propietario `messagebus`, mtime `2026-05-30T18:00:42Z`, proceso propietario no identificado en salida `fuser` sin privilegios. **Candidato de limpieza** solo tras verificar con privilegios que no esté abierto, conservar `stat` y muestras, y ejecutar `sudo truncate -s0` manualmente con aceptación explícita del carácter irreversible. No asumir que causó los PCAP vacíos sin investigación adicional.
 - El usuario quiere priorizar Dataset C. El piloto V2.2 ya apunta a `~/ltd-storage/dataset-c-smoke` fuera de `/data`, por lo que puede ejecutarse ANTES de limpiar log, si Docker/Tor se comportan correctamente. **No iniciar producción** antes de NTP sincronizado y definición de filesystem aislado.
+
+## Operación sin sudo confirmada (10-10-2026)
+
+- En Perseo, `bsierra` no dispone de acceso `sudo` operativo (el intento de `sudo fuser` falló por autenticación); **no volver a pedir `sudo` ni cambiar propietarios/permisos** del archivo `/data/tor_debug.log` (`messagebus`). No se ejecutó `truncate` y el archivo permanece íntegro.
+- Se conservaron `stat`, primera muestra de 1 MiB y última muestra de 1 MiB del log en `~/ltd-storage/audits/tor-log-20261010`. Son muestras, no copia íntegra.
+- El piloto V2.2 se ejecutará sin sudo: Docker accesible al usuario y datos exclusivamente en `~/ltd-storage/dataset-c-smoke` en la partición raíz con ~692 GiB libres. Requiere solo carga del ZIP y ejecución manual. Este smoke NO requiere liberar `/data` ni NTP sincronizado; producción sí requiere diseño persistente, NTP y espacio suficiente.
+- La gestión del log de 616,26 GiB se delega a administración con aprobación, verificación privilegiada de procesos activos y política de retención; no borrar o truncar por vías alternativas ni tocar `bs_1site_noise`.
