@@ -60,3 +60,12 @@ Verificada por el investigador, **sin modificación ni borrado de archivos**:
 - Se conservaron `stat`, primera muestra de 1 MiB y última muestra de 1 MiB del log en `~/ltd-storage/audits/tor-log-20261010`. Son muestras, no copia íntegra.
 - El piloto V2.2 se ejecutará sin sudo: Docker accesible al usuario y datos exclusivamente en `~/ltd-storage/dataset-c-smoke` en la partición raíz con ~692 GiB libres. Requiere solo carga del ZIP y ejecución manual. Este smoke NO requiere liberar `/data` ni NTP sincronizado; producción sí requiere diseño persistente, NTP y espacio suficiente.
 - La gestión del log de 616,26 GiB se delega a administración con aprobación, verificación privilegiada de procesos activos y política de retención; no borrar o truncar por vías alternativas ni tocar `bs_1site_noise`.
+
+## Smoke de Tor bloqueado: reloj y versión (10-10-2026)
+
+- El parche local V2.2 de archivo `torrc` regular funcionó: Tor abre `127.0.0.1:9050` y el piloto pasó 5/5 pruebas JavaScript, pero **no ha producido una captura real**.
+- `TOR_BOOTSTRAP_FAILED`. Logs muestran `CLOCK_SKEW` informado por DIRSERV `193.23.244.244:443`, diferencia estimada de +49m23s. `timedatectl` ya había mostrado `NTPSynchronized=no`. Es necesario que administración valide el reloj UTC/NTP con fuentes fiables y lo sincronice (no asumir que el relay consultado es necesariamente correcto).
+- Tor `0.4.7.16` informa que faltan protocolos recomendados `Desc=3-4 Microdesc=3 Relay=5-6`. Una imagen con versión **actual y mantenida** debe prepararse y validarse para la campaña C; no reutilizar Tor antiguo en producción.
+- El host usa Docker sin sudo disponible para la cuenta investigadora. No recomendar elevación de privilegios ni modificaciones manuales no autorizadas del reloj.
+- `/data/tor_debug.log`: 661.703.057.408 bytes (~616 GiB), propietario `messagebus`, permiso `644`; muestras y `stat` preservadas. La limpieza requiere administración: verificar que ningún proceso mantenga el log abierto, revisar configuración que generó salida DEBUG, acordar retención y **vaciar/reubicar con autorización** sin tocar `bs_1site_noise`. No reclamar espacio recuperado hasta que `df -h /data` confirme.
+- Mientras tanto, los smoke no destructivos se pueden preparar en `~/ltd-storage/dataset-c-smoke` (otro filesystem), pero no podrán validar navegación Tor hasta solventar bootstrap; la adquisición científica definitiva sigue `NOT_STARTED`.
