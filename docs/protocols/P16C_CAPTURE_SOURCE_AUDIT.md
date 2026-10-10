@@ -44,3 +44,12 @@
 - Duplicados resueltos metodológicamente: preservar 120 posiciones históricas (118 URL distintas), con identificador independiente de réplica; validar listas sin alterar A/B.
 - Establecer destino de volumen nuevo y prueba real de Tor/Chrome/Cron por separado. Aún no se ha realizado smoke en Perseo.
 - Dataset C es holdout externo virgen; nunca escoger modelos/hiperparámetros usando sus resultados.
+
+## Auditoría del almacenamiento de Perseo (10-10-2026)
+
+Verificada por el investigador, **sin modificación ni borrado de archivos**:
+- `/data/bs_1site`: 198.840 PCAP y 484,31 GiB. Se detectaron **80.660 PCAP de 0 bytes** modificados desde 2026-05-31, todos los PCAP de ese intervalo; quedan **118.180 PCAP con contenido** por diferencia. Cualquier métrica de días útiles debe basarse en PCAP no vacíos, no simplemente en conteos de ficheros. Registrar fechas de nombre y metadatos para confirmar procedencia; los `mtime` pueden cambiar por copias.
+- `/data/bs_1site`: 155.272 HTML (71,27 GiB), 155.345 JSON (~0,08 GiB) y 10.383 CSV (~0,03 GiB), a conservar durante la auditoría de errores de captura.
+- `/data/bs_1site_noise`: 150.668 PCAP en 48 días de modificación, 1473,09 GiB de PCAP. **Prohibido eliminar o modificar**; investigación separada pendiente.
+- `/data/tor_debug.log`: **661.703.057.408 bytes** (~616,26 GiB), propietario `messagebus`, mtime `2026-05-30T18:00:42Z`, proceso propietario no identificado en salida `fuser` sin privilegios. **Candidato de limpieza** solo tras verificar con privilegios que no esté abierto, conservar `stat` y muestras, y ejecutar `sudo truncate -s0` manualmente con aceptación explícita del carácter irreversible. No asumir que causó los PCAP vacíos sin investigación adicional.
+- El usuario quiere priorizar Dataset C. El piloto V2.2 ya apunta a `~/ltd-storage/dataset-c-smoke` fuera de `/data`, por lo que puede ejecutarse ANTES de limpiar log, si Docker/Tor se comportan correctamente. **No iniciar producción** antes de NTP sincronizado y definición de filesystem aislado.
