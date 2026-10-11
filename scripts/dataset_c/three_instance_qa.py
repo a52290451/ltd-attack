@@ -101,6 +101,8 @@ def run(max_urls):
             print("INST",i,"SLOTS",str(count)+"/"+str(expected),"EXIT",results[i],flush=True)
             if results[i]!=0 or count!=expected: results[i]=1
         overall=0 if all(x==0 for x in results.values()) else 1
+        if overall==0 and max_urls==20:
+            (root/"VALIDATED_THREE_FULL.txt").write_text("THREE_FULL_120_OK\\n")
         print("FIN THREE_EXIT="+str(overall)+" OUT="+str(root),flush=True)
         return overall
 def preflight_ready():
