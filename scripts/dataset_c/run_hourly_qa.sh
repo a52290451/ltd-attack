@@ -55,6 +55,15 @@ case "$MODE" in
     echo "INICIO=$(date -u +%FT%TZ)"
     echo "PILOTO_OBFS4_NO_CIENTIFICO=1"
     ensure_tor || exit 3
+    # El chequeo debe realizarse sobre el filesystem real de BASE (/data),
+    # no el del contenedor ni el NVMe del sistema.
+    FREE_KIB="$(df -Pk "$BASE" | awk 'NR==2 {print $4}')"
+    [[ "$FREE_KIB" =~ ^[0-9]+$ ]] || { echo "STOP: no se pudo medir espacio" >&2; exit 4; }
+    echo "DISCO_DESTINO=$(df -P "$BASE" | awk 'NR==2 {print $1}'); LIBRE_GIB=$((FREE_KIB/1024/1024))"
+    (( FREE_KIB >= 120 * 1024 * 1024 )) || {
+      echo "STOP: menos de 120 GiB libres en la partición destino" >&2
+      exit 4
+    }
     export MIN_DISK_FREE_GB=120
     bash "$REPO/scripts/dataset_c/run_120_pilot.sh"
   } >> "$LOG" 2>&1
