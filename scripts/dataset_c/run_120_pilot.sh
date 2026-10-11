@@ -53,15 +53,54 @@ docker run --rm \
   --entrypoint /bin/bash "$IMAGE" -lc '
     set -uo pipefail
     trap '\''chown -R "$HOST_UID:$HOST_GID" /audit120 2>/dev/null || true'\'' EXIT
+    # Tor puede perder temporalmente su listener SOCKS aunque el contenedor siga vivo.
+    # Verificar salida efectiva antes de cada categoría y reintentar SOLO si
+    # run_category falló antes de registrar cualquier slot. No repetir visitas
+    # parciales y no atribuir recuperaciones a una hora pasada.
+    tor_ready() {
+      curl -fsS --max-time 25 \
+        --socks5-hostname 127.0.0.1:9050 \
+        https://check.torproject.org/api/ip \
+        | grep -Eq "\"IsTor\"[[:space:]]*:[[:space:]]*true"
+    }
+    slots_count() {
+      local dir="/audit120/$1/$2"
+      if compgen -G "$dir/attempts_*.tsv" > /dev/null; then
+        awk "FNR>1 && NF>1 {n++} END {print n+0}" "$dir"/attempts_*.tsv
+      else
+        echo 0
+      fi
+    }
     rc=0
     for spec in "inst1 belleza" "inst1 turismo" "inst2 bancos" "inst2 salud" "inst3 deportes" "inst3 politica"; do
       read -r instance category <<< "$spec"
       echo "===== INICIO $instance/$category $(date -u +%FT%TZ) ====="
-      if bash /opt/ltd-c-v2/run_category.sh "$instance" "$category"; then
-        echo "===== FIN $instance/$category $(date -u +%FT%TZ) ====="
-      else
-        code=$?
-        echo "===== ERROR CATEGORIA $instance/$category exit=$code =====" >&2
+      code=4
+      for attempt in 1 2 3; do
+        if ! tor_ready; then
+          echo "TOR_UNREACHABLE $instance/$category intento=$attempt/3; esperando..." >&2
+          sleep 15
+          continue
+        fi
+        if bash /opt/ltd-c-v2/run_category.sh "$instance" "$category"; then
+          code=0
+          break
+        else
+          code=$?
+          counted=$(slots_count "$instance" "$category")
+          echo "FALLO_CATEGORIA $instance/$category exit=$code slots=$counted intento=$attempt/3" >&2
+          if (( code == 4 && counted == 0 && attempt < 3 )); then
+            echo "REINTENTO_SEGURO $instance/$category sin capturas previas" >&2
+            sleep 15
+            continue
+          fi
+          break
+        fi
+      done
+      counted=$(slots_count "$instance" "$category")
+      echo "===== FIN $instance/$category $(date -u +%FT%TZ) exit=$code slots=$counted/20 ====="
+      if (( code != 0 || counted != 20 )); then
+        echo "AUDIT_PARTIAL $instance/$category exit=$code slots=$counted/20" >&2
         rc=1
       fi
     done
