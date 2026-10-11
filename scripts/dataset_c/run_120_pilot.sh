@@ -48,7 +48,7 @@ docker run --rm \
   -e CONSENT_POLICY=accept_all \
   -e SESSION_POLICY=fresh \
   -e CHROME_NO_SANDBOX=1 \
-  -e MIN_DISK_FREE_GB=20 \
+  -e MIN_DISK_FREE_GB="${MIN_DISK_FREE_GB:-120}" \
   -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   --entrypoint /bin/bash "$IMAGE" -lc '
     set -uo pipefail
