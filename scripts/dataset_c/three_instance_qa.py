@@ -44,12 +44,13 @@ def setup():
         cmd("docker","volume","create",vol)
         # La unidad de reinicio contiene Tor como proceso principal supervisado,
         # sin utilizar el estado del Tor fuente.
-        init='chown -R 100:101 /var/lib/tor-ltd; chmod 700 /var/lib/tor-ltd; exec su -s /bin/sh debian-tor -c "exec env LTD_CLOCK_OFFSET_SECONDS=-2963 LD_PRELOAD=/usr/local/lib/libltd_realtime.so tor -f /etc/tor/torrc-obfs4"'
-        cmd("docker","run","-d","--name",name,"--network","isolated_net_1site_inst"+str(i),
+        init='chown 100:101 /etc/tor/torrc-obfs4; chmod 600 /etc/tor/torrc-obfs4; chown -R 100:101 /var/lib/tor-ltd; chmod 700 /var/lib/tor-ltd; exec su -s /bin/sh debian-tor -c "exec env LTD_CLOCK_OFFSET_SECONDS=-2963 LD_PRELOAD=/usr/local/lib/libltd_realtime.so tor -f /etc/tor/torrc-obfs4"'
+        cmd("docker","create","--name",name,"--network","isolated_net_1site_inst"+str(i),
             "--restart","unless-stopped","--security-opt","no-new-privileges",
             "--mount","type=volume,src="+vol+",dst=/var/lib/tor-ltd",
-            "--mount","type=bind,src="+str(secret)+",dst=/etc/tor/torrc-obfs4,readonly",
             "--entrypoint","/bin/sh",IMAGE,"-c",init)
+        cmd("docker","cp",str(secret),name+":/etc/tor/torrc-obfs4")
+        cmd("docker","start",name)
         print("CREADO",name,vol,flush=True)
     for i in SPECS:
         name="ltd-c-tor-inst"+str(i)
