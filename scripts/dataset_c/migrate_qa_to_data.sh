@@ -35,10 +35,6 @@ trap restore EXIT
   echo "STOP: SRC no es el directorio esperado; revisar manualmente." >&2; exit 2;
 }
 [[ ! -e "$DEST" || ! -L "$DEST" ]] || { echo "STOP: DEST es enlace simbólico." >&2; exit 2; }
-if docker ps --format '{{.Names}}' | grep -Eq '^ltd-c-(audit120_|recovery-v23-)'; then
-  echo "STOP: hay una captura activa. Terminarla antes de migrar." >&2
-  exit 5
-fi
 echo "SRC=$SRC"
 echo "DEST=$DEST"
 df -h "$SRC" /data
@@ -50,6 +46,21 @@ if grep -q "$CRON_TAG" "$BACKUP_CRON"; then
   CRON_PAUSED=1
   echo "Cron QA pausado; crontab original respaldado en $BACKUP_CRON."
 fi
+
+# Impedir nuevas ejecuciones manuales o de Cron mientras copiamos. Si la
+# captura actual aún posee el lock, esperar a que termine naturalmente.
+# Pausar Cron ANTES de esperar evita que aparezcan rondas adicionales.
+exec 8>"$SRC/.audit120.lock"
+echo "Adquiriendo lock del recolector (espera máxima: 60 minutos)..."
+if ! flock -w 3600 8; then
+  echo "STOP: el recolector aún está activo después de 60 minutos. Cron será restaurado." >&2
+  exit 5
+fi
+if docker ps --format '{{.Names}}' | grep -Eq '^ltd-c-(audit120_|recovery-v23-)'; then
+  echo "STOP: se encontró una captura activa sin el bloqueo esperado; no migrar." >&2
+  exit 5
+fi
+echo "Lock adquirido: ninguna captura puede iniciarse durante la migración."
 
 # Intento normal con permisos del usuario. Si /data es root-owned, crear
 # exclusivamente un NUEVO subdirectorio propio con Docker (sin --privileged).
