@@ -6,7 +6,7 @@ Usage:
     python3 scripts/dataset_c/review_and_recover_qa.py recover --max-per-category 3
 """
 from __future__ import annotations
-import argparse, collections, csv, datetime, json, os, pathlib, re, subprocess, sys
+import argparse, collections, csv, datetime, json, os, pathlib, re, subprocess, sys, time
 
 BASE=pathlib.Path("/data/ltd-c-qa-bsierra")
 APP=pathlib.Path.home()/"ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
@@ -81,8 +81,17 @@ def recover(choices, limit):
     cron=exec_cmd(["crontab","-l"],capture_output=True).stdout
     if "LTD_C_THREE_QA" in cron or "LTD_C_QA_HOURLY" in cron:
         raise RuntimeError("STOP: pause hourly Cron before targeted recovery to avoid overlap")
-    if subprocess.run(["docker","ps","--format","{{.Names}}"],text=True,capture_output=True,check=True).stdout.find("ltd-c-capture-")>=0:
-        raise RuntimeError("STOP: collector already running")
+    # An hourly round may have started just before Cron was paused.
+    # Wait for it to finish rather than starting competing browser captures.
+    until=time.monotonic()+1200
+    while True:
+        active=subprocess.run(["docker","ps","--format","{{.Names}}"],text=True,capture_output=True,check=True).stdout.splitlines()
+        busy=[name for name in active if name.startswith(("ltd-c-capture-","ltd-c-recovery-"))]
+        if not busy: break
+        if time.monotonic()>until:
+            raise RuntimeError("STOP: collectors still active after 20 minutes: "+",".join(busy))
+        print("WAIT_COLLECTOR_IDLE",",".join(busy),flush=True)
+        time.sleep(15)
     free=os.statvfs(BASE).f_bavail*os.statvfs(BASE).f_frsize
     if free<120*1024**3:raise RuntimeError("STOP: storage under 120 GiB free")
     if not APP.joinpath("run_category.sh").is_file():raise RuntimeError("STOP: collector missing")
