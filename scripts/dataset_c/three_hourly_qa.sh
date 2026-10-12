@@ -24,7 +24,10 @@ case "$MODE" in
     LOG="$BASE/three_logs/run_$(date -u +%Y%m%dT%H%M%SZ)_$$.log"
     echo "LOG=$LOG"
     python3 "$PY" full > "$LOG" 2>&1 || { tail -n 30 "$LOG"; exit 1; }
-    tail -n 10 "$LOG"
+    RUN=$(sed -n 's/^FIN THREE_EXIT=0 OUT=//p' "$LOG" | tail -n 1)
+    [[ "$RUN" == "$BASE"/three_hourly_* ]] || { echo "STOP: falta ruta de ejecución validada" >> "$LOG"; exit 3; }
+    python3 "$REPO/scripts/dataset_c/audit_three_hourly.py" "$RUN" >> "$LOG" 2>&1 || { tail -n 35 "$LOG"; exit 4; }
+    tail -n 18 "$LOG"
     ;;
   --status)
     echo "CRON:"
