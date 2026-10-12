@@ -44,11 +44,19 @@ def b_class_set(path):
         candidates=[by_lower[x] for x in SITES if x in by_lower]
         if not candidates:
             raise RuntimeError("INCONCLUSIVE: Cannot identify Future-B site column; available="+",".join(reader.fieldnames[:30]))
+        from itertools import chain, islice
+        sample=list(islice(reader,50))
+        scored=[]
+        for c in candidates:
+            valid=sum(bool(domain(row.get(c))) for row in sample)
+            scored.append((valid,c))
+        valid,chosen=max(scored,key=lambda x:x[0])
+        if sample and valid < min(5,len(sample)):
+            raise RuntimeError("INCONCLUSIVE: no site/domain-like column in Future-B CSV; candidates="+str(scored))
         rows=0
         uniq=set()
         invalid=Counter()
-        chosen=candidates[0]
-        for row in reader:
+        for row in chain(sample,reader):
             rows+=1
             if rows>2_000_000:raise RuntimeError("STOP: >2 million B rows, unexpected")
             value=str(row.get(chosen) or "").strip()
