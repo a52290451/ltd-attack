@@ -135,6 +135,21 @@ def recover(choices, limit):
         if code or len(observed)!=expected:error=True
     print("RECOVERY_OUT",root)
     print("COMPARE_WITH_SOURCE",source_run())
+    originals={(r["instance"],r["category"],slot(r)):r for r in rows_from(source_run()) if slot(r) is not None}
+    new_rows=list(rows_from(root))
+    improved=0
+    with (root/"recovery_comparison.csv").open("w",newline="",encoding="utf-8") as f:
+        w=csv.writer(f);w.writerow(["instancia","categoria","slot","status_original","status_recovery","url"])
+        for r in new_rows:
+            key=(r["instance"],r["category"],slot(r))
+            orig=originals.get(key,{})
+            before=orig.get("status","MISSING")
+            after=r.get("status","UNKNOWN")
+            if before!="OK" and after=="OK": improved+=1
+            print("RESULT",f'inst{r["instance"]}/{r["category"]}',"slot",slot(r),before,"=>",after,safe_url(r))
+            w.writerow([*key,before,after,safe_url(r)])
+    print("RECOVERED_OK",improved,"/",len(new_rows),"TARGETED_ATTEMPTS")
+    print("COMPARE_CSV",root/"recovery_comparison.csv")
     if error: raise RuntimeError("STOP: targeted recovery incomplete; inspect per-instance recovery logs")
 def main():
     ap=argparse.ArgumentParser()
