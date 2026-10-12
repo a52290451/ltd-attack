@@ -12,7 +12,7 @@ from zipfile import ZipFile,ZIP_DEFLATED
 
 APP=Path.home()/"ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
 OUT=Path.home()/"ltd-ops/collector-source-review-v24.zip"
-FILES=["capture_dom.js","run_category.sh","quality.js","quality.test.js","check_sites.py"]
+FILES=["capture_dom.js","run_category.sh","quality.js","tests/quality.test.js","check_sites.py"]
 def main():
     if not APP.is_dir():raise RuntimeError("STOP: collector missing")
     OUT.parent.mkdir(parents=True,exist_ok=True)
