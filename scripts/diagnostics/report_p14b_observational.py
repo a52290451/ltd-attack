@@ -32,13 +32,21 @@ def main():
     print("14A_INTEGRITY_VERIFIED 10/10")
     ranks=pd.read_csv(root/"14A_rank_distribution.csv")
     h=ranks[ranks.component=="HYBRID_FINAL"].set_index("bucket")["count"]
-    print("RANK_DISTRIBUTION_SUM",repr(h.sum()),"EXPECTED",EXPECTED_N)
-    print("RANK_DISTRIBUTION_HYBRID",h.to_dict())
-    if int(h.sum())!=EXPECTED_N:
-        raise RuntimeError("RANK_DISTRIBUTION_TOTAL_MISMATCH: inspect bucket counts and component labels; do not alter frozen evidence")
+    exclusive=["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6_10","rank_gt_10"]
+    if not set(exclusive).issubset(h.index) or h.index.has_duplicates:
+        raise RuntimeError("RANK_BUCKET_SCHEMA_INVALID")
+    bucket_total=int(h.loc[exclusive].sum())
+    print("EXCLUSIVE_RANK_BUCKET_SUM",bucket_total,"EXPECTED",EXPECTED_N)
+    if bucket_total!=EXPECTED_N:
+        raise RuntimeError("RANK_DISTRIBUTION_TOTAL_MISMATCH")
     top1=int(h["rank_1"])
-    rescued=int(h[["rank_2","rank_3","rank_4","rank_5"]].sum())
+    rescued=int(h.loc[["rank_2","rank_3","rank_4","rank_5"]].sum())
     lost=EXPECTED_N-top1-rescued
+    aggregates={"top1_accuracy":top1,"top5_accuracy":top1+rescued,
+                "top5_minus_top1":rescued,"fraction_of_top1_errors_still_in_top5":rescued}
+    for key, expected_count in aggregates.items():
+        if key in h.index and int(h[key])!=expected_count:
+            raise RuntimeError(f"RANK_AGGREGATE_MISMATCH: {key}")
     assert (top1,rescued,lost)==(9170,5768,3605)
     print(f"HYBRID_TOP1 {top1}/{EXPECTED_N} = {top1/EXPECTED_N:.4%}")
     print(f"HYBRID_RANK2_5 {rescued}/{EXPECTED_N} = {rescued/EXPECTED_N:.4%}")
