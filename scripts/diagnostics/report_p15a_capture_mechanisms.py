@@ -36,7 +36,7 @@ def read_npz(path,fields):
         return {k:z[k].copy() for k in fields}
 
 def geometric(values):
-    p=np.array([np.log(np.clip(v,EPS,1.0)) for v in values],dtype=np.float64).mean(axis=0)
+    p=np.mean([np.log(np.clip(np.asarray(v,dtype=np.float64),EPS,1.0)) for v in values],axis=0)
     p-=p.max(axis=1,keepdims=True)
     a=np.exp(p)
     return a/a.sum(axis=1,keepdims=True)
