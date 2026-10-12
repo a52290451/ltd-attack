@@ -1,0 +1,20 @@
+stage: P15C_HIST_COMPONENTS
+status: PREDECLARED_DIAGNOSTIC_ONLY
+historical_only: true
+future_b_access: false
+dataset_c_access: false
+training_allowed: false
+origins: [ORIGIN14, ORIGIN28]
+windows: [NEAR, MID, FAR]
+candidates: [U3, M0, M1, U3xM0, U3xM1]
+fusion_weights: {micro: 0.45, macro: 0.55}
+metrics: [accuracy, macro_f1, top5_accuracy, mrr]
+bootstrap: {unit: day, iterations: 2000, seed: 20261012}
+outputs: results/diagnostics/P15C-HIST-COMPONENTS-V1
+guardrails:
+  require_65_classes: true
+  require_capture_identity_alignment: true
+  baseline_m0_matches_phase13: true
+  source_macro_cache_hash_verified: true
+  no_new_model_training: true
+  no_promotion_from_diagnostics: true
