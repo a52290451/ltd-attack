@@ -26,6 +26,15 @@ def rows_from(root):
                 with p.open(newline="",encoding="utf-8-sig") as f:
                     for r in csv.DictReader(f,delimiter="\t"):
                         r["instance"]=str(i);r["category"]=cat
+                        raw=(r.get("json") or "").strip()
+                        if raw.startswith("/audit/") or raw.startswith("/audit120/"):
+                            rel=pathlib.Path(*pathlib.Path(raw).parts[2:])
+                            candidate=(root/rel).resolve()
+                            if candidate.is_relative_to(root.resolve()) and candidate.is_file():
+                                try:
+                                    meta=json.loads(candidate.read_text(encoding="utf-8"))
+                                    r["_http_meta"]=str(meta.get("http_status") or "")
+                                except (ValueError,OSError): pass
                         yield r
 def slot(r):
     s=str(r.get("slot_index") or r.get("slot") or "")
@@ -36,7 +45,7 @@ def safe_url(r):
     return u.split("#",1)[0].split("?",1)[0][:180]
 def http(r):
     # Different collector releases have different field names.
-    v=str(r.get("http_status") or r.get("http") or "")
+    v=str(r.get("http_status") or r.get("http") or r.get("_http_meta") or "")
     return int(v) if v.isdigit() else None
 def recoverable(r):
     st=(r.get("status") or "").strip()
