@@ -43,6 +43,8 @@ def main():
     duplicates=[]
     unique_urls=set()
     usable_urls=set()
+    qa_eligible=[]
+    qa_excluded=[]
     for instance,categories in SPECS.items():
         for category in categories:
             p=root/f"inst{instance}"/category
@@ -69,9 +71,16 @@ def main():
                 if status=="OK": success+=1
                 if has_pcap: with_pcap+=1
                 if flagged: validity+=1
+                record={"instance":f"inst{instance}","category":category,
+                        "slot":r.get("slot_index",""),"uid":uid,"url":r.get("url",""),
+                        "status":status,"pcap":str(path) if has_pcap else "",
+                        "pcap_valid":str(flagged).lower()}
                 if status=="OK" and flagged and has_pcap:
                     totals["ok_pcap_valid"]+=1
                     if r.get("url"): usable_urls.add(r["url"])
+                    qa_eligible.append(record)
+                else:
+                    qa_excluded.append(record)
                 if flagged and not has_pcap: missing+=1
             by.append({"instancia":f"inst{instance}","categoria":category,"intentos":len(rows),"ok_status":success,"pcap_presentes":with_pcap,"pcap_flag_valid":validity,"pcap_flag_missing":missing})
             totals["intentos"]+=len(rows)
@@ -94,6 +103,16 @@ def main():
     out=root/"three_quality_summary.json"
     out.write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("REPORT="+str(out))
+    header=["instance","category","slot","uid","url","status","pcap","pcap_valid"]
+    for name,records in (("QA_ELIGIBLE_NOT_SCIENTIFIC.tsv",qa_eligible),
+                         ("QA_EXCLUDED.tsv",qa_excluded)):
+        with (root/name).open("w",newline="",encoding="utf-8") as file:
+            writer=csv.DictWriter(file,fieldnames=header,delimiter="\t")
+            writer.writeheader()
+            writer.writerows(records)
+    print("QA_ONLY_ELIGIBLE="+str(len(qa_eligible)))
+    print("QA_EXCLUDED="+str(len(qa_excluded)))
+    if duplicates: sys.exit("STOP: duplicated UIDs in round")
     if totals["intentos"]!=120 or totals["categorias_completas"]!=6:
         sys.exit("STOP: auditoría completa incompleta")
     if totals["ok_pcap_valid"]==0:
