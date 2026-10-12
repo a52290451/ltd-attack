@@ -1,5 +1,8 @@
 # LTD-Attack — Mapa completo de ramas, experimentos y decisiones
 
+> **Checkpoint reciente — 2026-10-12 (P15).** El resumen vigente de las fases 10B–15C está en [P15 Scientific Milestone](./research/P15_SCIENTIFIC_MILESTONE_20261012.md). El mapa histórico inferior se conserva como trazabilidad del estado al 2026-10-04. Desde entonces: 13B no pasó su gate; 14A/14B establecieron el gap Top-1/Top-5; 15A-MECH quedó cerrado; 15B aritmética y RRF no fueron promovidas; 15C M1 no mejoró consistentemente al Hybrid. P15D extiende las comparaciones M0/M1 con incertidumbre pareada y generará el hito reproducible. **Dataset C sigue independiente y Future-B no puede servir para selección.**
+
+
 > **Documento vivo / source of truth de navegación experimental**
 >
 > Actualizado: **2026-10-04**  
