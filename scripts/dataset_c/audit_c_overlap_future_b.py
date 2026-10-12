@@ -49,6 +49,9 @@ def canonical_labels():
         raise RuntimeError("STOP: frozen label encoder SHA256 mismatch")
     try:
         import joblib
+    except ImportError:
+        raise RuntimeError("INCONCLUSIVE: joblib unavailable in this Python. Try ~/modelos/venv/bin/python or ~/ltd-venv/bin/python without installing anything.")
+    try:
         labels=joblib.load(ENCODER).classes_
     except Exception as exc:
         raise RuntimeError("INCONCLUSIVE: verified encoder cannot be loaded: "+str(exc)[:150])
