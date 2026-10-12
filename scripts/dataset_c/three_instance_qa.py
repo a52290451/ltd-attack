@@ -78,7 +78,7 @@ def collect(i,max_urls,root):
         "--network","container:"+n,"--cap-add","NET_RAW","--cap-add","NET_ADMIN",
         "--security-opt","no-new-privileges","--shm-size","1g",
         "--mount","type=bind,src="+str(APP)+",dst=/opt/ltd-c-v2,readonly",
-        "--mount","type=bind,src="+str(output)+",dst=/audit",
+        "--mount","type=bind,src="+str(root)+",dst=/audit",
         "-e","APP_HOME=/opt/ltd-c-v2","-e","NODE_PATH=/app/node_modules",
         "-e","CAPTURE_ROOT=/audit","-e","MAX_URLS="+str(max_urls),
         "-e","CONSENT_POLICY=accept_all","-e","SESSION_POLICY=fresh",
