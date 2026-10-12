@@ -124,7 +124,8 @@ def c_sites():
     return root,domains,records
 
 def main():
-    b=HOME/'ltd-storage/datasets/future'/BASENAME\n    if not b.is_file() or b.is_symlink():raise RuntimeError('STOP: expected frozen Future-B source unavailable')
+    b=HOME/'ltd-storage/datasets/future'/BASENAME
+    if not b.is_file() or b.is_symlink():raise RuntimeError('STOP: expected frozen Future-B source unavailable')
     bsites,key,brows,retained=b_class_set(b)
     root,csites,crecords=c_sites()
     common=bsites & csites
