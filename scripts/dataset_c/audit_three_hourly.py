@@ -42,6 +42,7 @@ def main():
     seen_uids=set()
     duplicates=[]
     unique_urls=set()
+    usable_urls=set()
     for instance,categories in SPECS.items():
         for category in categories:
             p=root/f"inst{instance}"/category
@@ -68,7 +69,9 @@ def main():
                 if status=="OK": success+=1
                 if has_pcap: with_pcap+=1
                 if flagged: validity+=1
-                if status=="OK" and flagged and has_pcap: totals["ok_pcap_valid"]+=1
+                if status=="OK" and flagged and has_pcap:
+                    totals["ok_pcap_valid"]+=1
+                    if r.get("url"): usable_urls.add(r["url"])
                 if flagged and not has_pcap: missing+=1
             by.append({"instancia":f"inst{instance}","categoria":category,"intentos":len(rows),"ok_status":success,"pcap_presentes":with_pcap,"pcap_flag_valid":validity,"pcap_flag_missing":missing})
             totals["intentos"]+=len(rows)
@@ -78,6 +81,8 @@ def main():
     print("CATEGORIAS_COMPLETAS="+str(totals["categorias_completas"])+"/6")
     print("OK_PCAPP_VALID="+str(totals["ok_pcap_valid"]))
     print("URL_UNICAS="+str(len(unique_urls)))
+    print("URL_OK_UNICAS="+str(len(usable_urls)))
+    print("PCAP_PRESENT_STRUCTURAL="+str(sum(r["pcap_presentes"] for r in by))+"/"+str(totals["intentos"]))
     print("UID_DUPLICADOS="+str(len(duplicates)))
     print("ESTADOS="+json.dumps(dict(statuses),ensure_ascii=False,sort_keys=True))
     for r in by:
@@ -85,7 +90,7 @@ def main():
     summary={"run":str(root),"scientific_dataset":False,"transport":"obfs4",
              "clock":"unsynchronized_host_unverified","totals":dict(totals),
              "status_counts":dict(statuses),"categories":by,
-             "unique_url_count":len(unique_urls),"duplicate_uid_count":len(duplicates)}
+             "unique_url_count":len(unique_urls),"unique_ok_url_count":len(usable_urls),"duplicate_uid_count":len(duplicates)}
     out=root/"three_quality_summary.json"
     out.write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("REPORT="+str(out))
