@@ -11,10 +11,20 @@ def cmd(*a,check=True,capture=False):
     return subprocess.run(list(map(str,a)),check=check,text=True,stdout=subprocess.PIPE if capture else None,stderr=subprocess.PIPE if capture else None)
 def exist(n):
     return cmd("docker","container","inspect",n,check=False,capture=True).returncode==0
-def tor_ok(n):
-    x=cmd("docker","exec",n,"curl","-fsS","--max-time","18","--socks5-hostname","127.0.0.1:9050","https://check.torproject.org/api/ip",check=False,capture=True)
-    try: return x.returncode==0 and json.loads(x.stdout).get("IsTor") is True
-    except ValueError: return False
+def tor_ok(n,attempts=3):
+    # Do not reject a collector after one transient bridge/Tor connectivity
+    # check. Tor state and circuits are never reset here.
+    for attempt in range(attempts):
+        try:
+            x=cmd("docker","exec",n,"curl","-fsS","--connect-timeout","6","--max-time","14",
+                  "--socks5-hostname","127.0.0.1:9050",
+                  "https://check.torproject.org/api/ip",check=False,capture=True)
+            if x.returncode==0 and json.loads(x.stdout).get("IsTor") is True:
+                return True
+        except (ValueError,OSError):
+            pass
+        if attempt+1<attempts:time.sleep(5)
+    return False
 def preflight():
     if BASE.resolve()!=BASE or not BASE.is_dir() or BASE.stat().st_uid != os.getuid(): raise RuntimeError("STOP: BASE debe ser directorio propio en /data")
     if not APP.joinpath("run_category.sh").is_file(): raise RuntimeError("STOP: falta APP")
