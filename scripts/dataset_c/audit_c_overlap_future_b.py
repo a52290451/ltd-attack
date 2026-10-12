@@ -8,10 +8,13 @@ import json
 from pathlib import Path
 from urllib.parse import urlsplit
 from collections import Counter
+import hashlib
 
 HOME=Path.home()
 BASE=Path("/data/ltd-c-qa-bsierra")
 BASENAME="CLEAN_final_features_sites_concept_drift.csv"
+ENCODER=HOME/"ltd-storage/artifacts/micro/MICRO-002-R/ds3_label_encoder_vec_3000.joblib"
+EXPECTED_ENCODER_SHA="f373925b181e9700bc350a13d2f95875cec7492be66ab221fc8402de26a0013b"
 SITES=("site","site_name","website","website_name","web_site","url","domain","hostname",
        "sitio","sitio_web","sitio_web_name","label","class","site_label","website_label")
 
@@ -35,6 +38,26 @@ def b_file():
     if len(choices)!=1:
         raise RuntimeError(f"INCONCLUSIVE: Future-B source count={len(choices)}; provide canonical filename/path, do not guess. Matches={choices[:5]}")
     return choices[0]
+
+def canonical_labels():
+    if not ENCODER.is_file() or ENCODER.is_symlink():
+        raise RuntimeError("INCONCLUSIVE: frozen label encoder missing")
+    h=hashlib.sha256()
+    with ENCODER.open("rb") as stream:
+        for chunk in iter(lambda:stream.read(1024*1024),b""):h.update(chunk)
+    if h.hexdigest()!=EXPECTED_ENCODER_SHA:
+        raise RuntimeError("STOP: frozen label encoder SHA256 mismatch")
+    try:
+        import joblib
+        labels=joblib.load(ENCODER).classes_
+    except Exception as exc:
+        raise RuntimeError("INCONCLUSIVE: verified encoder cannot be loaded: "+str(exc)[:150])
+    values={str(v).strip() for v in labels}
+    if len(values)!=65:raise RuntimeError("STOP: canonical encoder does not have 65 distinct labels")
+    parsed={domain(v) for v in values}
+    if not all(parsed) or len(parsed)!=65:
+        raise RuntimeError("INCONCLUSIVE: encoder class names do not map to 65 unique domain names")
+    return parsed
 
 def b_class_set(path):
     with path.open(newline="",encoding="utf-8-sig") as f:
@@ -63,11 +86,18 @@ def b_class_set(path):
             d=domain(value)
             if d:uniq.add(d)
             elif value:invalid[value[:70]]+=1
-    if invalid or len(uniq)!=65:
-        raise RuntimeError("INCONCLUSIVE: Future-B site keys cannot be verified against the frozen 65-class cohort: "
-                           +f"column={chosen} rows={rows} unique_domains={len(uniq)} invalid_examples={list(invalid)[:8]}. "
-                           +"An exact canonical label-to-domain crosswalk is required; no 0-overlap assertion.")
-    return uniq,chosen,rows
+    if invalid:
+        raise RuntimeError("INCONCLUSIVE: B has non-domain labels: "+str(list(invalid)[:8]))
+    frozen=canonical_labels()
+    absent=frozen-uniq
+    if absent:raise RuntimeError("INCONCLUSIVE: frozen 65 classes absent from B source: "+str(sorted(absent)[:8]))
+    retained=0
+    with path.open(newline="",encoding="utf-8-sig") as source:
+        for row in csv.DictReader(source):
+            retained+=domain(row.get(chosen)) in frozen
+    if retained!=18543:
+        raise RuntimeError(f"INCONCLUSIVE: B filtered cohort {retained} rows; expected 18543; verify labels")
+    return frozen,chosen,rows,retained
 
 def c_sites():
     runs=sorted((r for r in BASE.glob("three_hourly_*") if
@@ -97,19 +127,19 @@ def c_sites():
 
 def main():
     b=b_file()
-    bsites,key,brows=b_class_set(b)
+    bsites,key,brows,retained=b_class_set(b)
     root,csites,crecords=c_sites()
     common=bsites & csites
     missing=bsites-csites
     extra=csites-bsites
-    result={"status":"VERIFIED_DOMAIN_EXACT","B_future_source":str(b),"B_column":key,"B_rows":brows,
+    result={"status":"VERIFIED_DOMAIN_EXACT","B_future_source":str(b),"B_column":key,"B_rows":brows,"B_frozen_rows":retained,
             "B_site_count":len(bsites),"C_qa_run":str(root),
             "C_eligible_attempts":len(crecords),"C_distinct_domains":len(csites),
             "matched_B_domains":len(common),"missing_B_domains":sorted(missing),
             "extra_C_domains":sorted(extra),"matching_B_domains":sorted(common)}
     out=BASE/"b_c_overlap_operational_qa.json"
     out.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n")
-    print("B_FROZEN_SITES",len(bsites),"B_SOURCE",b,"COLUMN",key)
+    print("B_FROZEN_SITES",len(bsites),"B_COHORT_ROWS",retained,"B_SOURCE",b,"COLUMN",key)
     print("C_OK_VALID_VISITS",len(crecords),"C_OK_DISTINCT_DOMAINS",len(csites))
     print("C_B_COMMON_CLASSES",len(common),"/",len(bsites))
     print("B_CLASSES_MISSING_IN_C",len(missing))
