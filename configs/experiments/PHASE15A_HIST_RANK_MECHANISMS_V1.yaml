@@ -1,0 +1,39 @@
+stage: 15A_HIST
+status: PREDECLARED_DIAGNOSTIC
+purpose: "Explain rank 1 vs ranks 2-5 vs beyond top 5 in historical development without reading Future-B"
+data_policy:
+  historical_only: true
+  allow_future_b: false
+  allow_dataset_c: false
+  training_allowed: false
+  selection_allowed: false
+  model_predictions_reuse_only: true
+origins: [ORIGIN14, ORIGIN28]
+windows: [NEAR, MID, FAR]
+components: [U1, U3, T3_S42, T9]
+rank_buckets: [TOP1_CORRECT, TOP5_RECOVERABLE, TOP5_MISSED]
+metrics: [accuracy, macro_f1, top5_accuracy, mrr, mean_true_rank]
+strata:
+  - top1_top2_margin
+  - entropy
+  - component_agreement
+  - sequence_length
+  - truncation_at_3000
+  - days_from_origin
+validation:
+  canonical_class_count: 65
+  require_uid_alignment: true
+  require_temporal_nonleakage: true
+  day_block_bootstrap: true
+  bootstrap_iterations: 2000
+  seed: 20261004
+  fail_closed_on_missing_inputs: true
+  require_sha256_manifests: true
+  no_write_to_frozen_results: true
+outputs:
+  namespace: PHASE15A_HIST_RANK_MECHANISMS_V1
+  status: PENDING_PREFLIGHT
+  provenance: [input_sha256, code_sha256, config_sha256, git_commit]
+interpretation:
+  no_causal_claim_from_descriptive_association: true
+  no_promotion_based_on_future_b: true
