@@ -32,7 +32,10 @@ def main():
     print("14A_INTEGRITY_VERIFIED 10/10")
     ranks=pd.read_csv(root/"14A_rank_distribution.csv")
     h=ranks[ranks.component=="HYBRID_FINAL"].set_index("bucket")["count"]
-    assert h.sum()==EXPECTED_N
+    print("RANK_DISTRIBUTION_SUM",repr(h.sum()),"EXPECTED",EXPECTED_N)
+    print("RANK_DISTRIBUTION_HYBRID",h.to_dict())
+    if int(h.sum())!=EXPECTED_N:
+        raise RuntimeError("RANK_DISTRIBUTION_TOTAL_MISMATCH: inspect bucket counts and component labels; do not alter frozen evidence")
     top1=int(h["rank_1"])
     rescued=int(h[["rank_2","rank_3","rank_4","rank_5"]].sum())
     lost=EXPECTED_N-top1-rescued
