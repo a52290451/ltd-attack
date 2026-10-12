@@ -96,6 +96,7 @@ def run(max_urls):
         rid=("three_smoke_" if max_urls<20 else "three_hourly_")+datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")+"_"+str(os.getpid())
         root=BASE/rid;root.mkdir(mode=0o700)
         print("OUT="+str(root),flush=True)
+        (root/"PILOT_METADATA.txt").write_text("QA_OPERATIVO_NO_CIENTIFICO; obfs4; reloj_host_no_sincronizado\\n")
         proc=[(i,collect(i,max_urls,root)) for i in SPECS]
         results={}
         for i,p in proc:
