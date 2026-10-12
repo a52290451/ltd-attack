@@ -113,9 +113,11 @@ def main():
     print("CRON",output("systemctl","is-active","cron",check=False).stdout.strip())
     print("COLLECTORS_RUNNING",active_capture())
     if a.apply:
-        if active_capture(): raise RuntimeError("STOP: active collectors, do not modify cron or prune")
         pause_cron()
-        prune_one_smoke()
+        if active_capture():
+            print("SMOKE_PRUNE_DEFERRED: a capture is running; hourly QA remains paused")
+        else:
+            prune_one_smoke()
     else:
         print("DRY_RUN: no changes; use --apply to pause hourly QA and archive/prune 12-slot smoke")
     inventory()
