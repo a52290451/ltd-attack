@@ -1,0 +1,27 @@
+stage: P15A_MECH
+status: PREDECLARED_READ_ONLY_ANALYSIS
+source: historical_phase13_frozen_caches
+origins: [ORIGIN14, ORIGIN28]
+windows: [NEAR, MID, FAR]
+micro_candidates: [U1, U3, T3_S42]
+macro_candidate: M0
+frozen_hybrid_weights: {micro: 0.45, macro: 0.55}
+rank_buckets: [TOP1_CORRECT, TOP5_RECOVERABLE, TOP5_MISSED]
+paired_outcomes: [both_correct, rescued_by_hybrid, harmed_by_hybrid, both_wrong]
+diagnostics: [confidence, margin, entropy, true_rank, top5_transitions]
+bootstrap: {unit: day_block, iterations: 2000, seed: 20261012}
+guardrails:
+  train: false
+  future_b_access: false
+  dataset_c_access: false
+  adapt_thresholds: false
+  select_models: false
+  fail_on_13b_13c_metric_mismatch: true
+  unchanged_frozen_artifacts: true
+outputs:
+  location: results/diagnostics/P15A-MECH
+  summary: P15A_mechanisms_summary.csv
+  day: P15A_day_counts.csv
+  sites: P15A_site_counts.csv
+  bootstrap: P15A_day_block_bootstrap.csv
+  manifest: P15A_manifest.json
