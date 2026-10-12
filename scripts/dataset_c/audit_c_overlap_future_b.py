@@ -57,50 +57,45 @@ def canonical_labels():
         raise RuntimeError("INCONCLUSIVE: verified encoder cannot be loaded: "+str(exc)[:150])
     values={str(v).strip() for v in labels}
     if len(values)!=65:raise RuntimeError("STOP: canonical encoder does not have 65 distinct labels")
-    parsed={domain(v) for v in values}
-    if not all(parsed) or len(parsed)!=65:
-        raise RuntimeError("INCONCLUSIVE: encoder class names do not map to 65 unique domain names")
-    return parsed
+    return values
 
 def b_class_set(path):
+    """Map the canonical numeric label IDs using the immutable CSV site_label/site pairs."""
+    labels=canonical_labels()
+    domain_by_label={}
+    labels_by_domain={}
+    raw_domains=set()
+    row_count=0
+    rows_in_cohort=0
     with path.open(newline="",encoding="utf-8-sig") as f:
         reader=csv.DictReader(f)
-        if not reader.fieldnames:raise RuntimeError("INCONCLUSIVE: Future-B CSV has no header")
-        by_lower={str(name).strip().lower():name for name in reader.fieldnames}
-        candidates=[by_lower[x] for x in SITES if x in by_lower]
-        if not candidates:
-            raise RuntimeError("INCONCLUSIVE: Cannot identify Future-B site column; available="+",".join(reader.fieldnames[:30]))
-        from itertools import chain, islice
-        sample=list(islice(reader,50))
-        scored=[]
-        for c in candidates:
-            valid=sum(bool(domain(row.get(c))) for row in sample)
-            scored.append((valid,c))
-        valid,chosen=max(scored,key=lambda x:x[0])
-        if sample and valid < min(5,len(sample)):
-            raise RuntimeError("INCONCLUSIVE: no site/domain-like column in Future-B CSV; candidates="+str(scored))
-        rows=0
-        uniq=set()
-        invalid=Counter()
-        for row in chain(sample,reader):
-            rows+=1
-            if rows>2_000_000:raise RuntimeError("STOP: >2 million B rows, unexpected")
-            value=str(row.get(chosen) or "").strip()
-            d=domain(value)
-            if d:uniq.add(d)
-            elif value:invalid[value[:70]]+=1
-    if invalid:
-        raise RuntimeError("INCONCLUSIVE: B has non-domain labels: "+str(list(invalid)[:8]))
-    frozen=canonical_labels()
-    absent=frozen-uniq
-    if absent:raise RuntimeError("INCONCLUSIVE: frozen 65 classes absent from B source: "+str(sorted(absent)[:8]))
-    retained=0
-    with path.open(newline="",encoding="utf-8-sig") as source:
-        for row in csv.DictReader(source):
-            retained+=domain(row.get(chosen)) in frozen
-    if retained!=18543:
-        raise RuntimeError(f"INCONCLUSIVE: B filtered cohort {retained} rows; expected 18543; verify labels")
-    return frozen,chosen,rows,retained
+        if not reader.fieldnames or not {"site","site_label"}.issubset(reader.fieldnames):
+            raise RuntimeError("INCONCLUSIVE: Future-B CSV needs site and site_label")
+        for r in reader:
+            row_count+=1
+            label=str(r.get("site_label") or "").strip()
+            host=domain(r.get("site"))
+            if not host or not label:
+                raise RuntimeError("INCONCLUSIVE: missing site/site_label in Future-B")
+            raw_domains.add(host)
+            if label in domain_by_label and domain_by_label[label]!=host:
+                raise RuntimeError("STOP: label points to multiple domains: "+label)
+            if host in labels_by_domain and labels_by_domain[host]!=label:
+                raise RuntimeError("STOP: domain points to multiple labels: "+host)
+            domain_by_label[label]=host
+            labels_by_domain[host]=label
+            if label in labels:rows_in_cohort+=1
+    unknown=labels-set(domain_by_label)
+    if unknown:raise RuntimeError("INCONCLUSIVE: missing 65-class labels in B: "+str(sorted(unknown)[:10]))
+    cohort={domain_by_label[label] for label in labels}
+    if len(cohort)!=65:
+        raise RuntimeError("STOP: labels are not bijective for the frozen 65 domains")
+    if rows_in_cohort!=18543:
+        raise RuntimeError(f"INCONCLUSIVE: 65-class filtered Future-B rows={rows_in_cohort}, expected 18543")
+    print("FUTURE_B_RAW_ROWS",row_count,"RAW_DOMAINS",len(raw_domains))
+    print("FUTURE_B_FROZEN_ROWS",rows_in_cohort,"FROZEN_DOMAINS",len(cohort))
+    print("EXCLUDED_RAW_B_DOMAINS",",".join(sorted(raw_domains-cohort)))
+    return cohort,"site_label/site",row_count,rows_in_cohort
 
 def c_sites():
     runs=sorted((r for r in BASE.glob("three_hourly_*") if
@@ -129,7 +124,7 @@ def c_sites():
     return root,domains,records
 
 def main():
-    b=b_file()
+    b=HOME/'ltd-storage/datasets/future'/BASENAME\n    if not b.is_file() or b.is_symlink():raise RuntimeError('STOP: expected frozen Future-B source unavailable')
     bsites,key,brows,retained=b_class_set(b)
     root,csites,crecords=c_sites()
     common=bsites & csites
