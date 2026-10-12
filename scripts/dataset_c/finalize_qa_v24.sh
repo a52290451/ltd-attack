@@ -44,7 +44,7 @@ echo "===== 5. CLASSIFIER UNIT TESTS (UNMODIFIED) ====="
 docker run --rm --network none \
   --mount "type=bind,src=$APP,dst=/opt/ltd-c-v2,readonly" \
   --entrypoint /bin/bash tor_1site_noise:final -lc \
-  'cd /opt/ltd-c-v2 && NODE_PATH=/app/node_modules node --test quality.test.js'
+  'cd /opt/ltd-c-v2 && NODE_PATH=/app/node_modules node --test tests/quality.test.js'
 
 echo "===== 6. PRIVATE SOURCE REVIEW, INCLUDING QUALITY CLASSIFIER ====="
 python3 scripts/dataset_c/package_collector_source.py
