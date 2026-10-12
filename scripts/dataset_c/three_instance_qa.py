@@ -35,6 +35,13 @@ def setup():
         cmd("docker","cp",SOURCE+":/etc/tor/torrc-obfs4",str(secret))
     os.chmod(secret,0o600)
     assert secret.stat().st_size>10
+    # The working container has obfs4proxy installed in its writable layer;
+    # the base image does not. Stage the executable for new instances.
+    binary=confdir/"obfs4proxy"
+    if not binary.exists():
+        cmd("docker","cp","-L",SOURCE+":/usr/bin/obfs4proxy",str(binary))
+    os.chmod(binary,0o755)
+    assert binary.is_file() and binary.stat().st_size>1024
     for i in SPECS:
         name="ltd-c-tor-inst"+str(i)
         if exist(name): raise RuntimeError("STOP: "+name+" ya existe; no sobrescribir")
@@ -50,6 +57,7 @@ def setup():
             "--mount","type=volume,src="+vol+",dst=/var/lib/tor-ltd",
             "--entrypoint","/bin/sh",IMAGE,"-c",init)
         cmd("docker","cp",str(secret),name+":/etc/tor/torrc-obfs4")
+        cmd("docker","cp",str(binary),name+":/usr/bin/obfs4proxy")
         cmd("docker","start",name)
         print("CREADO",name,vol,flush=True)
     for i in SPECS:
