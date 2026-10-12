@@ -123,10 +123,6 @@ def check_and_repair():
     return 0
 
 def main():
-    a=argparse.ArgumentParser()
-    a.add_argument("action",nargs="?",choices=["--install","--check-and-repair","--status"],default="--status")
-    # argparse positional arguments that begin with -- are interpreted as options;
-    # use explicit named flag instead.
     p=argparse.ArgumentParser()
     group=p.add_mutually_exclusive_group(required=True)
     group.add_argument("--install",action="store_true")
