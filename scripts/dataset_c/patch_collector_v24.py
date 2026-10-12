@@ -67,7 +67,7 @@ def transform(s):
             if (el.shadowRoot) roots.push(el.shadowRoot);
             if (!el.matches('button, [role="button"], input[type="button"], input[type="submit"]')) continue;
             const label = String(el.innerText || el.getAttribute('aria-label') || el.value || '')
-              .replace(/\s+/g, ' ').trim();
+              .replace(/\\s+/g, ' ').trim();
             if (!patterns.some(pattern => pattern.test(label))) continue;
             const rect = el.getBoundingClientRect();
             const style = getComputedStyle(el);
