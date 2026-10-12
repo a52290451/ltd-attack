@@ -95,7 +95,12 @@ once() {
     return 7
   fi
   echo "FINISHED_AT=$(date -u +%FT%TZ)" >> "$LOG"
-  tail -n 20 "$LOG"
+  # Only remove the fully documented, 12-slot disposable smoke QA.
+  # Historical data, successful rounds and all 120-slot PCAP are never deleted.
+  if ! python3 "$REPO/scripts/dataset_c/safe_qa_housekeeping.py" --apply >> "$LOG" 2>&1; then
+    echo "HOUSEKEEPING_WARNING: retained all data; inspect $LOG" >> "$LOG"
+  fi
+  tail -n 23 "$LOG"
 }
 
 case "$MODE" in
@@ -117,8 +122,18 @@ case "$MODE" in
     for i in 1 2 3; do
       docker inspect --format 'container={{.Name}} running={{.State.Running}}' "ltd-c-tor-inst$i" 2>/dev/null || true
     done
-    echo "LAST HOURLY LOG:"
-    ls -t "$BASE"/three_logs/run_*.log 2>/dev/null | head -n 1 || true
+    echo "RUNNING BROWSERS:"
+    docker ps --filter name=ltd-c-capture --format '{{.Names}} {{.Status}}' || true
+    echo "LATEST HOURLY RESULT:"
+    LAST=$(ls -t "$BASE"/three_logs/run_*.log 2>/dev/null | head -n 1 || true)
+    if [[ -n "$LAST" ]]; then
+      echo "LOG=$LAST"
+      grep -E '^(ALL_THREE_TOR_READY|FIN THREE_EXIT=|INTENTOS=|OK_PCAPP_VALID=|QA_ONLY_ELIGIBLE=|QA_EXCLUDED=|FINISHED_AT=|SKIPPED_NO_TOR:|ROUND_INCOMPLETE:|HOUSEKEEPING_WARNING:)' "$LAST" | tail -n 12 || true
+    else echo "NO_HOURLY_LOGS"; fi
+    echo "CLOCK_SYNC:"
+    timedatectl show -p NTPSynchronized 2>/dev/null || true
+    echo "FREE_SPACE:"
+    df -h "$BASE" | tail -n 1 || true
     ;;
   *)
     echo "Usage: bash $SELF --install|--enable-now|--once|--status" >&2
