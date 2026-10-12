@@ -1,0 +1,29 @@
+stage: P15B_FROZEN_FUSION_ABLATION
+status: PREDECLARED_FIXED_CANDIDATES
+historical_only: true
+future_b: forbidden
+dataset_c: forbidden
+training: forbidden
+origins: [ORIGIN14, ORIGIN28]
+windows: [NEAR, MID, FAR]
+micro_candidate: U3
+macro_candidate: M0
+fixed_weights: {micro: 0.45, macro: 0.55}
+variants: [B0_geometric, B1_arithmetic, B2_rank_rrf_k60, Bneg_temp2]
+metrics: [accuracy, macro_f1, top5_accuracy, mrr]
+day_block_bootstrap: {iterations: 2000, seed: 20261012}
+gate:
+  primary: mean_FAR_macro_f1_gain_vs_B0
+  min_gain: 0.005
+  each_origin_macro_f1_min_gain: -0.0025
+  both_far_accuracy_gain_strict_positive: true
+  each_origin_far_bootstrap_fraction_macro_f1_positive_gt: 0.90
+  max_far_top5_drop: 0.005
+  no_future_selection: true
+controls:
+  Bneg_temp2_same_ranking_required: true
+  baseline_exact_13C_reconstruction_required: true
+  compare_against_historical_U3_micro: true
+  no_cross_origin_or_window_training: true
+  exploratory_not_confirmatory: true
+output: results/diagnostics/P15B-FROZEN-FUSION-V1
