@@ -5,7 +5,7 @@ Status: **independently verified** on Perseo. Original 13B/13C frozen manifests 
 ## Principal findings
 - All 18 fixed Micro-to-Hybrid M0 comparisons improve Top-1; all 18 day-block bootstrap Top-1 95% CIs exclude zero on positive side.
 - **ORIGIN14:** all nine Top-5 point differences are negative; **8 of 9** day-block bootstrap Top-5 95% CIs lie wholly below zero. The exception is U1/NEAR (-0.00010; CI [-0.00948,+0.01086]).
-- **ORIGIN28:** all nine Top-5 point differences positive; 6 of 9 day-block bootstrap Top-5 95% CIs positive; NEAR U3 and T3_S42 include zero.
+- **ORIGIN28:** all nine Top-5 point differences positive; 7 of 9 day-block bootstrap Top-5 95% CIs positive; the two exceptions, NEAR U3 and T3_S42, include zero.
 - ORIGIN14/FAR U3: rescued 577/harmed 407, net +170, Top-1 +1.7233pp, Top-5 -1.7233pp; 42 of 65 sites net benefited, 14 net harmed, 9 unchanged.
 - ORIGIN28/FAR U3: rescued 532/harmed 104, net +428, Top-1 +4.7309pp, Top-5 +0.3869pp; 42 positive sites, 10 negative, 13 unchanged.
 - ORIGIN14/FAR U3 wrong confidence >=0.8: Micro 4.440% of all captures, Hybrid 2.038%; this is not a calibration test. Among rescue captures Micro predicted-class confidence mean 0.55961, harmed captures confidence mean 0.67631.
