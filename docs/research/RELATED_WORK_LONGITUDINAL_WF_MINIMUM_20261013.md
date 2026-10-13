@@ -1,0 +1,17 @@
+# LTD-Attack — Mandatory related-work comparison before asserting novelty (2026-10-13)
+
+No new experiment during evidence freeze. Build a side-by-side *methodology and evidence* matrix; do NOT imply first study of WF concept drift.
+
+| Study | Verified contribution | Distinguishing comparison needed for LTD-Attack | Source |
+|---|---|---|---|
+| Deng et al., **Enhancing Website Fingerprinting Attacks against Traffic Drift** (NDSS 2026; Proteus) | Adaptive Tor WF model updated using *unlabelled traffic observed at deployment*: distribution alignment / entropy optimisation / pseudo-label fine-tuning; >350,000 Tor traces across six drift scenarios. | Our deployed frozen Micro+Macro uses **no future-target update**. If comparison is made, explicitly report adaptation/data/compute differences, trace collection and drift regime; do not compare incomparable raw percentages. | https://www.ndss-symposium.org/ndss-paper/enhancing-website-fingerprinting-attacks-against-traffic-drift/ ; https://www.ndss-symposium.org/wp-content/uploads/2026-s59-paper.pdf |
+| Shusterman, David & Oren, **Understanding and addressing concept drift in website fingerprinting** (Computer Networks, 2026, vol. 275, article 111811; DOI 10.1016/j.comnet.2025.111811) | Quantitative study across network and cache WF on multi-month collection, considering content/browser changes; incremental learning with small amount of fresh data. | Contrast our longitudinal closed-world Tor data, fixed-model future inference, complementarity analysis with their updates and acquisition conditions. | https://www.sciencedirect.com/science/article/pii/S1389128625007777 |
+| **On the Resilience of Traffic Features under Concept Drift in Hidden Service Fingerprinting** (Computers, Materials & Continua, 2026; DOI 10.32604/cmc.2026.072275) | Grouped and assessed traffic-feature resilience under drift in Tor hidden-service setting, with feature-information/stability analyses. | Our claim about static XGB complementary features needs feature-group definitions and ablation rather than saying feature resilience has never been studied. Different target (hidden services) and measurements. | https://doi.org/10.32604/cmc.2026.072275 |
+
+## Mandatory matrix columns for full related-work review
+Paper, venue/year, packet/cell direction and size representation, client-side-vs-relay observation point, Tor version and pluggable-transport status, sites/classes, datasets, collection span, train/test chronological splits, closed-world-vs-open-world, target adaptation policy (none/labelled/unlabelled), memory refresh policy, baselines/equal-cost controls, uncertainty method/number of day blocks, artifact availability, privacy/ethical implications, manuscript novelty overlap.
+
+## Novelty position NOT YET PROVEN
+Hypothesis: within a **strict frozen-deployment** setting, combining sequence Transformer evidence with static aggregate XGB feature evidence can improve robustness under temporal drift; the longitudinal memory component is not guaranteed to account for the gain. Our contribution may lie in evidence/measurement and diagnosis of when fusion rescues or harms, **IF** distinct from prior drift literature after a systematic review.
+
+Do not frame LTD-Attack as first drift-mitigation framework: Proteus 2026 already addresses drift with online adaptation. Do not call +6.34 pp a memory-only causal effect. A/B capture-condition details and exact frozen statistical CIs must be audited first.
