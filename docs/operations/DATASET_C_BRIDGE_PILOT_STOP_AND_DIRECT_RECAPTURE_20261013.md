@@ -6,6 +6,27 @@
 - Preserve C-obfs4 pilot intact as **C_BRIDGE_PILOT_INVALID_FOR_AB_LONGITUDINAL_COMPARISON**, with provenance; do not delete, relabel as Direct or silently blend with A/B or a new C.
 - No experiments, inference, model selection, predictions or aggregate result comparison using C bridge pilot.
 
+## 2026-10-18 Perseo inventory received — STOP STILL PENDING
+Operator's UTC inventory at **2026-10-18T17:44:13+00:00** shows these **running** Docker containers:
+- `ltd-c-tor-inst1` (ID `fd4bfdabaf1b`), image `ltd-c-tor-nyx:trixie`, up 6 days
+- `ltd-c-tor-inst2` (ID `0b917614fa16`), image `ltd-c-tor-nyx:trixie`, up 6 days
+- `ltd-c-tor-inst3` (ID `bfd8af5c4ff5`), image `ltd-c-tor-nyx:trixie`, up 6 days
+- `ltd-c-manual-tor` (ID `8f15c9d36145`), image `ltd-c-tor-nyx:trixie`, up 7 days
+
+The visible processes use `tor -f /etc/tor/torrc-obfs4` and `obfs4proxy`. Three instance parents also have `LTD_CLOCK_OFFSET_SECONDS=-2963` with a time-interposition `LD_PRELOAD`. The host process search does not show a clear capture worker; **this does not establish that collection is stopped**, since periodic schedulers or tasks inside containers could remain. `docker compose ls` showed no project; `tmux ls` and the displayed user systemd-service grep showed no C unit. The operator did NOT provide `crontab -l`, system timers or Docker restart policies.
+
+**No remote Docker stop has been performed via GitHub.** Operator must perform a scoped stop and confirm exact containers exited and remain stopped after a 2–5 minute follow-up. Preserve raw pilot data. Recommended exact-container commands after scheduler check:
+```bash
+crontab -l 2>/dev/null | grep -Ei 'ltd-c|dataset.?c|obfs4|collector|capture' || true
+docker inspect -f '{{.Name}} image={{.Config.Image}} restart={{.HostConfig.RestartPolicy.Name}} status={{.State.Status}}' ltd-c-tor-inst1 ltd-c-tor-inst2 ltd-c-tor-inst3 ltd-c-manual-tor
+# Disable any actual C-only cron/timer/worker found above, leaving other services untouched.
+docker update --restart=no ltd-c-tor-inst1 ltd-c-tor-inst2 ltd-c-tor-inst3 ltd-c-manual-tor
+docker stop --time 45 ltd-c-tor-inst1 ltd-c-tor-inst2 ltd-c-tor-inst3 ltd-c-manual-tor
+docker ps --filter name=ltd-c --format 'table {{.Names}}\t{{.Status}}'
+docker ps -a --filter name=ltd-c --format 'table {{.Names}}\t{{.Status}}'
+```
+The name prefix is a necessary but not sufficient selector: verify nothing else auto-starts them, and check C-only cron before executing. The visible Tor service alone does not prove packet captures are presently being written.
+
 ## 0. Read-only Perseo inventory — run immediately
 ```bash
 date -u --iso-8601=seconds
