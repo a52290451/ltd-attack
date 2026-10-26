@@ -11,7 +11,7 @@
 - **RQ3, heterogeneidad:** Hybrid−Micro positivo 11/11 fechas 09B y 16/16 fechas Future-B, pero en Future-B mejora recall 38/65 sitios y lo reduce 27/65. Etiqueta de sitio 90: −25,84 pp recall, −54,49 pp Top5; dominio pendiente de mapeo archivado.
 - **RQ4, promoción:** 11L sí pasó gate histórico Macro; 12A, 13B y 15D no justifican promoción Hybrid. Dataset C bridge/obfs4 excluido, Future-B ya abierto. No hay demostración de eliminación de concept drift.
 
-## Sensibilidad V2 (tablas y script local, pendientes de adjuntar aquí)
+## Sensibilidad V2 — reproducibilidad publicada en GitHub
 
 A partir exclusivamente de los CSV agregados V1 (sin leer PCAP/NPZ): al excluir cualquier tramo consecutivo de cuatro fechas, ΔTop1 Hybrid−Micro queda en [+2,1869,+2,7262] pp Internal y [+6,0709,+6,6336] pp Future-B. Exact conditional day-label swaps enumerados 2^11 y 2^16 para métricas aditivas: Future-B Hybrid−Micro p=2/65536=0,00003052 para Top1, Top5 y MRR, condicionado a intercambiabilidad de días y NO confirmatorio. Bootstrap circular en bloques de 1–4 días, 20.000 réplicas, mantiene el signo de los IC de Top1.
 
@@ -20,3 +20,19 @@ A partir exclusivamente de los CSV agregados V1 (sin leer PCAP/NPZ): al excluir 
 **Advertencia:** los p-values exactos son *combinatoriamente exactos bajo intercambio de etiquetas por fecha*, NO están calibrados si hay dependencia serial; los bootstrap son exploratorios con 11/16 fechas. No reinterpretar Holm9 (tres métricas aditivas) como Holm12 original con MacroF1.
 
 Fuentes: `docs/research/PROTOCOL_ESTADISTICO_TRANSVERSAL_V1_20261026.md`, `scripts/diagnostics/audit_frozen_pairwise_stats.py`. Suplemento V2 local SHA script `326292eafa284fae8a45d6155e5651160e926aba5719dce28f87163654977dc0`.
+
+## Evidencias reproducibles publicadas
+- Informe completo: [LTD_ATTACK_CLOSEOUT_RQ1_RQ4_FULL_20261026.md](LTD_ATTACK_CLOSEOUT_RQ1_RQ4_FULL_20261026.md).
+- Código: [closeout_frozen_evidence_v2.py](../../scripts/diagnostics/closeout_frozen_evidence_v2.py) (hash SHA256: `326292eafa284fae8a45d6155e5651160e926aba5719dce28f87163654977dc0`).
+- [Tablas 01–06, README y manifiesto SHA256](evidence/FROZEN-PAIRWISE-SENSITIVITY-V2/README.md) en `docs/research/evidence/FROZEN-PAIRWISE-SENSITIVITY-V2/`.
+- Figuras PNG y versión editorial completa se distribuyen en el paquete ZIP de evidencia; el manifiesto lista también sus hashes. La V1 original no fue modificada.
+
+**Reproducción en Perseo** (requiere entorno `~/ltd-venv` y salida V1 conservada):
+```bash
+cd ~/ltd-attack
+source ~/ltd-venv/bin/activate
+LTD_ENV=perseo PYTHONPATH=. python scripts/diagnostics/closeout_frozen_evidence_v2.py \\
+  --v1 ~/ltd-storage/results/reports/FROZEN-PAIRWISE-EVIDENCE-V1 \\
+  --out ~/ltd-storage/results/reports/FROZEN-PAIRWISE-SENSITIVITY-V2
+```
+El script se niega a sobrescribir una carpeta V2 existente. Es de solo lectura para la evidencia V1 y no ejecuta modelos.
