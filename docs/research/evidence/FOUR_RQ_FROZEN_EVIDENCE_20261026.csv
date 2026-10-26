@@ -1,0 +1,12 @@
+rq,cohort,candidate,reference,metric,observed_delta_fraction,ci95_low_fraction,ci95_high_fraction,evidence_type,inference_status
+"RQ1","09B","HYBRID","MICRO","accuracy","0.02437530","0.020786","0.028104","V1 original paired","primary_posthoc"
+"RQ1","10B_DEV_FROZEN","HYBRID","MICRO","accuracy","0.06336623","0.058663","0.067497","V1 original paired","primary_posthoc"
+"RQ2","09B","HYBRID","MACRO","accuracy","0.13372370","0.125832","0.140975","V1 original paired","primary_posthoc"
+"RQ2","10B_DEV_FROZEN","HYBRID","MACRO","accuracy","0.27147711","0.262219","0.280356","V1 original paired","primary_posthoc"
+"RQ3","10B_DEV_FROZEN","ACTUAL_HYBRID","HYBRID_NO_XGB_RENORM","accuracy","0.047943","0.042763","0.052801","10C posthoc renormalized ablation","posthoc"
+"RQ3","09B","MACRO","LTD","accuracy","0.08034316","0.068703","0.093414","V1 original variant comparison; not clean ablation","secondary_posthoc"
+"RQ3","10B_DEV_FROZEN","MACRO","LTD","accuracy","0.11136278","0.106223","0.117076","V1 original variant comparison; not clean ablation","secondary_posthoc"
+"RQ4","09B","MACRO","XGB","accuracy","0.01586437","0.010471","0.021228","V1 original variant comparison","secondary_posthoc"
+"RQ4","10B_DEV_FROZEN","MACRO","XGB","accuracy","-0.01030038","-0.015447","-0.005148","V1 original variant comparison","secondary_posthoc"
+"RQ4","10B_DEV_FROZEN","ACTUAL_HYBRID","HYBRID_NO_LTD_RENORM","accuracy","0.002912","-0.001569","0.007114","10C posthoc renormalized ablation","posthoc"
+"RQ4","10B_DEV_FROZEN","ACTUAL_HYBRID","HYBRID_NO_LTD_RENORM","top5","-0.007011","-0.009636","-0.004813","10C posthoc renormalized ablation","posthoc"
