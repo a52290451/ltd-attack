@@ -1,0 +1,38 @@
+{
+  "stage": "FROZEN-PAIRWISE-SENSITIVITY-V2",
+  "read_only": true,
+  "training": false,
+  "future_model_selection": false,
+  "parent_v1_manifest_sha256": "5d38ffb7d3a4ec2d6a01913019141250786e1f9af9f2a2d310e3748054f968c8",
+  "parent_v1_source_score_sha256": {
+    "INTERNAL_09B": "5b13d0c16bf4a2d418eddf2dbd11ffca42b5f45485d731d9b9680f5c5b69d0f3",
+    "FUTURE_10B_DEV_FROZEN": "d0edcd2780454b5cd39ef962ec45375d8822dc26b4b3c0b02cf4c06b0b29c7bb"
+  },
+  "method": {
+    "seed": 20261026,
+    "circular_block_bootstrap_draws": 20000,
+    "block_lengths_days": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "exact_day_swap_max_days": 20,
+    "holm9_only_additive_posthoc": true,
+    "v1_holm12_preserved": true
+  },
+  "source_code_sha256": "326292eafa284fae8a45d6155e5651160e926aba5719dce28f87163654977dc0",
+  "outputs_sha256": {
+    "01_exact_day_label_swaps.csv": "c33adb26e55105ab20c0a9b461ff47934ac6189c03d54ad8be75e1b6b5bb4528",
+    "02_temporal_sensitivity.csv": "a03298453d4b23b687c7a44d9146aa4ec022cfcd5dd86fb528a2688e58cf891f",
+    "03_daily_paired_differences.csv": "9924fbd2ee735cbf4211d947a6a7c94b973c7080fc98fce2197e4f02339dea67",
+    "04_site_paired_differences.csv": "406b8e5e1a4564a7cbf6b45ca521090889eb6fd068dce710aa8909d45235862b",
+    "05_day_site_signs.csv": "96ba7dbf62d116b752f517830c173dc0a567e89d39a3c722362ea458af09143e",
+    "06_early_late_descriptive.csv": "58884c98fa1308dd7f66720a438605ce1e212203ad0b8e557521b198399a4e61",
+    "CIENTIFIC_CLOSEOUT_RQ.md": "91ba253b92fecfdca70d6487dea5495cba5a6710643513825dc8395a7bc9cd8f",
+    "README.md": "20564c6c052851b54356945f1aaa6fc3a4d8284ddfade5b454fc41ca46780fb5",
+    "figures/fig01_hybrid_micro_dates.png": "814feed43f9b916f82ab5bb7178c2dcb90df4fc0448b35a659f993b28246b61e",
+    "figures/fig02_macro_xgb_dates.png": "80f9660230989fee1418b03055d9f40d98f69ef4be7005bc6d0d78723c74d430",
+    "figures/fig03_site_recall_heterogeneity.png": "d8d43981e7cbfd1cd5135a6c984fc81c9b1cce78a28a23628cb29039140a00be"
+  }
+}
