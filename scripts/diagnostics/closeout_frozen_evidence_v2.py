@@ -227,4 +227,3 @@ if __name__=='__main__':
     p.add_argument('--out',type=Path,required=True)
     args=p.parse_args()
     run(args.v1,args.out)
-
