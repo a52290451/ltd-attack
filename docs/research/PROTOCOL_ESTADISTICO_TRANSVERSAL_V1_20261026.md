@@ -41,14 +41,33 @@ Comparaciones secundarias: Hybrid − LTD, Macro − XGB, Macro − LTD, XGB −
 - Cohorte de 65 seleccionada tras problemas de cobertura en Future-B según investigador: **B-conditioned site inclusion**. A documentar para validez externa; 120 inicial según investigador vs 118 Historical-wide en documentos requiere reconciliación.
 - Dataset C piloto obfs4 fuera de comparaciones A/B.
 
-## F. Procedimiento operativo (sin nuevos entrenamientos)
-El extractor de auditoría `audit_frozen_pairwise_stats.py` está disponible como adjunto de la sesión de trabajo; debe copiarse a `scripts/diagnostics/` de la rama revisada antes de ejecutar. Comando de lectura (Perseo, desde raíz de repositorio):
-```bash
-LTD_ENV=perseo ~/modelos/venv/bin/python scripts/diagnostics/audit_frozen_pairwise_stats.py
-```
-Lee `result_path("final","INTERNAL-TEST")` (09B), `result_path("final","FUTURE-B")` (10B DEV_FROZEN + 10C) y crea EXCLUSIVAMENTE `result_path("reports","FROZEN-PAIRWISE-EVIDENCE-V1")`. Si ya existe, **se niega a sobrescribir**. Su prueba local con datos **sintéticos** verificó estructura de 56 filas de 7 pares×4 métricas×2 conjuntos; NO equivale a haber ejecutado sobre Perseo.
+## F. Procedimiento operativo — GitHub como fuente única (sin nuevos entrenamientos)
+El auditor **ya está versionado** en [`scripts/diagnostics/audit_frozen_pairwise_stats.py`](../../scripts/diagnostics/audit_frozen_pairwise_stats.py) de `feature/macro-v2-historical-only`. Commit de incorporación: `b9f8e2f59f8fe8e8a6fe507aeb46c62286b4964a`; SHA del contenido GitHub `4b48bf4edc1725b70e01f8126edc19231403f0a5`. **No copiar scripts por /tmp ni alterar resultados congelados.**
 
-Al completar su ejecución real, examinar: `00_model_metrics.csv`, `01_paired_comparisons.csv`, `02_per_day_metrics.csv`, `03_per_site_metrics.csv`, `05_existing_10C_ablation_bootstrap.csv`, `manifest.json`. Consolidar entonces la tabla de afirmaciones defendibles, indicar qué IC/p-values son exploratorios e identificar estudios adicionales **sin repetir pruebas de conjunto ya abierto como confirmación independiente**.
+En Perseo, desde un checkout limpio del repositorio, actualizar solo por *fast-forward* y comprobar que existe el script:
+```bash
+cd ~/ltd-attack
+git status --short
+git fetch origin feature/macro-v2-historical-only
+git switch feature/macro-v2-historical-only
+git merge --ff-only FETCH_HEAD
+git log -1 --oneline
+git ls-files scripts/diagnostics/audit_frozen_pairwise_stats.py
+python3 -m py_compile scripts/diagnostics/audit_frozen_pairwise_stats.py
+```
+**Si hay modificaciones locales o no es posible un fast-forward, NO forzar `reset --hard` ni `git clean`**: inspeccionar antes de sincronizar.
+
+Ejecución de solo lectura para fuentes (necesita `numpy` y `pandas` del entorno adecuado):
+```bash
+LTD_ENV=perseo PYTHONPATH=. python3 scripts/diagnostics/audit_frozen_pairwise_stats.py
+```
+Si `python3` no tiene las dependencias, activar el entorno virtual habitual de LTD-Attack y repetir el mismo comando sin cambiar argumentos de evaluación.
+
+El programa lee `result_path("final","INTERNAL-TEST")` (09B), `result_path("final","FUTURE-B")` (10B DEV_FROZEN + 10C) y **crea únicamente** `result_path("reports","FROZEN-PAIRWISE-EVIDENCE-V1")`. Rechaza sobreescribir el directorio si existe. Comprueba SHA256 archivados (09B `outputs.scores`, 10B scores SHA avalado por 10C, outputs de 10C), población, número de fechas, coherencia de etiquetas y conciliación numérica con métricas originales. **No** abre PCAP ni CSV de captura, reentrena ni reajusta modelos/umbrales.
+
+Evidencia generada: `00_model_metrics.csv` (5 modelos×2 periodos), `01_paired_comparisons.csv` (7 parejas×4 métricas×2 periodos, 56 filas), `02_per_day_metrics.csv`, `03_per_site_metrics.csv`, `04_existing_10C_ablation_summary.csv`, `05_existing_10C_ablation_bootstrap.csv`, `06_existing_10C_rescues.csv`, `README.md`, `manifest.json` con SHA256 de entradas/salidas. Bootstrap pareado 2,500 réplicas y permutaciones por día 9,999 por pareja, configurables; los valores p son **exploratorios posteriores**, condicionados a la intercambiabilidad de días, no pruebas independientes confirmatorias. No convertir la fracción positiva bootstrap en p-value.
+
+**Estado:** script publicado y sintaxis validada, pero sin ejecutar sobre Perseo en este punto; solo cuando el usuario entregue `EVIDENCE_AUDIT_COMPLETE` y archivos reales se podrán completar IC/p-values y conclusiones. Tras ejecución, revisar heterogeneidad, pocos bloques y limitaciones antes de calificar evidencia.
 
 ## G. Principales referencias metodológicas externas
 - MacKinnon, Nielsen & Webb, *Cluster-robust inference: A guide to empirical practice* (Journal of Econometrics, 2023), DOI 10.1016/j.jeconom.2022.04.001.
