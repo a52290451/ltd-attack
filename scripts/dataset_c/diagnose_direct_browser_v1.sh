@@ -76,12 +76,12 @@ for i in 1 2 3; do
      echo "NODE=$(node --version)"
      echo "CHROME_BIN=$(command -v chromium || command -v chromium-browser || command -v google-chrome || true)"
      curl -fsS --connect-timeout 8 --max-time 25 --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip || true
-     node - <<'\''JS'\''
+     CHROME_BIN="$(command -v google-chrome || command -v chromium || true)" node - <<'\''JS'\''
 const puppeteer = require("puppeteer");
 (async () => {
  let browser, page;
  try {
-  const executablePath = process.env.CHROME_BIN || "/usr/bin/chromium";
+  const executablePath = process.env.CHROME_BIN || "/usr/bin/google-chrome";
   browser = await puppeteer.launch({
     executablePath, headless:true, timeout:20000,
     args:["--no-sandbox","--disable-setuid-sandbox","--disable-quic","--proxy-server=socks5://127.0.0.1:9050"]
