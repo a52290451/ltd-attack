@@ -30,7 +30,12 @@ probe() {
       p=$!
       trap '\''kill "$p" 2>/dev/null || true; wait "$p" 2>/dev/null || true'\'' EXIT
       sleep 0.6
-      node /qa_scripts/probe_http_tor_browser_v1.js
+      for attempt in 1 2; do
+        if node /qa_scripts/probe_http_tor_browser_v1.js; then exit 0; fi
+        echo "RETRY_BROWSER_PROBE attempt=$attempt"
+        sleep 5
+      done
+      exit 7
     '
 }
 SELECTED=''
