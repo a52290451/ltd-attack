@@ -41,6 +41,19 @@ guard() {
   [[ "$(printenv LTD_C_PURGE_CONFIRMED 2>/dev/null || true)" == "YES_DELETE_ONLY_OLD_OBFS4_C" ]] ||
     { echo "STOP: explicit confirmation env value required"; exit 3; }
   [[ -d /data ]] || { echo "STOP: /data missing"; exit 3; }
+  [[ ! -f "$REPORT_ROOT/last_success.txt" ]] ||
+    { echo "STOP: bridge purge previously completed; refuse to delete later C_DIRECT_V1 data"; exit 3; }
+  [[ ! -e /data/ltd-c-qa-bsierra/C_DIRECT_V1 ]] ||
+    { echo "STOP: C_DIRECT_V1 exists; never delete new direct captures"; exit 3; }
+  local p
+  while IFS= read -r p; do
+    if [[ -L "$p" || ! -e "$p" ]]; then continue; fi
+    [[ -d "$p" && "$(stat -c '%u' "$p")" == "$(id -u)" ]] ||
+      { echo "STOP prevalidation: non-owned or non-directory $p"; exit 3; }
+    [[ "$(realpath -e -- "$p")" == "$p" ]] ||
+      { echo "STOP prevalidation: path resolves elsewhere $p"; exit 3; }
+    mountpoint -q "$p" && { echo "STOP prevalidation: mount point $p"; exit 3; }
+  done < <(candidate_paths)
   local active
   active="$(docker ps --format '{{.Names}}' | grep -E '^ltd-c-' || true)"
   [[ -z "$active" ]] || { echo "STOP: active C containers: $active"; exit 3; }
