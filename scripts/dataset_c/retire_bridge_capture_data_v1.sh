@@ -3,7 +3,8 @@
 # --inventory is read-only. --purge additionally requires explicit environment confirmation.
 set -euo pipefail
 umask 077
-MODE="$(printf '%s' "$1" 2>/dev/null || echo --inventory)"
+MODE=--inventory
+if (( $# > 0 )); then MODE="$1"; fi
 REPORT_ROOT="$HOME/ltd-ops/dataset-c-bridge-retirement"
 candidate_paths() {
   printf '%s\n' /data/ltd-c-qa-bsierra \
