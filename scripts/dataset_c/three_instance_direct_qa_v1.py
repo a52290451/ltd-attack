@@ -91,12 +91,12 @@ def collect(i, limit, root):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("mode", choices=["--check", "--smoke"], help="QA only; never scientific or scheduled")
+    p.add_argument("mode", choices=["check", "smoke"], help="QA only; never scientific or scheduled")
     args = p.parse_args()
     verify_preflight()
     print("DIRECT_TOR_3_INSTANCE_PREFLIGHT_PASS", flush=True)
     print("HOST_NTP_SYNC=" + current_ntp(), flush=True)
-    if args.mode == "--check":
+    if args.mode == "check":
         return 0
     QA.mkdir(mode=0o700, parents=True, exist_ok=True)
     with (QA / ".run.lock").open("a+") as lock:
