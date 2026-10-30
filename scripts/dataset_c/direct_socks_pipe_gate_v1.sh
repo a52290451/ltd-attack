@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Dataset C fail-closed direct-Tor browser repair and QA (NOT scientific release).
 # Retains existing Chrome launch flags, native SOCKS5 and tcpdump; changes only
-# Puppeteer's Chrome automation transport from CDP to WebDriver CDP pipe in QA overlay.
+# Puppeteer's Chrome automation transport from CDP WebSocket to CDP pipe in QA overlay.
 # No bridge, no HTTP proxy, no cron, no sudo, no host clock changes, no A/B writes.
 set -euo pipefail
 umask 077
@@ -38,7 +38,7 @@ echo "GIT=$(git -C "$REPO" rev-parse --short HEAD)"
 echo '=== DIRECT SOCKS PIPE CONTROL PROBES ==='
 probe() {
   local i="$1"
-  timeout 150 docker run --rm --name "ltd-c-pipe-probe-inst$i-$$" \
+  timeout 300 docker run --rm --name "ltd-c-pipe-probe-inst$i-$$" \
     --network "container:ltd-c-tor-inst$i" --security-opt no-new-privileges \
     --shm-size 1g --mount "type=bind,src=$SRC,dst=/qa_scripts,readonly" \
     -e NODE_PATH=/app/node_modules \
