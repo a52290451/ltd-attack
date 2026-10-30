@@ -8,7 +8,7 @@
 from __future__ import annotations
 import argparse, csv, datetime as dt, json, os, pathlib, subprocess, sys, hashlib, fcntl
 
-ROOT = pathlib.Path("/data/ltd-c-direct-v1")
+ROOT = pathlib.Path("/data/ltd-c-qa-bsierra/C_DIRECT_V1")
 QA = ROOT / "qa_only"
 APP = pathlib.Path.home() / "ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
 BROWSER = "tor_1site_noise:final"
@@ -47,7 +47,7 @@ def verify_preflight():
     if not APP.joinpath("run_category.sh").is_file():
         raise RuntimeError("STOP: original collector source missing")
     if not ROOT.is_dir() or ROOT.is_symlink() or ROOT.resolve() != ROOT or ROOT.stat().st_uid != os.getuid():
-        raise RuntimeError("STOP: /data/ltd-c-direct-v1 must exist and be owned by operator")
+        raise RuntimeError("STOP: /data/ltd-c-qa-bsierra/C_DIRECT_V1 must exist and be owned by operator")
     free = os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize
     if free < 120 * 1024**3:
         raise RuntimeError("STOP: under 120 GiB free on capture filesystem")
