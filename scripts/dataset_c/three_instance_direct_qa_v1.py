@@ -138,16 +138,50 @@ def main():
         for i, (proc, stream) in zip(SPECS, tasks):
             status[str(i)] = proc.wait()
             stream.close()
-        slots = 0
+        rows = []
         for path in root.glob("inst*/**/attempts_*.tsv"):
-            with path.open(newline="", encoding="utf-8") as f:
-                slots += sum(1 for _ in csv.DictReader(f, delimiter="\t"))
+            with path.open(newline="", encoding="utf-8-sig") as f:
+                for record in csv.DictReader(f, delimiter="\t"):
+                    record["_attempt_file"] = str(path.relative_to(root))
+                    rows.append(record)
+        slots = len(rows)
+        statuses = {}
+        for row in rows:
+            state = (row.get("status") or "").strip()
+            statuses[state] = statuses.get(state, 0) + 1
+        pcaps = list(root.rglob("*.pcap")) + list(root.rglob("*.pcapng"))
+        empty_pcaps = [str(p.relative_to(root)) for p in pcaps if p.stat().st_size <= 24]
+        # Structural presence alone is insufficient: valid status, explicit
+        # collector validation and a non-empty packet capture are ALL required.
+        valid_flagged = sum(
+            (row.get("status") or "").strip() == "OK"
+            and (row.get("pcap_valid") or "").strip().lower() in ("true", "yes", "1")
+            for row in rows
+        )
+        navigation_failures = sum(v for k, v in statuses.items() if k != "OK")
         meta["exit_codes"] = status
         meta["observed_slots"] = slots
-        meta["status"] = "QA_PASS" if slots == 12 and all(v == 0 for v in status.values()) else "QA_INCOMPLETE"
+        meta["status_counts"] = statuses
+        meta["pcap_files"] = len(pcaps)
+        meta["pcap_header_only_count"] = len(empty_pcaps)
+        meta["pcap_header_only_paths"] = empty_pcaps
+        meta["ok_with_collector_valid_flag"] = valid_flagged
+        meta["navigation_failure_count"] = navigation_failures
+        meta["status"] = (
+            "QA_PASS" if slots == 12
+            and len(pcaps) == 12
+            and not empty_pcaps
+            and navigation_failures == 0
+            and valid_flagged == 12
+            and all(v == 0 for v in status.values())
+            else "QA_FAILED"
+        )
         (root / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
         print("DIRECT_C_QA_OUTPUT=" + str(root), flush=True)
         print("DIRECT_C_QA_SLOTS=" + str(slots) + "/12", flush=True)
+        print("DIRECT_C_QA_PCAPS=" + str(len(pcaps)) + "/12", flush=True)
+        print("DIRECT_C_QA_EMPTY_PCAPS=" + str(len(empty_pcaps)), flush=True)
+        print("DIRECT_C_QA_NAVIGATION_FAILURES=" + str(navigation_failures), flush=True)
         print("DIRECT_C_QA_STATUS=" + meta["status"], flush=True)
         print("SCIENTIFIC_DATASET_C_CAPTURE=NOT_AUTHORIZED", flush=True)
         return 0 if meta["status"] == "QA_PASS" else 5
