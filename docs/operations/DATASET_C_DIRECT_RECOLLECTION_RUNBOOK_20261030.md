@@ -28,7 +28,7 @@ LTD_C_PURGE_CONFIRMED=YES_DELETE_ONLY_OLD_OBFS4_C \
   bash scripts/dataset_c/retire_bridge_capture_data_v1.sh --purge
 ```
 
-El script exige cron antiguo ausente, contenedores C detenidos, rutas exactas, directorios reales del operador y no montajes de filesystem. Escribe una bitácora de rutas, tamaños y archivos borrados en `~/ltd-ops/dataset-c-bridge-retirement/`, **fuera de la data eliminada**. Este borrado es irreversible; preserva solo la trazabilidad resumida, no los PCAP anteriores. Si aparecen otros depósitos o symlinks, inventariar manualmente y documentar una nueva lista segura, nunca ampliar automáticamente el patrón.
+El script exige cron antiguo ausente, contenedores C detenidos, rutas exactas, directorios reales del operador y no montajes de filesystem. Vacía los contenidos de `/data/ltd-c-qa-bsierra`, conservando su directorio raíz propiedad del usuario para evitar permisos administrativos al crear el nuevo destino; elimina las otras raíces exactas cuando corresponda. Escribe una bitácora de rutas, tamaños y archivos borrados en `~/ltd-ops/dataset-c-bridge-retirement/`, **fuera de la data eliminada**. Este borrado es irreversible; preserva solo la trazabilidad resumida, no los PCAP anteriores. Si aparecen otros depósitos o symlinks, inventariar manualmente y documentar una nueva lista segura, nunca ampliar automáticamente el patrón.
 
 ## C — Reconfiguración con sustitución de contenedores
 
@@ -52,12 +52,12 @@ Reusa redes `isolated_net_1site_inst1/2/3` y `bridge` para `ltd-c-manual-tor`. E
 ## D — Piloto QA directo sin promover a ciencia
 
 ```bash
-install -d -m 0700 /data/ltd-c-direct-v1
+install -d -m 0700 /data/ltd-c-qa-bsierra/C_DIRECT_V1
 python3 scripts/dataset_c/three_instance_direct_qa_v1.py check
 python3 scripts/dataset_c/three_instance_direct_qa_v1.py smoke
 ```
 
-El piloto recoge **12 visitas QA** (2 por categoría en 3 instancias) en `/data/ltd-c-direct-v1/qa_only/`, con `metadata.json` `QA_ONLY_NOT_FOR_MODEL_TRAINING_OR_INFERENCE`, transport `DIRECT_TOR_NO_BRIDGES`, reloj y origen del colector. No instalar cron ni reutilizar `three_hourly_qa.sh` o `run_hourly_qa.sh` antiguos (integran o etiquetan explícitamente obfs4).
+El piloto recoge **12 visitas QA** (2 por categoría en 3 instancias) en `/data/ltd-c-qa-bsierra/C_DIRECT_V1/qa_only/`, con `metadata.json` `QA_ONLY_NOT_FOR_MODEL_TRAINING_OR_INFERENCE`, transport `DIRECT_TOR_NO_BRIDGES`, reloj y origen del colector. No instalar cron ni reutilizar `three_hourly_qa.sh` o `run_hourly_qa.sh` antiguos (integran o etiquetan explícitamente obfs4).
 
 ## E — Cuándo habilitar captura C_DIRECT_V1 científica/recurrente
 
