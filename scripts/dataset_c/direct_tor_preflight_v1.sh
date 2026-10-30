@@ -24,12 +24,24 @@ inventory() {
 }
 
 probe() {
-  echo "=== DIRECT TOR DISPOSABLE PROBE ==="
+  local connectivity_only="${1:-no}"
+  if [[ "$connectivity_only" == yes ]]; then
+    echo "=== DIRECT TOR CONNECTIVITY-ONLY PROBE (NTP GATE BYPASSED FOR NETWORK TEST; NOT SCIENTIFIC CAPTURE) ==="
+  else
+    echo "=== DIRECT TOR DISPOSABLE PROBE ==="
+  fi
   command -v docker >/dev/null || { echo "STOP no Docker"; exit 3; }
   command -v timeout >/dev/null || { echo "STOP no timeout"; exit 3; }
   docker image inspect "$IMAGE" >/dev/null || { echo "STOP missing image: $IMAGE"; exit 3; }
   sync="$(timedatectl show -p NTPSynchronized --value 2>/dev/null || true)"
-  [[ "$sync" == yes ]] || { echo "STOP NTPSynchronized=${sync:-unknown}"; exit 4; }
+  if [[ "$sync" != yes ]]; then
+    if [[ "$connectivity_only" == yes ]]; then
+      echo "WARNING CLOCK_UNSYNCHRONIZED=${sync:-unknown}; connectivity test only; NO capture authorized"
+    else
+      echo "STOP NTPSynchronized=${sync:-unknown}"
+      exit 4
+    fi
+  fi
   timeout 240 docker run --rm --name "$NAME" --network bridge \
     --user 100:101 --cap-drop ALL --security-opt no-new-privileges \
     --read-only --tmpfs /tmp:rw,nosuid,size=64m \
@@ -75,6 +87,7 @@ EOF
 }
 case "$MODE" in
   --inventory) inventory ;;
-  --probe) probe ;;
-  *) echo 'Usage: direct_tor_preflight_v1.sh [--inventory|--probe]'; exit 2 ;;
+  --probe) probe no ;;
+  --probe-connectivity) probe yes ;;
+  *) echo 'Usage: direct_tor_preflight_v1.sh [--inventory|--probe|--probe-connectivity]'; exit 2 ;;
 esac
