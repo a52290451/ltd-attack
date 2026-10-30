@@ -35,11 +35,26 @@ def tor_ready(i):
             return False
         if "UseBridges 1" in conf.stdout or "ClientTransportPlugin" in conf.stdout:
             return False
-        r = run_cmd(["docker", "exec", n, "curl", "-fsS",
-                     "--connect-timeout", "6", "--max-time", "20",
-                     "--socks5-hostname", "127.0.0.1:9050",
-                     "https://check.torproject.org/api/ip"], timeout=24)
-        return r.returncode == 0 and json.loads(r.stdout).get("IsTor") is True
+        # Require actual bootstrap and bounded retries: a single transient
+        # exit-relay TLS error should not invalidate an operational QA pilot.
+        logs = run_cmd(["docker", "logs", n], timeout=15)
+        if "Bootstrapped 100%" not in (logs.stdout + logs.stderr):
+            return False
+        import time
+        for attempt in range(3):
+            r = run_cmd(["docker", "exec", n, "curl", "-fsS",
+                         "--connect-timeout", "8", "--max-time", "25",
+                         "--socks5-hostname", "127.0.0.1:9050",
+                         "https://check.torproject.org/api/ip"], timeout=30)
+            if r.returncode == 0:
+                try:
+                    if json.loads(r.stdout).get("IsTor") is True:
+                        return True
+                except ValueError:
+                    pass
+            if attempt < 2:
+                time.sleep(7)
+        return False
     except (OSError, subprocess.TimeoutExpired, ValueError, KeyError):
         return False
 
