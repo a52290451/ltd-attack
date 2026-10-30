@@ -22,15 +22,24 @@ running() {
   [[ "$(docker inspect --format '{{.State.Running}}' "$1" 2>/dev/null || true)" == true ]]
 }
 direct_ready() {
-  local n="$1"
-  running "$n" || return 1
+  local n="$1" attempt response
+  running "$n" || { echo "FAIL_NOT_RUNNING $n" >&2; return 1; }
   docker exec "$n" test -f /tmp/direct-torrc || return 1
   docker exec "$n" grep -qx 'UseBridges 0' /tmp/direct-torrc || return 1
   docker exec "$n" sh -ec 'test -z "$(printenv LTD_CLOCK_OFFSET_SECONDS 2>/dev/null || true)"' || return 1
+  # Audit current running Tor process arguments: no obfs4 proxy or old torrc.
+  docker exec "$n" sh -ec 'tr "\000" " " </proc/1/cmdline | grep -Fq "tor -f /tmp/direct-torrc"' || return 1
   docker logs "$n" 2>&1 | grep -q 'Bootstrapped 100%' || return 1
-  docker exec "$n" curl -fsS --connect-timeout 6 --max-time 18 \
-    --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip \
-    | grep -Eq '"IsTor"[[:space:]]*:[[:space:]]*true'
+  # Per-instance bounded retries: a single exit-circuit TLS reset is not a failed Tor instance.
+  for attempt in 1 2 3; do
+    response="$(docker exec "$n" curl -fsS --connect-timeout 8 --max-time 25       --retry 0 --socks5-hostname 127.0.0.1:9050       https://check.torproject.org/api/ip 2>/dev/null || true)"
+    if printf '%s' "$response" | grep -Eq '"IsTor"[[:space:]]*:[[:space:]]*true'; then
+      return 0
+    fi
+    if [[ "$attempt" -lt 3 ]]; then sleep 7; fi
+  done
+  echo "FAIL_TOR_EXIT_PROBE $n after 3 requests" >&2
+  return 1
 }
 check_base() {
   [[ -f "$PURGE_MARKER" ]] ||
