@@ -98,7 +98,7 @@ expected_visits=12
 EOF
 collect() {
   local i="$1" cats="$2"
-  timeout 230 docker run --rm --name "ltd-c-bidi-qa-inst$i-$$" \
+  timeout 480 docker run --rm --name "ltd-c-bidi-qa-inst$i-$$" \
     --network "container:ltd-c-tor-inst$i" \
     --cap-add NET_RAW --cap-add NET_ADMIN \
     --security-opt no-new-privileges --shm-size 1g \
@@ -138,12 +138,10 @@ for f in sorted(root.glob('inst*/**/attempts_*.tsv')):
  with f.open(newline='',encoding='utf-8-sig') as fh:
   for row in csv.DictReader(fh,delimiter='\t'):
    s=row.get('status',''); statuses[s]+=1
-   p=pathlib.Path(row.get('pcap',''))
-   if p.parts and p.parts[0]=='/': pass
-   elif str(p).startswith('/audit/'):p=root/str(p)[7:]
-   # /audit contains the mount view inside the container; never read outside root
-   if str(row.get('pcap','')).startswith('/audit/'):p=root/str(row['pcap'])[7:]
-   else:p=None
+   # Resolve only paths produced inside the read/write /audit mount.
+   raw=row.get('pcap','')
+   p=(root/raw[len('/audit/'):]) if raw.startswith('/audit/') else None
+   if p is not None and not p.resolve().is_relative_to(root.resolve()): p=None
    size=p.stat().st_size if p and p.is_file() else 0
    try: packets=int(row.get('packet_count','0'))
    except ValueError: packets=0
