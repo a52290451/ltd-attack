@@ -82,9 +82,20 @@ purge() {
     bytes="$(du -sb -- "$p" | cut -f1)"
     files="$(find "$p" -xdev -type f 2>/dev/null | wc -l)"
     echo "START_DELETE path=$p bytes=$bytes regular_files=$files" | tee -a "$file"
-    rm -rf --one-file-system -- "$p"
-    [[ ! -e "$p" ]] || { echo "STOP: deletion incomplete: $p"; exit 5; }
-    echo "DELETED $p" | tee -a "$file"
+    if [[ "$p" == /data/ltd-c-qa-bsierra ]]; then
+      # Keep the user-owned /data directory because recreating it may require root.
+      shopt -s dotglob nullglob
+      for item in "$p"/*; do
+        rm -rf --one-file-system -- "$item"
+      done
+      shopt -u dotglob nullglob
+      [[ -z "$(ls -A -- "$p")" ]] || { echo "STOP: root not fully emptied: $p"; exit 5; }
+      echo "EMPTIED_ROOT_RETAINED $p" | tee -a "$file"
+    else
+      rm -rf --one-file-system -- "$p"
+      [[ ! -e "$p" ]] || { echo "STOP: deletion incomplete: $p"; exit 5; }
+      echo "DELETED $p" | tee -a "$file"
+    fi
     total=$((total+1))
   done < <(candidate_paths)
   echo "BRIDGE_DATA_PURGE_COMPLETE count=$total; REPORT=$file" | tee -a "$file"
