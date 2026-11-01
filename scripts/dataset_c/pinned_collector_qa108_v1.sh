@@ -10,7 +10,7 @@ APP="$HOME/ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
 BASE="/data/ltd-c-qa-bsierra/C_DIRECT_V1"
 BROWSER="ghcr.io/puppeteer/puppeteer@sha256:ffdb72533aa06e9adf99d1056fbe5b79c915869f6c2e7de8fa1f1ce8ffda0790"
 CAPTURE="tor_1site_noise:final"
-RUN_ID="pinned_qa108_$(date -u +%Y%m%dT%H%M%SZ)_$"
+RUN_ID="pinned_qa108_$(date -u +%Y%m%dT%H%M%SZ)_$$"
 REF12="$BASE/diagnostics/pinned_qa12_20261101T203050Z_136527/qa12_summary.json"
 REF5="$BASE/diagnostics/pinned_retry5_20261101T204311Z_239428/combined_readiness.json"
 [[ -f "$REF12" && -f "$REF5" ]] || { echo 'BLOCKED: previous QA12/QA5 proofs missing'; exit 3; }
@@ -21,6 +21,9 @@ fi
 if docker ps --format '{{.Names}}' | grep -Eq '^(ltd-c-(pinned-nav|pcap-qa|init-qa|feature-probe|pipe-qa|bidi-qa)-)'; then
   echo 'BLOCKED: another Dataset C QA capture is already running'; exit 3
 fi
+# Dedicated host lock: do not permit two QA108 jobs on the same C root.
+exec 9>"$BASE/diagnostics/.pinned_qa108.lock"
+flock -n 9 || { echo 'BLOCKED: QA108 is already running'; exit 3; }
 python3 - "$REF12" "$REF5" <<'PY'
 import json,sys
 b,r=(json.load(open(p)) for p in sys.argv[1:])
