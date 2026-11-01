@@ -36,6 +36,7 @@ echo '=== BASELINE HASHES (unchanged) ==='
 sha256sum "$APP/capture_dom.js" "$APP/run_category.sh" "$APP/quality.js"
 echo "GIT=$(git -C "$REPO" rev-parse --short HEAD)"
 echo '=== DIRECT SOCKS FEATURE CONTROL PROBES ==='
+docker run --rm --network none --mount "type=bind,src=$SRC,dst=/qa_scripts,readonly" --entrypoint /usr/bin/node "$IMAGE" --check /qa_scripts/optimization_hints_probe_v1.js
 probe() {
   local i="$1" candidate="$2"
   timeout 350 docker run --rm --name "ltd-c-feature-probe-$i-$candidate-$$" \
@@ -106,7 +107,7 @@ sha256sum "$APP/capture_dom.js" "$OVERLAY"
 docker run --rm --network none \
   --mount "type=bind,src=$OVERLAY,dst=/tmp/capture_dom.qa.js,readonly" \
   --entrypoint /usr/bin/node "$IMAGE" --check /tmp/capture_dom.qa.js
-QA="$BASE/qa_only/direct_pipe_qa12_$(date -u +%Y%m%dT%H%M%SZ)_$$"
+QA="$BASE/qa_only/direct_feature_qa12_$(date -u +%Y%m%dT%H%M%SZ)_$$"
 mkdir -p "$QA"
 cat > "$QA/qa_manifest.txt" <<EOF
 QA_ONLY_NOT_FOR_SCIENTIFIC_DATASET
