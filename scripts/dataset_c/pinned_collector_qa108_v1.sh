@@ -117,9 +117,13 @@ restore_owner(){
   owner_restored=1
  fi
 }
+MONITOR_PID=''
 cleanup(){
+ if [[ -n "$MONITOR_PID" ]];then
+  kill "$MONITOR_PID" >/dev/null 2>&1 || true
+ fi
  for i in 1 2 3; do
-  docker rm -f "ltd-c-pcap-qa-inst$i-$$" >/dev/null 2>&1 || true
+  docker rm -f "ltd-c-pcap-qa-inst$i-$" >/dev/null 2>&1 || true
  done
  restore_owner
 }
@@ -190,12 +194,25 @@ for i in 1 2 3; do
  ) > "$OUT/worker_inst$i.log" 2>&1 &
  eval "worker_$i=\$!"
 done
+# Periodic progress while each instance sequentially handles 36 sites.
+# Printed status is informational; only strict audit decides validity.
+(
+ while sleep 30; do
+   finished=$(grep -h -c '^VISIT_END ' "$OUT"/worker_inst*.log 2>/dev/null | awk '{n+=$1} END{print n+0}')
+   echo "QA108_PROGRESS $finished/108 completed_attempts (including access failures)"
+ done
+) &
+MONITOR_PID=$!
 workers_failed=0
 for i in 1 2 3; do
  eval "p=\$worker_$i"
  if wait "$p"; then echo "QA_WORKER_COMPLETE inst$i"; else echo "QA_WORKER_FAILED inst$i";workers_failed=1; fi
  grep -E 'VISIT_(BEGIN|END)|CAPTURE_FAILED_START|Error:|error' "$OUT/worker_inst$i.log" | tail -16 || true
 done
+if [[ -n "$MONITOR_PID" ]];then
+ kill "$MONITOR_PID" >/dev/null 2>&1 || true
+ MONITOR_PID=''
+fi
 restore_owner
 echo '=== STRICT QA AUDIT ==='
 set +e
