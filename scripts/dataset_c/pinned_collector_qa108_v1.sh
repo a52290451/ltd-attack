@@ -7,6 +7,7 @@
 set -euo pipefail
 umask 077
 APP="$HOME/ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE="/data/ltd-c-qa-bsierra/C_DIRECT_V1"
 BROWSER="ghcr.io/puppeteer/puppeteer@sha256:ffdb72533aa06e9adf99d1056fbe5b79c915869f6c2e7de8fa1f1ce8ffda0790"
 CAPTURE="tor_1site_noise:final"
@@ -257,10 +258,14 @@ print('PINNED_QA108_STATUS','QA_PASS' if passed else 'QA_HAS_ACCESS_OR_TECHNICAL
 sys.exit(0 if passed else 6)
 PY
 status=$?
+python3 "$SCRIPTS/reconcile_full_120_qa_v1.py" "$OUT"
+coverage_status=$?
 set -e
+echo "QA120_COVERAGE_EXIT=$coverage_status"
 echo "QA108_SUMMARY=$OUT/qa108_summary.json"
 echo "QA108_REPORT=$OUT/report.log"
 echo "QA108_ROOT=$QA"
 echo "QA108_EXIT=$status"
 echo 'SCIENTIFIC_CAPTURE=NOT_AUTHORIZED'
+if ((coverage_status!=0)); then exit "$coverage_status"; fi
 exit "$status"
