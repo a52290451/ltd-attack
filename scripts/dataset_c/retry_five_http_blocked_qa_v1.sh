@@ -7,6 +7,7 @@
 set -euo pipefail
 umask 077
 APP="$HOME/ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE="/data/ltd-c-qa-bsierra/C_DIRECT_V1"
 BROWSER="ghcr.io/puppeteer/puppeteer@sha256:ffdb72533aa06e9adf99d1056fbe5b79c915869f6c2e7de8fa1f1ce8ffda0790"
 CAPTURE="tor_1site_noise:final"
@@ -254,10 +255,15 @@ print('ACCESS_RESTRICTIONS_DO_NOT_IMPLY_CHROME_FAILURE')
 sys.exit(0 if passed else 6)
 PY
 status=$?
+python3 "$SCRIPTS/reconcile_pinned_qa_attempts_v1.py" \
+  "$SOURCE_RUN/qa12_summary.json" "$OUT/qa12_summary.json" "$OUT/combined_readiness.json"
+reconcile_exit=$?
 set -e
+echo "RECONCILE_EXIT=$reconcile_exit"
 echo "RETRY5_SUMMARY=$OUT/qa12_summary.json"
 echo "RETRY5_REPORT=$OUT/report.log"
 echo "RETRY5_ROOT=$QA"
 echo "RETRY5_EXIT=$status"
 echo 'SCIENTIFIC_CAPTURE=NOT_AUTHORIZED'
+if ((reconcile_exit!=0));then exit "$reconcile_exit";fi
 exit "$status"
