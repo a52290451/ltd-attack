@@ -48,6 +48,15 @@ docker run --init --rm --network none --entrypoint node "$BROWSER" -e '
  console.log("PINNED_IMAGE_CONFIRMED",v,p.executablePath());
 '
 echo "PINNED_CHROME_PATH=$CHROME"
+echo '=== PRECHECK ORIGINAL COLLECTOR WITH PINNED NODE/PUPPETEER ==='
+docker run --init --rm --network none --cap-drop ALL --security-opt no-new-privileges \
+ --mount "type=bind,src=$APP,dst=/home/pptruser/ltd-c-v2,readonly" \
+ -e NODE_PATH=/home/pptruser/node_modules \
+ --entrypoint node "$BROWSER" --check /home/pptruser/ltd-c-v2/capture_dom.js
+docker run --init --rm --network none --cap-drop ALL --security-opt no-new-privileges \
+ --mount "type=bind,src=$APP,dst=/home/pptruser/ltd-c-v2,readonly" \
+ -e NODE_PATH=/home/pptruser/node_modules \
+ --entrypoint node "$BROWSER" -e 'require("/home/pptruser/ltd-c-v2/quality.js");require("puppeteer");console.log("COLLECTOR_DEPENDENCIES_OK")'
 # Validate six canonical category lists (20 positions each, 118 unique URLs).
 python3 - "$APP/site_lists" "$OUT/visits.tsv" "$DAY" <<'PY'
 import pathlib,sys,uuid,urllib.parse
