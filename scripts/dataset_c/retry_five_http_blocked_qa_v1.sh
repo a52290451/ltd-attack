@@ -10,9 +10,14 @@ APP="$HOME/ltd-collector-c-smoke-v22/P16C_RECOLECTOR_V2"
 BASE="/data/ltd-c-qa-bsierra/C_DIRECT_V1"
 BROWSER="ghcr.io/puppeteer/puppeteer@sha256:ffdb72533aa06e9adf99d1056fbe5b79c915869f6c2e7de8fa1f1ce8ffda0790"
 CAPTURE="tor_1site_noise:final"
-RUN_ID="pinned_retry5_$(date -u +%Y%m%dT%H%M%SZ)_$"
+RUN_ID="pinned_retry5_$(date -u +%Y%m%dT%H%M%SZ)_$$"
 SOURCE_RUN="${1:-$BASE/diagnostics/pinned_qa12_20261101T203050Z_136527}"
 [[ $# -le 1 && -f "$SOURCE_RUN/qa12_summary.json" && -f "$SOURCE_RUN/visits.tsv" ]] || { echo 'BLOCKED: expected reference QA12 run missing or extra args'; exit 3; }
+# Append-only: one controlled retry per source QA12 run.
+if find "$BASE/diagnostics" -mindepth 2 -maxdepth 2 -path '*/pinned_retry5_*/qa12_summary.json' -type f 2>/dev/null | grep -q .; then
+ echo 'BLOCKED: a completed targeted retry already exists; inspect its report instead of repeating'
+ exit 4
+fi
 OUT="$BASE/diagnostics/$RUN_ID"
 QA="$BASE/qa_only/$RUN_ID"
 DAY="$(date -u +%F)"
@@ -251,8 +256,8 @@ PY
 status=$?
 set -e
 echo "RETRY5_SUMMARY=$OUT/qa12_summary.json"
-echo "QA12_REPORT=$OUT/report.log"
-echo "QA12_ROOT=$QA"
+echo "RETRY5_REPORT=$OUT/report.log"
+echo "RETRY5_ROOT=$QA"
 echo "RETRY5_EXIT=$status"
 echo 'SCIENTIFIC_CAPTURE=NOT_AUTHORIZED'
 exit "$status"
