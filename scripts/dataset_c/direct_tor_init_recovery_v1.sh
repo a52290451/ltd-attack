@@ -113,6 +113,7 @@ for i in 1 2 3; do
  if wait "$p"; then echo "QA_INSTANCE_EXIT inst$i=0"; else echo "QA_INSTANCE_EXIT inst$i=NONZERO"; fi
  grep -E 'QA_FAIL|ERROR|STOP|CATEGORY_' "$QA/inst$i.log" | tail -15 || true
 done
+set +e
 python3 - "$QA" <<'PY'
 import pathlib,csv,json,collections,sys
 root=pathlib.Path(sys.argv[1]).resolve()
@@ -143,6 +144,7 @@ print('DIRECT_INIT_QA_STATUS','QA_PASS' if success else 'QA_FAILED')
 sys.exit(0 if success else 6)
 PY
 status=$?
+set -e
 echo "QA_ROOT=$QA"
 echo "DIAG_ROOT=$OUT"
 echo "SCIENTIFIC_CAPTURE=NOT_AUTHORIZED"
