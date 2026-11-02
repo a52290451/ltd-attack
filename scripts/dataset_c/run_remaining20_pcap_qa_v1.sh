@@ -82,7 +82,7 @@ out=pathlib.Path(sys.argv[2])
 day=sys.argv[3]
 base=pathlib.Path(sys.argv[4])
 triage=base/'diagnostics/pinned_qa108_20261101T211133Z_465267/frozen65_access_triage.json'
-prior=base/'diagnostics/qa_recovered4_pcap_20261102T100945Z_2722588/remaining20_pcap_summary.json'
+prior=base/'diagnostics/qa_recovered4_pcap_20261102T100945Z_2722588/recovered4_pcap_summary.json'
 def read(p):
  if not p.is_file() or p.is_symlink():raise SystemExit('BLOCKED: missing/symlink evidence '+str(p))
  return json.loads(p.read_text())
