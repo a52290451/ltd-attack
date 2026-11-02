@@ -8,6 +8,7 @@ characteristics of time_vector vs direction_vector; no future data access.
 from __future__ import annotations
 import argparse
 import ast
+from array import array
 from collections import Counter
 import csv
 import datetime as dt
@@ -19,6 +20,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from src.models.sota.v1.data_adapter import load_s1_dev_index,DEV_SPLITS
+from src.models.sota.v1.timing_adapter import dt2_from_sequences,parse_times
 OPS=Path.home()/"ltd-ops"/"sota"
 
 def fail_if(condition,message):
@@ -56,7 +58,10 @@ def main(n):
             if taken[split]>=n:continue
             fail_if(row["site_label"]!=site,"site label not aligned")
             d=parse_numeric("direction",row["direction_vector"])
-            t=parse_numeric("time",row["time_vector"])
+            t=parse_times(row["time_vector"])
+            fail_if(any(x not in (-1,1) for x in d),
+                    "non-binary observed direction in DEV raw")
+            dt2=dt2_from_sequences(array("b",(int(v) for v in d)),t,5000)
             drops=sum(t[i]<t[i-1]-1e-8 for i in range(1,len(t)))
             matched=len(d)==len(t)
             t_nonnegative=all(x>=0 for x in t)
@@ -70,6 +75,12 @@ def main(n):
                 "time_decrease_edges":drops,
                 "time_all_zero":all(x==0 for x in t),
                 "time_unique_values":len(set(t)),
+                "dt2_input_shape":[2,dt2.input_length],
+                "dt2_gaps_considered":dt2.gaps_considered,
+                "dt2_first_packet_direction":float(dt2.direction[0]),
+                "dt2_first_gap_seconds":float(dt2.interarrival[0]),
+                "dt2_last_included_gap_seconds":
+                    float(dt2.interarrival[4999]),
             })
             taken[split]+=1
             if all(taken[s]>=n for s in DEV_SPLITS):break
@@ -87,6 +98,8 @@ def main(n):
         "time_not_all_zero":no_zero,
         "time_semantics_proven":"NO",
         "wflib_dt2_requires_signed_absolute_packet_timestamps":True,
+        "varcnn_dt2_samples_passed":len(audit),
+        "varcnn_dt2_translation_smoke_passed":True,
         "varcnn_dt2_conversion_authorized":False,
         "training_started":False,"future_b_opened":False,
         "samples":audit,
@@ -98,6 +111,8 @@ def main(n):
     print("SOTA_S3_TIME_DIRECTION_ALIGNMENT",all_aligned)
     print("SOTA_S3_TIME_NONNEGATIVE_MONOTONIC",all_monotonic)
     print("SOTA_S3_TIME_NONZERO",no_zero)
+    print("SOTA_S3_DT2_TENSOR_SHAPE","[2,5000]")
+    print("SOTA_S3_DT2_SMOKE_SAMPLES",len(audit))
     print("SOTA_S3_TIME_SEMANTICS=REQUIRES_ORIGINAL_EXTRACTOR_PROVENANCE")
     print("SOTA_S3_TIMING_REPORT",path)
     print("VARCNN_DT2_TRAINING=NOT_AUTHORIZED")
