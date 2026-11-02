@@ -10,6 +10,7 @@ from collections import Counter,defaultdict
 import datetime as dt
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -30,6 +31,15 @@ def try_cmd(args,timeout=8):
                 "stderr":p.stderr.strip()[:200]}
     except (OSError,subprocess.TimeoutExpired) as exc:
         return {"return_code":None,"error":type(exc).__name__}
+
+def parse_start(run_id,batch):
+    match=re.fullmatch(
+        r"direct120_half_(first|second)_(\d{8}T\d{6}Z)_\d+",
+        str(run_id))
+    if not match or match.group(1)!=batch:
+        return None
+    return dt.datetime.strptime(match.group(2),"%Y%m%dT%H%M%SZ").replace(
+        tzinfo=dt.timezone.utc)
 
 def parse_batch(path,batch,canonical=None,check_files=False):
     obj=json.loads(path.read_text(encoding="utf-8"))
@@ -73,7 +83,9 @@ def parse_batch(path,batch,canonical=None,check_files=False):
         raise ValueError("not 20 per Tor instance")
     if pcaps_valid!=obj.get("valid_pcap_qa"):
         raise ValueError("PCAP QA total differs from summary")
+    started=parse_start(obj.get("run_id"),batch)
     return {"path":str(path),"batch":batch,"run_id":obj.get("run_id"),
+            "start_utc":started.isoformat() if started else None,
             "valid":pcaps_valid,"slots":len(ids),"slot_ids":ids,
             "status_counts":dict(counts),
             "source_dir":str(path.parent),
@@ -116,6 +128,32 @@ def audit():
         if len(combined)!=120:
             errors.append({"combined_last_batches":len(combined),
                            "reason":"not the full 120 unique canonical slots"})
+    # Separate reports prove 60+60 attempts, not that the cron actually met
+    # a given :00 / :30 cadence. Pair actual run IDs in the SAME UTC hour.
+    byhour=defaultdict(dict)
+    for batch,rows in reports.items():
+        for entry in rows:
+            stamp=parse_start(entry["run_id"],batch)
+            if stamp is None:continue
+            minute=stamp.minute
+            scheduled=(0<=minute<=10) if batch=="first" else (30<=minute<=40)
+            if not scheduled:continue
+            hour=stamp.strftime("%Y%m%dT%H")
+            if batch not in byhour[hour]:byhour[hour][batch]=entry
+    paired=[]
+    for hour,items in sorted(byhour.items(),reverse=True):
+        if len(items)!=2:continue
+        ids=items["first"]["slot_ids"]|items["second"]["slot_ids"]
+        if len(ids)==120 and items["first"]["slot_ids"].isdisjoint(
+                items["second"]["slot_ids"]):
+            paired.append({"utc_hour":hour,"attempts":120,
+                           "valid":items["first"]["valid"]+items["second"]["valid"],
+                           "run_ids":[items["first"]["run_id"],items["second"]["run_id"]]})
+    now=dt.datetime.now(dt.timezone.utc)
+    recently_paired=any(
+        abs((now-dt.datetime.strptime(item["utc_hour"],"%Y%m%dT%H").
+             replace(tzinfo=dt.timezone.utc)).total_seconds())<=3*3600
+        for item in paired)
     logs={}
     for b in ("first","second"):
         path=LOGS/("scheduler_split_"+b+".log")
@@ -134,12 +172,14 @@ def audit():
     status="OBSERVING"
     if any(errors) or not all(exact.values()) or older or other_c or not enough:
         status="ACTION_REQUIRED"
-    elif all(reports[b] for b in reports) and all(logs[b].get("completed_60",0)>0 for b in reports):
-        status="TWO_BATCHES_CONFIRMED_QA_ONLY"
+    elif recently_paired and all(logs[b].get("completed_60",0)>0 for b in reports):
+        status="RECENT_PAIRED_HOUR_CONFIRMED_QA_ONLY"
     # A pair of arbitrary last batches has 120 slots but not necessarily a same-hour run.
     # Report separate half-batches; do not call a pair same-hour verified.
     warnings=[]
     if not all(reports[b] for b in reports):warnings.append("HALF60_BATCHES_NOT_BOTH_COMPLETED")
+    if not paired:warnings.append("NO_SAME_HOUR_00_30_COMPLETED_PAIR")
+    elif not recently_paired:warnings.append("NO_RECENT_COMPLETED_PAIR_WITHIN_3H")
     if not all(logs[b].get("exists") for b in reports):warnings.append("CRON_LOGS_NOT_BOTH_FOUND")
     if any(logs[b].get("overlaps_skipped",0)>0 for b in reports):warnings.append("SKIPPED_CRON_OVERLAP")
     if ntp!="yes":warnings.append("NTP_NOT_SYNCHRONIZED")
@@ -158,6 +198,9 @@ def audit():
                    "reserve_bytes":MIN_FREE,"reserve_healthy":enough},
         "latest_half_batches":[
             {k:v for k,v in x.items() if k!="slot_ids"} for x in latest],
+        "hourly_00_30_pairs_found":len(paired),
+        "latest_paired_hours":paired[:8],
+        "recent_paired_hour_confirmed":recently_paired,
         "completed_reports_found":{b:len(reports[b]) for b in reports},
         "scheduler_logs":logs,
         "initial120_report":str(last_full[0]) if last_full else None,
@@ -182,6 +225,11 @@ def main():
               {k:v for k,v in d["scheduler_logs"][b].items() if k!="tail"})
         for line in d["scheduler_logs"][b].get("tail",[]):
             print("C_LOG_TAIL",b,line[:240])
+    print("C_PAIRED_HOURS_FOUND",d["hourly_00_30_pairs_found"])
+    print("C_RECENT_PAIRED_HOUR_CONFIRMED",d["recent_paired_hour_confirmed"])
+    for paired in d["latest_paired_hours"][:3]:
+        print("C_VERIFIED_PAIR",paired["utc_hour"],"ATTEMPTS",paired["attempts"],
+              "VALID",paired["valid"],"/120")
     for x in d["latest_half_batches"]:
         print("C_LATEST_BATCH",x["batch"],"VALID",x["valid"],"/60",
               "RUN",x["run_id"],"STATUSES",x["status_counts"])
