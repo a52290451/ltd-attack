@@ -104,15 +104,21 @@ def load_s1_dev_index(manifest:Path):
 
 def iter_dev_vectors(source:Path,by_uid:dict,class_to_id:dict,
                      length:int=DEFAULT_LENGTH,
-                     required_splits:tuple[str,...]=DEV_SPLITS)->Iterator[DevExample]:
+                     required_splits:tuple[str,...]=DEV_SPLITS,
+                     per_split_limit:int|None=None)->Iterator[DevExample]:
     """Stream DEV vectors only, skipping INTERNAL and noncanonical Historical rows.
 
     For a full pass the caller must independently assert the yielded UID count
     and exact set equality; for a smoke pass it can stop after bounded samples.
-    Never allow unknown/non-DEV split or arbitrary paths as model input.
+    Bounded sample mode skips parsing vectors once a split has enough samples.
+    No model training/normalization or Future-B access occurs.
     """
     if not set(required_splits).issubset(DEV_SPLITS) or not required_splits:
         raise ValueError("invalid DEV-only split selection")
+    if per_split_limit is not None and (
+        type(per_split_limit) is not int or per_split_limit < 1):
+        raise ValueError("per_split_limit must be a positive integer")
+    selected=Counter()
     csv.field_size_limit(sys.maxsize)
     with Path(source).open(newline="",encoding="utf-8") as f:
         reader=csv.DictReader(f)
@@ -124,10 +130,17 @@ def iter_dev_vectors(source:Path,by_uid:dict,class_to_id:dict,
             uid=row["pcap_uid"]
             reference=by_uid.get(uid)
             if reference is None or reference[2] not in required_splits:continue
+            if per_split_limit is not None and selected[reference[2]]>=per_split_limit:
+                continue
             if uid in seen:raise ValueError("duplicate DEV vector UID")
             seen.add(uid)
             site,date,split=reference
             if row["site_label"]!=site:raise ValueError("Micro/Macro label differs by UID")
             raw=parse_direction(row["direction_vector"])
-            yield DevExample(uid,site,class_to_id[site],date,split,
-                             fixed_length(raw,length),len(raw))
+            item=DevExample(uid,site,class_to_id[site],date,split,
+                            fixed_length(raw,length),len(raw))
+            selected[split]+=1
+            yield item
+            if per_split_limit is not None and all(
+                    selected[x]>=per_split_limit for x in required_splits):
+                return
