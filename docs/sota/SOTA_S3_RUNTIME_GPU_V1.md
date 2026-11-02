@@ -8,34 +8,46 @@ PyTorch 2.11.0, wheel Linux CUDA 12.8 publicado por el proyecto: https://pytorch
 
 Arquitecturas de origen **único** y checkout fijo: FIND-Lab/Website-Fingerprinting-Library commit 537ec8e03c805540b04b95b144fa158ce50aa255, ubicado en ~/ltd-ops/sota/upstream/WFlib, sin duplicarlo en Git científico. Preflight comprueba git HEAD y blobs DF/VarCNN antes de importarlos.
 
-## Paso A. Capacidad del HOME; no instalar si falta espacio
+## Paso A. Capacidad y aislamiento en /data (revisado después de auditoría real)
+
+El 2 de noviembre, Perseo reportó **38 GB libres en /** (96 % de ocupación) y **578 GB libres en /data**. Aunque la reserva anterior de 20 GiB en HOME se cumpliría nominalmente, no se recomienda instalar varios gigabytes de bibliotecas CUDA en la partición raíz casi llena. Mantener el Python del sistema, el repositorio, los datos A/B y Dataset C sin modificaciones. Se reserva exclusivamente un directorio independiente, **/data/ltd-sota-bsierra** (fuera de los árboles de Dataset C). Nunca crear otra ubicación ni modificar permisos con sudo si no existe acceso.
 
 ```bash
 cd ~/ltd-attack
-df -h "$HOME" /data
+SOTA_ROOT="/data/ltd-sota-bsierra"
+umask 077
+mkdir -p "$SOTA_ROOT/tmp" || { echo "BLOCKED: sin permisos para /data/ltd-sota-bsierra"; false; }
+export TMPDIR="$SOTA_ROOT/tmp"
 python3 - <<'PY'
 from pathlib import Path
 import shutil
-p = Path.home() / "ltd-ops" / "sota"
-p.mkdir(parents=True, exist_ok=True)
-free = shutil.disk_usage(p).free
-print("SOTA_HOME_FREE_GIB", round(free/1024**3, 2))
-if free < 20*1024**3:
-    raise SystemExit("BLOCKED: less than 20 GiB free; choose a different approved writable filesystem")
+p=Path("/data/ltd-sota-bsierra")
+if not p.is_dir() or not p.joinpath("tmp").is_dir() or not p.joinpath("tmp").stat().st_mode:
+    raise SystemExit("BLOCKED: directoria SOTA no disponible")
+free=shutil.disk_usage(p).free
+print("SOTA_DATA_FREE_GIB",round(free/1024**3,1))
+if free < 160*1024**3:
+    raise SystemExit("BLOCKED: reserva de 160 GiB para instalar sin comprometer Dataset C")
 PY
+df -h "$SOTA_ROOT" "$HOME"
 ```
 
-Si ese gate falla: **no** instalar todavía, no borrar datos A/B/C ni ejecutar limpieza masiva. Evaluar explícitamente otra ubicación con permisos y ≥20 GiB libres.
+Si el gate falla, **no** instalar; no borrar datos de ningún proyecto, no tocar NTP, Docker o cron. Asegurar que TMPDIR apunta a /data antes de usar pip evita descargar wheels gigantes en /tmp del sistema.
 
-## Paso B. Virtualenv independiente (sin sudo)
+## Paso B. Virtualenv independiente en /data (sin sudo)
+
+Ejecutar solamente si Paso A muestra permisos y reserva satisfactoria. No reutilizar entornos ni descargar dependencias al HOME.
 
 ```bash
-VENV="$HOME/ltd-ops/sota/venv-cu128"
+SOTA_ROOT="/data/ltd-sota-bsierra"
+export TMPDIR="$SOTA_ROOT/tmp"
+VENV="$SOTA_ROOT/venv-cu128"
 python3 -m venv "$VENV"
 "$VENV/bin/python" -m pip install --no-cache-dir \
   torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
 "$VENV/bin/python" -m pip install --no-cache-dir numpy==2.2.6
 "$VENV/bin/python" -m pip freeze > "$HOME/ltd-ops/sota/env_lock_torch211_cu128.txt"
+df -h "$SOTA_ROOT" "$HOME"
 ```
 
 Si falta el módulo venv/ensurepip, detenerse y registrar el error. No usar sudo, --break-system-packages ni pip de sistema. Instalar wheel con no-cache para evitar llenar el disco con duplicados descargados. La disponibilidad de rueda/compatibilidad RTX5080 solo se confirma durante la prueba real.
@@ -44,7 +56,7 @@ Si falta el módulo venv/ensurepip, detenerse y registrar el error. No usar sudo
 
 ```bash
 cd ~/ltd-attack
-VENV="$HOME/ltd-ops/sota/venv-cu128"
+VENV="/data/ltd-sota-bsierra/venv-cu128"
 "$VENV/bin/python" scripts/sota/s3_reference_architecture_preflight_v1.py --forward-smoke
 "$VENV/bin/python" scripts/sota/s3_cuda_synthetic_preflight_v1.py
 ```
