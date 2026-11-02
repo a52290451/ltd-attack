@@ -13,7 +13,7 @@ sys.path.insert(0,str(ROOT/"scripts"/"dataset_c"))
 sys.path.insert(0,str(ROOT/"scripts"/"sota"))
 
 from src.models.sota.v1.upstream_models import (
-    WFLIB_BLOBS,WFLIB_COMMIT,audit_signatures,get_model
+    WFLIB_BLOBS,WFLIB_COMMIT,audit_signatures,get_model,resolve_checkout
 )
 from scripts.dataset_c.audit_halfsplit_operations_v1 import parse_batch,parse_start
 from scripts.sota.s3_time_channel_audit_v1 import parse_numeric
@@ -39,6 +39,25 @@ def make_report(path,batch,rows=None):
     }))
 
 class PinnedSotaTests(unittest.TestCase):
+    def test_upstream_location_prefers_ltd_umbrella(self):
+        with TemporaryDirectory() as root_dir,TemporaryDirectory() as legacy_dir:
+            root=Path(root_dir)
+            legacy=Path(legacy_dir)
+            (legacy/".git").mkdir()
+            (root/".vendor"/"WFlib"/".git").mkdir(parents=True)
+            self.assertEqual(resolve_checkout(root,legacy),
+                             root/".vendor"/"WFlib")
+
+    def test_upstream_location_legacy_no_duplicate_required(self):
+        with TemporaryDirectory() as root_dir,TemporaryDirectory() as legacy_dir:
+            root=Path(root_dir)
+            legacy=Path(legacy_dir)
+            (legacy/".git").mkdir()
+            self.assertEqual(resolve_checkout(root,legacy),legacy)
+            (legacy/".git").rmdir()
+            self.assertEqual(resolve_checkout(root,legacy),
+                             root/".vendor"/"WFlib")
+
     def test_git_commit_and_blobs_are_explicit(self):
         self.assertEqual(len(WFLIB_COMMIT),40)
         self.assertEqual(set(WFLIB_BLOBS),{"DF","VarCNN"})
