@@ -83,17 +83,27 @@ day=sys.argv[3]
 base=pathlib.Path(sys.argv[4])
 triage=base/'diagnostics/pinned_qa108_20261101T211133Z_465267/frozen65_access_triage.json'
 prior=base/'diagnostics/qa_recovered4_pcap_20261102T100945Z_2722588/recovered4_pcap_summary.json'
+canonical=base/'diagnostics/pinned_qa108_20261101T211133Z_465267/qa120_coverage_summary.json'
 def read(p):
  if not p.is_file() or p.is_symlink():raise SystemExit('BLOCKED: missing/symlink evidence '+str(p))
  return json.loads(p.read_text())
 a=read(triage)
 b=read(prior)
+full=read(canonical)
 missing=a['frozen_65_missing_records']
 if len(missing)!=24 or len(set(x['frozen_site'] for x in missing))!=24:
  raise SystemExit('BLOCKED: frozen baseline 24-class triage mismatch')
 if b.get('attempts')!=4 or b.get('valid')!=4 or len(b.get('visits',[]))!=4 or any(not v.get('qa_valid') for v in b['visits']):
  raise SystemExit('BLOCKED: preceding 4 PCAP QA proofs incomplete')
 def key(r):return (str(r['instance']),str(r['category']),int(r['slot']))
+# The frozen-class triage deliberately holds domains rather than URL fields.
+# The original 120-slot QA report is the source of each immutable exact URL.
+original_records=full.get('records',[])
+if len(original_records)!=120 or full.get('inventory_distinct_urls')!=118:
+ raise SystemExit('BLOCKED: original canonical QA120 provenance incomplete')
+canonical_urls={key(r):r['url'] for r in original_records}
+if len(canonical_urls)!=120:
+ raise SystemExit('BLOCKED: duplicate canonical QA120 slot keys')
 successful={key(r) for r in b['visits']}
 expected={('inst1','turismo',8),('inst2','bancos',8),('inst2','salud',6),('inst3','politica',15)}
 if successful!=expected:raise SystemExit('BLOCKED: recovered4 slot provenance mismatch')
@@ -117,7 +127,11 @@ for inst,cat in pairs:
   all_urls.append(url)
   k=(inst,cat,idx)
   if k in targets:
-   if url!=targets[k]['url']:raise SystemExit('BLOCKED: original URL mismatch '+str(k))
+   if url!=canonical_urls.get(k):
+    raise SystemExit('BLOCKED: URL differs from preserved QA120 source '+str(k))
+   domain=(parsed.hostname or '').lower().removeprefix('www.')
+   if domain!=targets[k]['frozen_site']:
+    raise SystemExit('BLOCKED: original frozen domain mismatch '+str(k))
    rows.append((inst,cat,str(idx),url,parsed.hostname,str(uuid.uuid4()),day))
 if len(all_urls)!=120 or len(set(all_urls))!=118 or len(rows)!=20:
  raise SystemExit('BLOCKED: 120/118 catalog or targeted 20 mismatch')
@@ -125,9 +139,16 @@ with out.open('w') as g:
  g.write('instance\tcategory\tslot\turl\thost\tuid\tday\n')
  for row in rows:g.write('\t'.join(row)+'\n')
 print('QA20_PLAN',len(rows),'FROZEN65_PENDING20_AFTER_RECOVERED4')
+print('QA20_EXACT_URLS_VERIFIED_AGAINST_QA120=YES')
 print('QA20_PRIOR_STATUS',dict(kinds))
 print('QA20_NO_FROZEN_MODEL_AB_MUTATION=YES')
 PY
+if [[ "${1:-}" == "--plan-only" ]];then
+ echo 'QA20_PLAN_ONLY=PASS; NO_NAVIGATION_NO_PCAP'
+ echo "QA20_PLAN_FILE=$OUT/visits.tsv"
+ echo 'SCIENTIFIC_CAPTURE=NOT_AUTHORIZED'
+ exit 0
+fi
 # Precreate exactly the planned QA directories, then grant the official image's
 # non-root pptruser (UID 10042) write access. Restore host ownership at end.
 while IFS=$'\t' read -r inst cat slot url host uid day; do
