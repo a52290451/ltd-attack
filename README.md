@@ -24,7 +24,7 @@ La organización de código versionado se mantiene dentro de este repositorio:
 | Capturas, datasets, artefactos grandes, checkpoints y resultados | Almacenamiento `/data` | Mantener bases históricas y Dataset C intactos; configurar rutas centralmente |
 | Logs/evidencia operativa preexistentes | Rutas actuales hasta inventario y migración segura | No borrar, renombrar ni cambiar cron automáticamente |
 
-**Corrección confirmada con captura de terminal:** existe el entorno Python `/home/bsierra/ltd-venv` con `bin/`, `include/`, `lib/`, `lib64/` y `pyvenv.cfg`. La búsqueda anterior solo inspeccionaba `~/ltd-attack` y, por su alcance, lo omitió. **El entorno ya existente es el primer candidato de reutilización**, pero sus versiones y dependencias siguen pendientes de auditoría de solo lectura. No crear `~/ltd-attack/.venv` automáticamente.
+**Corrección confirmada con captura de terminal:** existe el entorno Python `/home/bsierra/ltd-venv` con `bin/`, `include/`, `lib/`, `lib64/` y `pyvenv.cfg`. La búsqueda anterior solo inspeccionaba `~/ltd-attack` y, por su alcance, lo omitió. **Verificación posterior:** el entorno anterior ocupa **167 MB**, utiliza Python **3.12.3**, NumPy **2.5.4** y Pandas **3.1.0**, y no tiene PyTorch instalado. El entorno CUDA temporal ocupa **6,7 GB**. Mantener ambos intactos hasta medir el consumo de `~/ltd-storage` y los otros componentes de HOME; **no instalar de nuevo, no crear `~/ltd-attack/.venv` automáticamente ni modificar `~/ltd-venv` sin análisis de compatibilidad**.
 
 **Estado transitorio identificado el 2026-11-02:** un entorno PyTorch
 `/data/ltd-sota-bsierra/venv-cu128` fue instalado y validado en CPU/CUDA;
