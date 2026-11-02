@@ -77,6 +77,10 @@ python3 scripts/sota/s3_reference_architecture_preflight_v1.py
 
 La prueba opcional `--forward-smoke` requiere **entorno SOTA con torch instalado**. No ejecutar instalación ni entrenamientos hasta inventario de recursos de Perseo y aprobación de presupuesto/semillas, para convivir con Dataset C.
 
+### Precisión adicional en el auditor de cron
+
+Se agregó comprobación de **pareja horaria real**: el auditor ya no considera suficientes dos informes de 60 posiciones producidos en horas diferentes. Extrae las marcas UTC de los `run_id`, busca inicios en minutos `:00` a `:10` y `:30` a `:40` de una misma hora y verifica 120 slots distintos sin duplicados. Solo informa `RECENT_PAIRED_HOUR_CONFIRMED_QA_ONLY` si existe una pareja completada dentro de las últimas tres horas según el reloj del host; no considera este reloj científicamente sincronizado. La ausencia de pareja queda como advertencia de operación. Commits `5886487e` y tests ampliados a **13** casos con `13d2b222`. Esta prueba de cadencia sigue siendo evidencia de QA, no sustituto de la sincronización NTP o de una política de no solapamiento con garantías de completitud.
+
 ## 5. Gates aún pendientes
 
 1. **SOTA G2:** cotejar exactamente el orden de 65 `candidate_labels` original 09B/10B con el orden del índice S1 *antes de evaluar*, sin usar etiquetas futuras para ajustar modelos. El `label_order.json` alfabético no es evidencia de identidad; cabe crear mapeo explícito de scores.
