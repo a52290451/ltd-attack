@@ -59,3 +59,22 @@ cd ~/ltd-attack
 Este código no crea checkpoint, no escribe pesos y falla si falta CUDA, si el wheel no coincide o si hay menos de 5 GiB VRAM libre. Produce un informe pequeño bajo `/data/ltd-attack/sota/protocol`. **No ejecutar scripts de entrenamiento histórico** hasta confirmar el paso, revisar el plan completo de datos/batches y fijar el SHA definitivo del protocolo.
 
 **Restricciones:** no modificar `~/ltd-venv`, no duplicar el entorno CUDA, no introducir codigo nuevo en `/data`, no borrar las copias de datos, no cambiar cron de Dataset C ni promoverla a evidencia científica antes de arreglar NTP.
+
+## Ejecución real S4 — entrenador Historical DEV añadido
+
+**El nuevo archivo `scripts/sota/s4_train_historical_dev_v1.py` implementa entrenamiento real, no una prueba sintética.** Consume solo Historical DEV etiquetado desde S1, lee el CSV de vectores en un único recorrido y construye tensores NumPy float32 una vez para cada modelo/etapa; no lee 09B/10B/C. Todos los índices y cohortes se cotejan contra S1 antes de crear pesos. Usa exactamente los optimizadores, batch sizes, longitudes y semilla del protocolo. Los resultados y checkpoints se guardan en `/data/ltd-attack/sota/training/s4_wflib_v1_seed42/<model>/<stage>` sin sobrescribir runs previos. Limita el uso a una GPU, dos hilos y DataLoader de cero workers (utiliza lotes directos).
+
+El paso B entrena Early+Middle y valida Late; elige la época con máximo Macro-F1 de 65 clases (desempata por época menor), guarda los 30 valores y el número elegido. El paso C exige que `--epochs-from-B` coincida exactamente con ese valor y recalcula pesos nuevos con los 57.916 DEV. Se guardan la fuente, hash del protocolo, SHA del checkpoint, conteos y trazas de métricas.
+
+**Primera orden de entrenamiento real propuesta, pendiente de ejecución y comprobación en Perseo:**
+
+```bash
+cd ~/ltd-attack
+git fetch origin feature/macro-v2-historical-only &&
+git merge --ff-only FETCH_HEAD &&
+python3 -m py_compile scripts/sota/s4_train_historical_dev_v1.py &&
+/data/ltd-sota-bsierra/venv-cu128/bin/python \
+  scripts/sota/s4_train_historical_dev_v1.py --model DF --stage B
+```
+
+**Importante:** la implementación está publicada, pero **no se ha ejecutado aún un entrenamiento real en Perseo** ni se han medido pérdidas, Accuracy o Macro-F1 de DF. Una falla de compatibilidad debe detener la ejecución, no forzar cambios en S1 ni en los datasets. En particular, `B` produce selección de época, no evaluación externa. El orden de clases de scores congelados sigue bloqueado para el futuro gate de evaluación.
