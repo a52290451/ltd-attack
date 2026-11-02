@@ -209,3 +209,23 @@ python3 scripts/ops/cutover_historical_storage_perseo_v1.py --rollback
 ```
 
 **Sin liberación de espacio en esta fase:** el backup original de ~27GB queda conservado bajo HOME. No ejecutar rm, modificar cron, realizar cutover de venv ni eliminar datos; liberar raíz será fase 3 y requerirá validar funcionamiento de scripts y plan de recuperación. Se conserva el bloqueo de entrenamiento SOTA hasta congelar protocolo.
+
+## 8. Fase 2: incidencia no destructiva y corrección mínima (2026-11-02)
+
+**Evidencia de Perseo:** tras actualizar a commit 01ecdcb, los seis tests de cutover terminaron OK. El intento de `--activate` fue bloqueado en el preflight con rsync exit 0 y exactamente `.d..t...... ./`. Esa salida corresponde **únicamente al mtime del directorio raíz del destino**, que cambia porque el staging guardó allí `.ltd_storage_stage_v1.json` y `.ltd_storage_verify_v1.txt`. No había diferencias de archivos indicadas en la salida. El script se negó a activar, por lo que **~/ltd-storage sigue como carpeta original en HOME**, sin symlink ni backup renombrado; las comprobaciones históricas posteriores pasaron por las rutas existentes.
+
+**Corrección versionada:** `material_differences()` descarta **exclusivamente** la línea exacta `.d..t...... ./`, nunca otras líneas `rsync --checksum --dry-run --delete`; diferencias de archivos, permisos, symlinks, carpetas anidadas y borrados bloquean activación. Tests ampliados de seis a **diez** casos, incluyendo todos los escenarios anteriores. Se imprime `LTD_CUTOVER_IGNORED_ONLY_ROOT_MTIME` como trazabilidad visible. Esto es más estricto que `--omit-dir-times` global.
+
+**Siguiente ejecución recomendada (única comprobación de infraestructura):**
+
+```bash
+cd ~/ltd-attack
+git fetch origin feature/macro-v2-historical-only &&
+git merge --ff-only FETCH_HEAD &&
+python3 -m unittest discover -s tests -p 'test_ltd_storage_cutover_v1.py' -v &&
+python3 scripts/ops/cutover_historical_storage_perseo_v1.py --activate &&
+python3 scripts/ops/cutover_historical_storage_perseo_v1.py --validate &&
+readlink -f ~/ltd-storage
+```
+
+**Importante:** incluso si el cambio reversible pasa, los 27 GB del respaldo seguirán en HOME; no se ha autorizado borrado de ningún dataset ni venv. No modificar Dataset C ni cron. El objetivo es terminar la reorganización y volver inmediatamente a SOTA S4: protocolo de entrenamiento, semillas, split cronológico, presupuesto y mapa de clases. No confundir CUTOVER con liberación de espacio.
