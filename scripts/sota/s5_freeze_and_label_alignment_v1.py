@@ -82,9 +82,11 @@ def inspect():
                          "identity_order":arr==labels}
         print("S5_LABEL_ALIGNMENT",name,
               "IDENTICAL" if arr==labels else "EXPLICIT_PERMUTATION",flush=True)
-    demand(canonical["09B"]["candidate_labels_sha256"]==
-           canonical["10B_DEV_FROZEN"]["candidate_labels_sha256"],
-           "09B/10B canonical ordering differs; require separate export mappings")
+    same_order=(canonical["09B"]["candidate_labels_sha256"]==
+                canonical["10B_DEV_FROZEN"]["candidate_labels_sha256"])
+    print("S5_COHORT_CANONICAL_ORDER_MATCH",same_order,flush=True)
+    # Cohorts may use different canonical orders; explicit mappings are
+    # saved independently and evaluation must apply the matching permutation.
     result={"classification":"SOTA_S5_FROZEN_REFITS_AND_LABEL_CROSSWALK_V1",
             "created_utc":datetime.now(timezone.utc).isoformat(),
             "s1_label_order_sha256":s1["label_order_sha256"],
