@@ -33,9 +33,11 @@ o propietario. Solo `nvidia-smi` y los PIDs en tiempo real pueden hacerlo.
 
 - Código versionado: **`~/ltd-attack`**. Contiene scripts de Dataset C,
   modelos SOTA, Micro/Macro/Hybrid, pruebas, documentos y configuración.
-- Dependencias de ejecución: **dentro del área LTD del perfil `/home/bsierra`**,
-  preferentemente un único `~/ltd-attack/.venv` compatible o uno existente
-  reutilizable, ambos no versionados. No crear entornos redundantes.
+- Dependencias de ejecución: **ya existe `~/ltd-venv`** bajo
+  `/home/bsierra` (terminal con `pyvenv.cfg`). Su presencia fue omitida por
+  una búsqueda anterior limitada a `~/ltd-attack`. **Inspeccionar primero
+  este entorno**; no crear `~/ltd-attack/.venv`, no reemplazar sus paquetes
+  ni suponer que contiene CUDA hasta medirlo.
 - Upstream WFlib: fuente externa fijada dentro del área del proyecto, tras
   verificar que cambiarla no rompe el loader. No clonar duplicados.
 - **`/data` solo para datos y resultados:** PCAP, CSV, matrices derivadas,
@@ -46,6 +48,14 @@ o propietario. Solo `nvidia-smi` y los PIDs en tiempo real pueden hacerlo.
   La configuración actual `configs/environments/perseo.yaml` todavía apunta a
   `/home/bsierra/ltd-storage`; puede ser un enlace, montaje o carpeta física.
   **No cambiar esa configuración a ciegas**.
+
+**Entorno previo recuperado de la evidencia del investigador:** la captura
+de terminal muestra `/home/bsierra/ltd-venv/{bin,include,lib,lib64,pyvenv.cfg}`.
+No estaba bajo `~/ltd-attack`; la inspección anterior no buscó los
+directorios hermanos del proyecto. Antes de cualquier nueva instalación o
+limpieza, verificar versión de Python, PyTorch/CUDA y paquetes existentes,
+sin ejecutar `pip install` ni escribir en el entorno. Una copia preexistente
+puede soportar dependencias de otros pasos históricos; preservarlas.
 
 **Excepción temporal detectada:** el entorno PyTorch instalado en
 `/data/ltd-sota-bsierra/venv-cu128` funciona y es el único que actualmente
@@ -98,6 +108,27 @@ hay procesos y la GPU está ociosa, **no inferir uso por terceros** de la mera
 VRAM reservada. Esta auditoría puede mostrar procesos que corresponden a
 containers del propio usuario.
 
+### Comprobación específica del entorno `~/ltd-venv` (sin modificaciones)
+
+```bash
+cd ~/ltd-attack
+printf '=== EXISTENTE ===\n'
+cat "$HOME/ltd-venv/pyvenv.cfg"
+du -sh "$HOME/ltd-venv" "/data/ltd-sota-bsierra/venv-cu128"
+"$HOME/ltd-venv/bin/python" - <<'PY'
+import sys
+from importlib import metadata
+print("PYTHON", sys.executable, sys.version.split()[0])
+print("PREFIX", sys.prefix)
+for package in ("torch", "numpy", "pandas", "scipy", "scikit-learn"):
+    try: print(package, metadata.version(package))
+    except metadata.PackageNotFoundError: print(package, "NOT_INSTALLED")
+PY
+```
+
+No usar `source`, `pip install` ni `mv` hasta comparar resultados y
+confirmar qué scripts históricos utilizan ese entorno.
+
 ## 4. Gate de reorganización: pendiente de inventario
 
 No instalar de nuevo, no borrar el directorio de `/data` ni realizar
@@ -105,9 +136,10 @@ No instalar de nuevo, no borrar el directorio de `/data` ni realizar
 `perseo.yaml` durante el diagnóstico. Una vez confirmemos sistemas de
 archivos, entornos existentes y tamaños:
 
-1. Seleccionar el entorno Python existente de LTD reutilizable; si no es
-   compatible, determinar espacio y estrategia controlada de reconstrucción
-   **bajo HOME**, en `~/ltd-attack/.venv`, sin afectar otros proyectos.
+1. Auditar y priorizar el **entorno preexistente `~/ltd-venv`**. Si sus
+   dependencias no son compatibles con PyTorch 2.11/CUDA 12.8, **no actualizarlo
+   automáticamente**, porque otros procesos LTD podrían depender de sus versiones.
+   Analizar opciones sin añadir copias ni ocupar espacio antes de decidir.
 2. Verificar CPU y CUDA, hashes de WFlib y reproducibilidad en el destino
    antes de retirar la copia del venv mal ubicado.
 3. Reubicar el checkout upstream al área LTD sin duplicarlo cuando el loader
