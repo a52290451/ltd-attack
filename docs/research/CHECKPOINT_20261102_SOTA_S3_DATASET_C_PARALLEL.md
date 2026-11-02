@@ -105,3 +105,28 @@ Resultados **confirmados por salida de Perseo** recibida tras el checkpoint inic
 La función `process_pcap_with_features` en `src/data/01_preprocesamiento.py` utiliza `PcapReader` de Scapy, filtra paquetes TCP/IPv4, preserva el orden del PCAP, obtiene `float(pkt.time)`, lo alinea con dirección/tamaño para cada paquete aceptado y posteriormente aplica `times = [float(t-t0) for t in times]` con `t0=times[0]`; serializa `direction_vector`, `time_vector` y `size_vector` en el mismo registro `pcap_uid`. Por ello **el código conservado documenta unidades relativas en segundos y origen temporal 0**, coherentes con la auditoría de seis muestras. **Limitación:** falta demostrar que la versión de ese script fue precisamente la que produjo los CSV congelados; no basta examinar el HEAD actual para probar reproducibilidad histórica del extractor. Comprobar su linaje y eventualmente valores PCAP ↔ CSV con evidencia inmutable.
 
 WFlib VarCNN `DT2` espera dirección y diferencias de tiempos entre paquetes, obtenidas por `sign(X)` y `diff(abs(X))` con reducción de diferencias negativas a cero. Como nuestros tiempos son relativos y empiezan en 0, formar `X_i = d_i*t_i` perdería la **primera dirección** al evaluar `sign(0)`. Una representación equivalente es `X_i = d_i*(t_i+1)`: preserva todos los signos y deja los `diff(abs(X))` invariantes. La traducción debe validarse **antes de usar VarCNN**, en float64 previo a la conversión a tensor float32 y con tests de longitudes 5000/5001 para el último IAT tras truncamiento. La auditoría de seis muestras no acredita todavía el conjunto de 57.916 registros.
+
+## 7. Avance de ingeniería posterior a validación (código publicado, pruebas Perseo pendientes)
+
+Se incorporó una **representación temporal WFlib-DT2 desde Historical DEV** sin duplicar WFlib en Git y sin modificar los vectores congelados:
+
+- `src/models/sota/v1/timing_adapter.py` (`befd61a1`): interpreta listas de tiempos relativos en segundos y direcciones ±1, valida longitudes/monotonía/valores finitos, produce `(direction, interarrival)` con **2 canales × 5000** float32, calculando IAT en float64 y rellenando/truncando a la derecha. Reproduce `sign(d*(t+1))=d` y `diff(abs(d*(t+1)))=diff(t)`; corrige pérdida del primer signo si `t0=0`. Para **≥5001** paquetes usa el timestamp 5001 para el IAT de índice 4999, igual que `WFlib` (que hace `diff` antes de `length_align`). El adaptador **rechaza** duraciones negativas o conteos desalineados, no inventa datos temporales. Es una equivalencia de *transformación de datos*, no prueba de equivalencia de origen de adquisición.
+- `tests/test_sota_s3_timing_adapter.py` (`e8190d4`): **12 tests nuevos** para dirección del primer paquete, correspondencia `DT2` con timestamp firmado +1, umbrales de longitud 5000/5001, padding, rechazo de tiempos inválidos/NaN/infinito y prohibición de sintetizar tiempo desde tamaños o direcciones. **Aún no reportados como ejecutados en Perseo**.
+- `scripts/sota/s3_time_channel_audit_v1.py` (`8bb8a0a`): amplió auditoría sobre hasta 2–5 capturas por partición DEV y deriva `DT2` real. Emite `SOTA_S3_DT2_TENSOR_SHAPE [2,5000]` y `SOTA_S3_DT2_SMOKE_SAMPLES`. No habilita entrenamiento automáticamente.
+- `scripts/sota/s3_runtime_resources_v1.py` (`c9818bf` y `cb5409b`): auditor **solo lectura** de intérprete Python/venv, paquetes ML, `nvidia-smi` con GPU/VRAM/controlador, RAM, CPU, disco libre y reserva operativa antes de planificar entrenamiento sin afectar la captura C. Sin instalaciones, inferencia ni modificaciones al cron.
+
+**Secuencia de ejecución recomendada en Perseo:**
+
+```bash
+cd ~/ltd-attack
+git fetch origin feature/macro-v2-historical-only && git merge --ff-only FETCH_HEAD
+python3 -m py_compile src/models/sota/v1/timing_adapter.py \
+  scripts/sota/s3_time_channel_audit_v1.py \
+  scripts/sota/s3_runtime_resources_v1.py \
+  tests/test_sota_s3_timing_adapter.py
+python3 -m unittest discover -s tests -p 'test_sota_s3_timing_adapter.py' -v
+ionice -c3 nice -n 10 python3 scripts/sota/s3_time_channel_audit_v1.py --per-split 5
+python3 scripts/sota/s3_runtime_resources_v1.py --save
+```
+
+**Puertas restantes:** 1) 12 tests de DT2 y muestra extendida en Perseo; 2) hardware GPU/VRAM/driver, Python ML aislado; 3) **forward sintético real** de DF/VarCNN con PyTorch `--forward-smoke`; 4) validación exhaustiva de 57.916 tiempos/UIDs integrada en extracción para entrenamiento; 5) revisión científica de representación/origen y paridad A/B; 6) declarar y congelar semillas, budget, early stopping y orden de probabilidades/etiquetas. **Nunca ejecutar batch hasta cerrar estas puertas.**
