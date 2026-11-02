@@ -1,0 +1,182 @@
+{
+  "classification": "LTD_SOTA_S4_EXANTE_PROTOCOL_V1",
+  "purpose": "train WFlib-pinned DF and VarCNN on Historical DEV without temporal leakage",
+  "protocol_version": "1.0.0",
+  "protocol_status": "PROPOSED_PRE_TRAINING_NO_EXPERIMENT_EXECUTED",
+  "model_source": {
+    "repository": "FIND-Lab/Website-Fingerprinting-Library",
+    "commit": "537ec8e03c805540b04b95b144fa158ce50aa255",
+    "DF_git_blob": "8e084f556dd8dadac8fc5a7260b96d6de9f517f8",
+    "VarCNN_git_blob": "c93fb5d73497fabc9e5065d9ca82ea6d881298db",
+    "df_paper_exact_reproduction": false
+  },
+  "population": {
+    "s1_uid_count": 57916,
+    "classes": 65,
+    "vector_length": 5000,
+    "training_splits": [
+      "DEV_EARLY",
+      "DEV_MIDDLE",
+      "DEV_LATE"
+    ],
+    "counts": {
+      "DEV_EARLY": 19098,
+      "DEV_MIDDLE": 20160,
+      "DEV_LATE": 18658
+    },
+    "dates": {
+      "DEV_EARLY": [
+        "2025-11-18",
+        "2025-12-01"
+      ],
+      "DEV_MIDDLE": [
+        "2025-12-02",
+        "2025-12-15"
+      ],
+      "DEV_LATE": [
+        "2025-12-16",
+        "2025-12-28"
+      ]
+    },
+    "source": "S1 SHA256-verified Historical vectors only",
+    "source_vector_sha256": "a8a88041c44e5627e126e2c29c7e068b17c8598a0b01c63a5ff1cd3105c2c7c9",
+    "source_macro_sha256": "cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce",
+    "temporal_split_provenance": "RECONSTRUCTED_FROM_VERIFIED_HISTORICAL_MACRO_DATES",
+    "source_assignment_original_verified": false
+  },
+  "model_configs": {
+    "DF": {
+      "channels": 1,
+      "feature": "DIR",
+      "optimizer": "Adamax",
+      "learning_rate": 0.002,
+      "batch_size": 128,
+      "epochs_max": 30,
+      "weight_decay": 0,
+      "loss": "CrossEntropyLoss",
+      "train_shuffle": true,
+      "selection": "macro_f1",
+      "source": "WFlib/scripts/DF.sh",
+      "parameter_count_verified": 3699393
+    },
+    "VarCNN": {
+      "channels": 2,
+      "feature": "DT2",
+      "optimizer": "Adam",
+      "learning_rate": 0.001,
+      "batch_size": 50,
+      "epochs_max": 30,
+      "weight_decay": 0,
+      "loss": "CrossEntropyLoss",
+      "train_shuffle": true,
+      "selection": "macro_f1",
+      "source": "WFlib/scripts/Var-CNN.sh",
+      "parameter_count_verified": 8806209
+    }
+  },
+  "schedule": [
+    {
+      "id": "A",
+      "name": "sanity_temporal",
+      "train": [
+        "DEV_EARLY"
+      ],
+      "validate": [
+        "DEV_MIDDLE"
+      ],
+      "use_for_final_epoch_selection": false,
+      "train_count": 19098,
+      "val_count": 20160
+    },
+    {
+      "id": "B",
+      "name": "final_epoch_selection",
+      "train": [
+        "DEV_EARLY",
+        "DEV_MIDDLE"
+      ],
+      "validate": [
+        "DEV_LATE"
+      ],
+      "use_for_final_epoch_selection": true,
+      "train_count": 39258,
+      "val_count": 18658
+    },
+    {
+      "id": "C",
+      "name": "full_dev_refit",
+      "train": [
+        "DEV_EARLY",
+        "DEV_MIDDLE",
+        "DEV_LATE"
+      ],
+      "validate": [],
+      "use_for_final_epoch_selection": false,
+      "train_count": 57916,
+      "val_count": 0,
+      "epochs_from": "B"
+    }
+  ],
+  "seeds": {
+    "primary": [
+      42
+    ],
+    "sensitivity_future_optional": [
+      11,
+      73
+    ],
+    "seed_selection_from_external_scores": false
+  },
+  "epoch_selection": {
+    "metric": "macro_f1",
+    "include_all_65_classes": true,
+    "select": "maximum",
+    "tie_break": "earliest_epoch",
+    "evaluation_frequency": "every_epoch_on_DEV_only",
+    "max_epoch": 30,
+    "early_stopping": false
+  },
+  "external_holdout": {
+    "INTERNAL_TEST": "NO_TRAIN_NO_VALIDATION_NO_TUNING",
+    "FUTURE_B": "NO_READ_BEFORE_CHECKPOINT_FROZEN",
+    "DATASET_C": "EXCLUDED"
+  },
+  "metrics": [
+    "accuracy",
+    "macro_f1",
+    "top5",
+    "mrr"
+  ],
+  "resource_controls": {
+    "gpu": "cuda:0",
+    "limit_cuda_devices": [
+      0
+    ],
+    "num_workers": 0,
+    "num_threads": 2,
+    "max_parallel_gpu_training_jobs": 1,
+    "do_not_modify_dataset_c_cron": true,
+    "do_not_install_new_env": true,
+    "do_not_modify_existing_ltd_venv": true,
+    "output_root": "/data/ltd-attack/sota",
+    "minimum_data_free_gib": 120
+  },
+  "promotion_gates": {
+    "S1_integrity": true,
+    "S2_adapter": true,
+    "S3_temporal_full": true,
+    "S3_gpu_forward": true,
+    "G2_external_label_order": false,
+    "G4_no_training_executed": true,
+    "checkpoints_frozen": false
+  },
+  "comparison": {
+    "target_baselines": [
+      "LTD-HYBRID-FINAL",
+      "MICRO-FINAL",
+      "MACRO-LTD-FINAL"
+    ],
+    "uid_pairing_required": true,
+    "statistics": "paired calendar-day blocks 2500 replicates percentile 95%; corrected multiplicity; retrospective Future-B"
+  }
+}
