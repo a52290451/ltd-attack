@@ -33,3 +33,21 @@ credentials*.json
 .env
 .env.*
 secrets/
+
+# Ephemeral developer and experiment files (NOT scientific evidence)
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.coverage
+coverage.xml
+
+# Large generated intermediate arrays: keep on ltd-storage, not in Git
+*.npy
+*.npz
