@@ -147,7 +147,17 @@ def main(max_uids,save):
                 print("SOTA_S3_FULL_AUDIT_PROGRESS",len(seen),"/",total_samples,
                       "valid",aggregate["valid"],flush=True)
             if max_uids>0 and len(seen)>=max_uids:break
+    current_source_sha256=None
     if max_uids==0:
+        digest=hashlib.sha256()
+        with hist.open("rb") as source_bytes:
+            for chunk in iter(lambda:source_bytes.read(4*1024*1024),b""):
+                digest.update(chunk)
+        current_source_sha256=digest.hexdigest()
+        insist(current_source_sha256==
+               s1["historical_checksums"]["historical_vectors"]["sha256"],
+               "historical vectors SHA256 changed since frozen S1")
+        print("SOTA_S3_FULL_SOURCE_SHA256=PASS",flush=True)
         insist(len(seen)==57916 and dict(counts)==EXPECTED,
                "full DEV cohort not exactly 57916 and 19098/20160/18658")
         # Still write an audit report if invalid samples were encountered;
@@ -160,6 +170,8 @@ def main(max_uids,save):
                  ("BLOCKED_INVALID_TIME" if aggregate["invalid"] else "LIMITED_SMOKE_ONLY"),
         "s1_manifest":str(manifest_files[0]),
         "frozen_source_sha256":s1["historical_checksums"]["historical_vectors"]["sha256"],
+        "current_source_sha256":current_source_sha256,
+        "source_hash_reverified_in_full_mode":max_uids==0,
         "canonical_dev_uids":len(by_uid),
         "audited_unique_uids":len(seen),
         "max_uids_limit":max_uids,
