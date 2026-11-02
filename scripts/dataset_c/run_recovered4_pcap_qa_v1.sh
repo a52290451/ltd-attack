@@ -15,7 +15,7 @@ PATCH_SHA="0150884d2b0faf568289660ffce31d0536b737b3934f7bc37118c0f34fbec774"
 BASE="/data/ltd-c-qa-bsierra/C_DIRECT_V1"
 BROWSER="ghcr.io/puppeteer/puppeteer@sha256:ffdb72533aa06e9adf99d1056fbe5b79c915869f6c2e7de8fa1f1ce8ffda0790"
 CAPTURE="tor_1site_noise:final"
-RUN_ID="qa_recovered4_pcap_$(date -u +%Y%m%dT%H%M%SZ)_$"
+RUN_ID="qa_recovered4_pcap_$(date -u +%Y%m%dT%H%M%SZ)_$$"
 if find "$BASE/diagnostics" -mindepth 2 -maxdepth 2 -path '*/qa_recovered4_pcap_*/recovered4_pcap_summary.json' -type f 2>/dev/null | grep -q .; then
  echo 'BLOCKED: completed four-site QA recovery run exists; inspect it rather than repeat';exit 3
 fi
