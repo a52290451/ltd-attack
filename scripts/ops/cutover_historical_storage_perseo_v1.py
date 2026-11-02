@@ -44,6 +44,19 @@ def metadata_compatible(source=SOURCE,dest=DEST):
     require(shutil.disk_usage(dest).free>=MIN_DATA_FREE,"DATA_DISK_RESERVE")
     return payload
 
+def material_differences(rsync_stdout):
+    """Ignore ONLY the staging root directory mtime, never file changes.
+
+    The destination root receives the stage marker and audit report, changing
+    its mtime without changing the copied scientific data. Other directory
+    mtime differences, file metadata/content, symlinks and deletions still
+    block cutover; trailing spaces/blank lines are cosmetic.
+    """
+    lines=[line.strip() for line in rsync_stdout.splitlines() if line.strip()]
+    ignored=[line for line in lines if line==".d..t...... ./"]
+    material=[line for line in lines if line!=".d..t...... ./"]
+    return material,ignored
+
 def compare_trees(original,copied):
     """Metadata + contents, symlinks and missing/extra files; never transfers."""
     cmd=["ionice","-c3","nice","-n","10","rsync","-aH",
@@ -52,7 +65,10 @@ def compare_trees(original,copied):
          "--exclude=/"+STAGE_MARKER,"--exclude=/"+AUDIT,
          str(original)+"/",str(copied)+"/"]
     r=subprocess.run(cmd,text=True,capture_output=True,check=False)
-    differences=[x for x in r.stdout.splitlines() if x.strip()]
+    differences,expected_root_mtime=material_differences(r.stdout)
+    if expected_root_mtime:
+        print("LTD_CUTOVER_IGNORED_ONLY_ROOT_MTIME",len(expected_root_mtime),
+              flush=True)
     if r.returncode or differences:
         for line in differences[:12]:print("LTD_CUTOVER_DIFFERENCE",line[:240],flush=True)
         print("LTD_CUTOVER_RSYNC_EXIT",r.returncode,flush=True)
