@@ -38,6 +38,8 @@ El código de tercero **NO se copia** al repositorio LTD-Attack. Checkout fijado
 | `tests/test_sota_s3_and_c_operations.py` | Contratos de fuentes fijadas, manejo de valores temporales, lotes 3×20 y errores | Datos sintéticos |
 | `docs/research/CHECKPOINT_20261102_SOTA_S3_DATASET_C_PARALLEL.md` | Este checkpoint; referencias, evidencias, advertencias y próximos pasos | Documentación |
 
+**Registro de cambios S3/C (commits secuenciales, rama científica):** `dd0ed835` auditor QA, `6a4b0321` loader WFlib, `052e5166` preflight de arquitectura, `88e2a26a` auditoría de tiempos, `e1730656` tests, `9d3abba9` identidad de URL y artefactos de C, `518548d6` creación de este checkpoint, `60a2359a` vínculo en protocolo SOTA. Revisar el historial Git para SHAs completos y diff exacto. **Estos cambios son implementación y revisión estática; ningún PASS local de Perseo S3/C se declara antes de recibir su salida.**
+
 Los scripts anteriores de S0/S1/S2 y los modelos `src/models/sota/SOTA_01/02/03` se conservan; estos últimos **no** son la batería canónica. No borrar evidencia ni A/B/C. `.gitignore` ya ignora logs, cachés, artefactos pesados y temporales; el preflight anterior detectó **0 archivos generados indebidamente versionados**. La higiene se hará solo tras una auditoría de dependencias, sin limpieza destructiva.
 
 ## 4. Ejecución segura — herramientas nuevas en Perseo
