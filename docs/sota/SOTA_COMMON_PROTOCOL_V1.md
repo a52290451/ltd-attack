@@ -2,6 +2,8 @@
 
 **Checkpoint operativo S3 y Dataset C:** [CHECKPOINT_20261102_SOTA_S3_DATASET_C_PARALLEL.md](../research/CHECKPOINT_20261102_SOTA_S3_DATASET_C_PARALLEL.md) — incluye verificaciones ya realizadas, commits de referencia, pruebas locales pendientes y procedimiento de auditoría read-only de cron/capturas. Es el historial de decisiones de implementación en curso; no sustituye los manifiestos históricos congelados.
 
+**Manual operativo GPU S3:** [entorno PyTorch CUDA 12.8 y auditoría Historical DEV](SOTA_S3_RUNTIME_GPU_V1.md).
+
 **Estado 2026-11-02:** preparación, sin ejecución de entrenamiento ni evaluación adicional. Reconciliación con documentación histórica: [protocolo de comparación 2026-10-30](../research/LTD_ATTACK_SOTA_FAIR_COMPARISON_PROTOCOL_DRAFT_20261030.md), [inferencia congelada V4](../research/LTD_ATTACK_STATISTICAL_INFERENCE_CLOSEOUT_V4_20261030.md), [linaje de features](../FEATURE_LINEAGE.md). Este es el **punto de entrada operativo único** para SOTA; conservar los documentos originales como evidencia histórica (no son basura).
 
 ## 0. Fronteras de datos y reproducibilidad
