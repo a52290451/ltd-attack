@@ -76,6 +76,7 @@ def backup_name():
 def activate_paths(source,dest,backup):
     """Small, tested, reversible filesystem switch; no data deletion."""
     require(not source.is_symlink() and source.is_dir(),"BAD_SOURCE_BEFORE_SWITCH")
+    require(dest.is_dir() and not dest.is_symlink(),"DEST_INVALID_BEFORE_SWITCH")
     require(not backup.exists() and not backup.is_symlink(),"BACKUP_ALREADY_EXISTS")
     source.rename(backup)
     try:
