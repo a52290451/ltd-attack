@@ -77,6 +77,26 @@ class VarCNNDT2Contract(unittest.TestCase):
         with self.assertRaises(ValueError):
             dt2_from_text("[1,-1,1]","[0.,float('nan')]",5)
 
+    def test_backwards_steps_outside_window_are_reported(self):
+        directions=array("b",[1]*5003)
+        times=[0.01*i for i in range(5003)]
+        times[5002]=times[5001]-0.5
+        result=dt2_from_sequences(directions,times,5000)
+        self.assertEqual(result.negative_gaps_total,1)
+        self.assertEqual(result.negative_gaps_used,0)
+        self.assertAlmostEqual(result.largest_backward_seconds,0.5,places=6)
+
+    def test_pre_zero_timestamp_keeps_sign_equivalence(self):
+        directions=array("b",[-1,1,1,-1])
+        times=[0.,-0.3,0.1,0.05]
+        signed=reference_signed_timestamps(directions,times)
+        self.assertEqual([1 if x>0 else -1 for x in signed],list(directions))
+        x=dt2_from_sequences(directions,times,5)
+        self.assertEqual(x.negative_gaps_total,2)
+        for i in range(3):
+            expected=max(0.0,abs(signed[i+1])-abs(signed[i]))
+            self.assertAlmostEqual(x.interarrival[i],expected,places=6)
+
     def test_timestamp_needs_zero_start(self):
         with self.assertRaisesRegex(ValueError,"relative"):
             dt2_from_text("[1,-1]","[100.0,100.5]")
