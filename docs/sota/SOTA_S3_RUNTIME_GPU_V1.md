@@ -129,6 +129,10 @@ PY
 No usar `source`, `pip install` ni `mv` hasta comparar resultados y
 confirmar qué scripts históricos utilizan ese entorno.
 
+### Verificación completada del entorno original
+
+La terminal de Perseo confirma `~/ltd-venv` (creado con Python 3.12.3) **167 MB**, NumPy **2.5.4**, Pandas **3.1.0** y **sin PyTorch/SciPy/scikit-learn**. El entorno SOTA temporal en `/data` tiene **6,7 GB**, PyTorch `2.11.0+cu128` y prueba sintética CPU/CUDA aprobada. **Son dos entornos diferentes, no dos instalaciones idénticas de PyTorch.** No recomendar otro venv ni actualizar de inmediato el entorno de 167 MB; primero obtener tamaños de `~/ltd-storage` y HOME, y comprobar los consumidores históricos del entorno preexistente. El documento de inventario físico concentra el siguiente diagnóstico: [LTD_PERSEO_LAYOUT_CONSOLIDATION_20261102.md](../operations/LTD_PERSEO_LAYOUT_CONSOLIDATION_20261102.md).
+
 ## 4. Gate de reorganización: pendiente de inventario
 
 No instalar de nuevo, no borrar el directorio de `/data` ni realizar
