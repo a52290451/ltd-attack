@@ -125,6 +125,7 @@ def vector_bridge(dev,meta):
     count=Counter()
     labels=set()
     vector_format_checked=0
+    observed_lengths=Counter()
     f,r=load_reader(HIST_VECTORS,
                     ["pcap_uid","site_label","direction_vector","size_vector"])
     with f:
@@ -145,10 +146,13 @@ def vector_bridge(dev,meta):
                    "DEV direction vector is not list-shaped")
             insist(row["size_vector"].strip().startswith("["),
                    "DEV size vector shape mismatch")
+            payload=direction[1:-1].strip()
+            observed_lengths[0 if not payload else payload.count(",")+1]+=1
             if vector_format_checked<32:
-                sample=[x.strip() for x in direction[1:-1].split(",")[:16]]
-                insist(all(v in ("-1","0","1","-1.0","0.0","1.0") for v in sample if v),
-                       "unexpected numeric direction encoding")
+                sample=[x.strip() for x in payload.split(",")[:16]]
+                try:valid_directions=all(float(v) in (-1.0,0.0,1.0) for v in sample if v)
+                except ValueError:valid_directions=False
+                insist(valid_directions,"unexpected numeric direction encoding")
                 vector_format_checked+=1
             count[split]+=1
             labels.add(label)
@@ -158,7 +162,16 @@ def vector_bridge(dev,meta):
            "DEV vector temporal counts mismatch")
     insist(len(labels)==65,"DEV vector class count mismatch")
     insist(seen==set(meta),"DEV vector and macro UID sets differ")
-    return count,sorted(labels)
+    stats={
+        "observed_max_vector_length":max(observed_lengths),
+        "observed_min_vector_length":min(observed_lengths),
+        "samples_with_vector_length_gt_3000":sum(n for length,n in observed_lengths.items() if length>3000),
+        "samples_with_vector_length_gt_5000":sum(n for length,n in observed_lengths.items() if length>5000),
+        "length_distribution_first_25_bins":dict(sorted(observed_lengths.items())[:25]),
+        "all_vectors_3000_or_shorter":max(observed_lengths)<=3000,
+        "possible_source_truncation_requires_extractor_audit":max(observed_lengths)<=3000,
+    }
+    return count,sorted(labels),stats
 
 def run(fast):
     insist(MANIFEST.is_file(),"09A frozen source manifest absent")
@@ -177,7 +190,7 @@ def run(fast):
         print("FUTURE_B_UNTOUCHED=YES")
         return
     meta,macro_counts,dates,sets=metadata(idx)
-    vector_counts,classes=vector_bridge(idx,meta)
+    vector_counts,classes,vector_lengths=vector_bridge(idx,meta)
     insist(set(classes)==sets["DEV_EARLY"]==sets["DEV_MIDDLE"]==sets["DEV_LATE"],
            "65 DEV class mappings are not identical across folds")
     # Full byte checks against the *already frozen* Historical manifests. This
@@ -219,7 +232,9 @@ def run(fast):
         "dev_index_sha256":sha256(index_file),
         "label_order_file":str(label_file),
         "label_order_sha256":sha256(label_file),
-        "vector_representation":"direction_vector: -1/0/+1; source may contain up to 3000 or more entries; padding/truncation later",
+        "vector_representation":"direction_vector: -1/0/+1, fixed-size input not yet chosen",
+        "vector_length_audit":vector_lengths,
+        "faithful_original_df_5000_input_verified":False,
         "training_not_started":True,
         "future_b_not_opened":True,
         "internal_test_not_used_in_model_computation":True,
@@ -232,6 +247,7 @@ def run(fast):
     print("SOTA_S1_DEV_UIDS",len(meta),flush=True)
     print("SOTA_S1_DEV_DATES",len(set(d for lst in dates.values() for d in lst)),flush=True)
     print("SOTA_S1_CLASSES",len(classes),flush=True)
+    print("SOTA_S1_VECTOR_LENGTH_AUDIT",vector_lengths,flush=True)
     print("SOTA_S1_SPLITS",dict(counts),flush=True)
     print("SOTA_S1_MANIFEST",p,flush=True)
     print("SOTA_S1_FROZEN_HISTORICAL=PASS",flush=True)
