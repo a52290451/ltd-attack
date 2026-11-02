@@ -22,7 +22,21 @@ WFLIB_PATHS={
     "DF":"WFlib/models/DF.py",
     "VarCNN":"WFlib/models/VarCNN.py"
 }
-DEFAULT_CHECKOUT=Path.home()/"ltd-ops"/"sota"/"upstream"/"WFlib"
+# LTD repo is the only code umbrella. During the no-copy migration we
+# support the existing verified checkout; once it is moved into the repo
+# workspace, resolve it there without needing two clones.
+LTD_ROOT=Path(__file__).resolve().parents[4]
+LEGACY_CHECKOUT=Path.home()/"ltd-ops"/"sota"/"upstream"/"WFlib"
+
+def resolve_checkout(root:Path=LTD_ROOT,legacy:Path=LEGACY_CHECKOUT)->Path:
+    target=Path(root)/".vendor"/"WFlib"
+    if (target/".git").is_dir():
+        return target
+    if (Path(legacy)/".git").is_dir():
+        return Path(legacy)
+    return target
+
+DEFAULT_CHECKOUT=resolve_checkout()
 
 def _run(args):
     r=subprocess.run(args,capture_output=True,text=True,timeout=20)
