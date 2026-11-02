@@ -22,7 +22,7 @@ python3 - <<'PY'
 from pathlib import Path
 import shutil
 p=Path("/data/ltd-sota-bsierra")
-if not p.is_dir() or not p.joinpath("tmp").is_dir() or not p.joinpath("tmp").stat().st_mode:
+if not p.is_dir() or not p.joinpath("tmp").is_dir():
     raise SystemExit("BLOCKED: directoria SOTA no disponible")
 free=shutil.disk_usage(p).free
 print("SOTA_DATA_FREE_GIB",round(free/1024**3,1))
