@@ -130,3 +130,19 @@ python3 scripts/sota/s3_runtime_resources_v1.py --save
 ```
 
 **Puertas restantes:** 1) 12 tests de DT2 y muestra extendida en Perseo; 2) hardware GPU/VRAM/driver, Python ML aislado; 3) **forward sintético real** de DF/VarCNN con PyTorch `--forward-smoke`; 4) validación exhaustiva de 57.916 tiempos/UIDs integrada en extracción para entrenamiento; 5) revisión científica de representación/origen y paridad A/B; 6) declarar y congelar semillas, budget, early stopping y orden de probabilidades/etiquetas. **Nunca ejecutar batch hasta cerrar estas puertas.**
+
+## 8. Nuevo incidente reproducible S3: timestamps no monótonos (2 de noviembre)
+
+**Resultado observado y aportado por Perseo (antes de estas correcciones):**
+
+- Tras actualizar a \`aa4fcaa5\`, se ejecutó \`python3 -m unittest discover -s tests -p 'test_sota_s3*.py' -v\`: **25/25 PASS** (13 pruebas de arquitectura/operación + 12 originales de DT2). No hubo entrenamiento ni acceso Future-B.
+- La ampliación \`scripts/sota/s3_time_channel_audit_v1.py --per-split 5\` **falló con** \`SOTA_S3_TIME_AUDIT_ABORTED ValueError time_vector not monotonic\`. Por el fallo y el encadenamiento \`&&\`, **no se ejecutó** en ese bloque \`scripts/sota/s3_runtime_resources_v1.py --save\`; el estado GPU/RAM/PyTorch continúa pendiente.
+- \`timedatectl status\` de Perseo: \`System clock synchronized: no\`, \`NTP service: active\`, reloj de host 2026-11-02T15:05:45+01:00. El servicio activo **NO** significa reloj sincronizado; hay que consultar administrador para corregir origen NTP/red/offset. Dataset C sigue QA_ONLY, independientemente de la batería SOTA.
+
+**Diagnóstico de raíz:** el extractor registrado en \`src/data/01_preprocesamiento.py\` conserva el orden físico de paquetes TCP en el PCAP y extrae \`float(pkt.time)\`, luego hace \`t_i-t_0\`. Un PCAP puede presentar marcas temporales regresivas en ese mismo orden; una muestra no monótona no significa por sí sola un fallo de alineación dirección↔tiempo. La implementación **real fijada** de WFlib para DT2 utiliza \`np.diff(np.abs(X))\` y convierte **intervalos negativos en cero** sin reordenar paquetes; la versión inicial del adaptador LTD era más restrictiva e interrumpía ante una regresión.
+
+**Decisión técnica correctiva, aún pendiente de comprobar en Perseo:** mantener fuentes Historical inmutables, no ordenar/truncar/eliminar PCAP por esta causa, usar \`max(0, t[i+1]-t[i])\` para la segunda entrada (semántica WFlib DT2) y **registrar explícitamente** número total de retrocesos, retrocesos dentro de la ventana de 5000 IAT y magnitud máxima por muestra. Si hay tiempos relativos anteriores a \`t0\`, el modelo sintético de timestamp firmado usa un desplazamiento positivo por traza para mantener dirección y conservar diferencias; las entradas calculadas directamente no cambian el tiempo físico. Una decisión posterior sobre legitimidad científica de ese canal necesita **auditoría de cohorte completa, frecuencia/magnitud y linaje exacto del extractor congelado**. **No declarar fidelidad original o integridad del 100% del canal temporal solo por pasar 15 muestras**.
+
+**Cambios realizados en GitHub:** \`src/models/sota/v1/timing_adapter.py\` (\`001784d3\`), pruebas actualizadas \`tests/test_sota_s3_timing_adapter.py\` (\`02f90aab\`, \`c07008ab\`; ahora 14 tests DT2), y \`scripts/sota/s3_time_channel_audit_v1.py\` (\`2e34904b\`) para preservar diagnósticos y no bloquear por regresiones explicables por la semántica original de WFlib. Repetir validación: 13 + 14 = **27 pruebas** S3, luego \`--per-split 5\`, después auditor GPU/recursos **por comando independiente** para que errores en un control no oculten los otros.
+
+**Estado al publicar esta nota:** implementación corregida y revisada en GitHub, pero **todavía sin ejecución runtime validada de la corrección en Perseo**. Entrenamiento DF/VarCNN no autorizado, 09B/10B conservados.
