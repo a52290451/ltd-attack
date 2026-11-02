@@ -73,6 +73,9 @@ def main(n):
                 "time_nonnegative":t_nonnegative,
                 "time_non_decreasing":drops==0,
                 "time_decrease_edges":drops,
+                "dt2_negative_gaps_total":dt2.negative_gaps_total,
+                "dt2_negative_gaps_used":dt2.negative_gaps_used,
+                "largest_backward_seconds":dt2.largest_backward_seconds,
                 "time_all_zero":all(x==0 for x in t),
                 "time_unique_values":len(set(t)),
                 "dt2_input_shape":[2,dt2.input_length],
@@ -90,13 +93,23 @@ def main(n):
     all_monotonic=all(x["time_non_decreasing"] and x["time_nonnegative"]
                       for x in audit)
     no_zero=all(not x["time_all_zero"] for x in audit)
+    regressed=[x for x in audit if x["dt2_negative_gaps_total"]>0]
+    total_negative=sum(x["dt2_negative_gaps_total"] for x in audit)
+    used_negative=sum(x["dt2_negative_gaps_used"] for x in audit)
+    largest_regression=max((x["largest_backward_seconds"] for x in audit),default=0.0)
     report={
         "classification":"SOTA_S3_HISTORICAL_DEV_TIME_CHANNEL_AUDIT",
         "source_s1_manifest":str(paths[0]),
         "sample_counts":dict(taken),"direction_time_same_length":all_aligned,
         "nonnegative_monotonic_time_samples":all_monotonic,
         "time_not_all_zero":no_zero,
-        "time_semantics_proven":"NO",
+        "samples_with_time_regressions":len(regressed),
+        "negative_timestamp_steps_total":total_negative,
+        "negative_steps_clipped_in_5000_window":used_negative,
+        "max_backward_jump_seconds":largest_regression,
+        "negative_interval_policy":"WFLib_DT2_CLIP_TO_ZERO_KEEP_ORIGINAL_ORDER",
+        "monotonicity_not_required_by_wflib_dt2":True,
+        "time_semantics_proven":"EXTRACTOR_SOURCE_REVIEWED_HISTORIC_COMMIT_UNVERIFIED",
         "wflib_dt2_requires_signed_absolute_packet_timestamps":True,
         "varcnn_dt2_samples_passed":len(audit),
         "varcnn_dt2_translation_smoke_passed":True,
@@ -111,9 +124,14 @@ def main(n):
     print("SOTA_S3_TIME_DIRECTION_ALIGNMENT",all_aligned)
     print("SOTA_S3_TIME_NONNEGATIVE_MONOTONIC",all_monotonic)
     print("SOTA_S3_TIME_NONZERO",no_zero)
+    print("SOTA_S3_NONMONOTONIC_SAMPLES",len(regressed),"/",len(audit))
+    print("SOTA_S3_NEGATIVE_INTERVALS",total_negative,
+          "CLIPPED_IN_5000_WINDOW",used_negative)
+    print("SOTA_S3_MAX_BACKWARD_SECONDS",largest_regression)
+    print("SOTA_S3_TIME_POLICY=WFLIB_NEGATIVE_IAT_TO_ZERO_NO_REORDER")
     print("SOTA_S3_DT2_TENSOR_SHAPE","[2,5000]")
     print("SOTA_S3_DT2_SMOKE_SAMPLES",len(audit))
-    print("SOTA_S3_TIME_SEMANTICS=REQUIRES_ORIGINAL_EXTRACTOR_PROVENANCE")
+    print("SOTA_S3_TIME_SEMANTICS=EXTRACTOR_REVIEWED_ORIGINAL_COMMIT_UNVERIFIED")
     print("SOTA_S3_TIMING_REPORT",path)
     print("VARCNN_DT2_TRAINING=NOT_AUTHORIZED")
     print("FUTURE_B_UNTOUCHED=YES")
