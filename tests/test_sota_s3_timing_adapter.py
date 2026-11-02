@@ -68,10 +68,14 @@ class VarCNNDT2Contract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"packet direction"):
             dt2_from_sequences(array("b",[1,0]),[0.,0.1])
 
-    def test_time_monotonicity_rejected(self):
-        for raw in ("[0.0,0.2,0.1]","[0.,float('nan')]"):
-            with self.subTest(raw=raw),self.assertRaises(ValueError):
-                dt2_from_text("[1,-1,1]",raw)
+    def test_backwards_time_clipped(self):
+        example=dt2_from_text("[1,-1,1]","[0.0,0.2,0.1]",5)
+        self.assertEqual(example.interarrival[1],0.0)
+        self.assertEqual(example.negative_gaps_total,1)
+        self.assertEqual(example.negative_gaps_used,1)
+        self.assertAlmostEqual(example.largest_backward_seconds,0.1,places=6)
+        with self.assertRaises(ValueError):
+            dt2_from_text("[1,-1,1]","[0.,float('nan')]",5)
 
     def test_timestamp_needs_zero_start(self):
         with self.assertRaisesRegex(ValueError,"relative"):
