@@ -37,6 +37,16 @@ class S3FullTimingContract(unittest.TestCase):
         with self.assertRaises(ValueError):
             summarize_trace([1,-1],[0.,float("nan")])
 
+    def test_nonfinite_infinity_timestamp_is_invalid(self):
+        with self.assertRaisesRegex(ValueError,"non-finite"):
+            summarize_trace([1,-1],[0.0,float("inf")])
+
+    def test_nonnumeric_and_boolean_times_are_invalid(self):
+        for times in ([0.0,"0.1"],[0.0,True],[0.0,None]):
+            with self.subTest(times=times):
+                with self.assertRaisesRegex(ValueError,"non-finite"):
+                    summarize_trace([1,-1],times)
+
     def test_invalid_direction_is_rejected(self):
         with self.assertRaises(ValueError):
             summarize_trace([1,0],[0.,0.2])
