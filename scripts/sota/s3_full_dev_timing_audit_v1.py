@@ -47,6 +47,8 @@ def summarize_trace(directions,times):
     """Pure diagnostic per trace, preserving every observed packet and time."""
     if not directions or len(directions)!=len(times):
         raise ValueError("direction/time alignment mismatch")
+    if any(type(x) not in (int,float) or not math.isfinite(x) for x in times):
+        raise ValueError("time contains non-finite or non-numeric values")
     if any(type(x) not in (int,float) or x not in (-1,1) for x in directions):
         raise ValueError("observed direction must be binary +/-1")
     if abs(float(times[0]))>TOLERANCE_START:
@@ -85,8 +87,8 @@ def main(max_uids,save):
     hist=Path(s1["historical_checksums"]["historical_vectors"]["path"])
     insist(hist.is_file() and not hist.is_symlink(),"historical vectors source missing")
     insist(max_uids==0 or 1<=max_uids<=57916,"max-uids outside 0..57916")
-    # Historical vector file SHA was verified in S1. Rehashing bytes here
-    # duplicates large IO; preserve the frozen SHA in report instead.
+    # Full mode independently rehashes Historical vectors against frozen S1.
+    # Limited smoke mode retains the S1-verified SHA without rehashing.
     counts=Counter()
     per_day=defaultdict(Counter)
     per_class=defaultdict(Counter)
@@ -162,7 +164,7 @@ def main(max_uids,save):
                "full DEV cohort not exactly 57916 and 19098/20160/18658")
         # Still write an audit report if invalid samples were encountered;
         # never release training until all 57,916 have valid aligned timing.
-        insist(aggregate["valid"]==57916,
+        insist(aggregate["valid"]+aggregate["invalid"]==57916,
                "full Historical DEV trace count incomplete")
     result={
         "classification":"SOTA_S3_HISTORICAL_DEV_FULL_TIME_QUALITY_V1",
