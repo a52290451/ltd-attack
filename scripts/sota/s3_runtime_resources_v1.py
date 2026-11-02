@@ -50,10 +50,9 @@ def runtime():
         "cpu_logical":os.cpu_count(),
         "cpu_memory":meminfo(),
         "gpu_driver_query":call(["nvidia-smi",
-            "--query-gpu=index,name,memory.total,memory.free,utilization.gpu,compute_cap",
+            "--query-gpu=index,name,memory.total,memory.free,utilization.gpu,driver_version",
             "--format=csv,noheader,nounits"],timeout=15),
-        "gpu_driver_summary":call(["nvidia-smi","--query",
-            "--display=COMPUTE"],timeout=15),
+        "gpu_driver_summary":call(["nvidia-smi","-L"],timeout=15),
         "package_availability":{
             name:importlib.util.find_spec(name) is not None
             for name in ("torch","numpy","pandas","scipy","sklearn")
