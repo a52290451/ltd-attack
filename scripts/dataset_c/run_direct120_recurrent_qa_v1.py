@@ -100,6 +100,11 @@ def cronline():
     return f"0 * * * * {python} {script} --once >> {OPERATION}/scheduler.log 2>&1 # {MARKER}"
 
 def install():
+    # Fail before installing persistent cron if Tor, pinned browser, disk,
+    # or source-code integrity cannot support a full 120-slot QA round.
+    inventory()
+    capture.preflight()
+    verify_tor_started()
     OPERATION.mkdir(parents=True,exist_ok=True)
     lines=cron_lines()
     require(not active_old_cron(lines),
@@ -257,6 +262,9 @@ def status():
     print("DIRECT120_CRON_INSTALLED",
           any(MARKER in x and not x.lstrip().startswith("#") for x in lines))
     print("DIRECT120_MOST_RECENT_ROUND",matches[0] if matches else "NONE_YET")
+    inprogress=sorted(REPORTS.glob("direct120_qa_*"),
+                      key=lambda p:p.stat().st_mtime,reverse=True)
+    print("DIRECT120_LATEST_RUN_DIRECTORY",inprogress[0] if inprogress else "NONE_YET")
     if matches:
         data=json.loads(matches[0].read_text())
         print("DIRECT120_LATEST_VALID",data.get("pcap_qa_valid"),"/120")
