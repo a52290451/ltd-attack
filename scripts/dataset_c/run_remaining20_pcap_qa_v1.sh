@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # LTD Dataset C: one controlled PCAP QA sweep over ONLY 20 missing frozen65 classes.
-# Browser: pinned Chrome for Testing + exact ORIGINAL capture_dom.js and quality.js.
+# Browser: pinned Chrome for Testing + V2.5 QA-only patched capture_dom.js; original quality.js.
 # Traffic: native SOCKS5 -> existing direct Tor, tcpdump sidecar on SAME eth0 namespace.
 # No mutation to A/B, historical frozen datasets, Tor containers, original collector or cron.
 # Host clock is unsynchronized; results are QA ONLY, NEVER scientific input.
@@ -143,7 +143,9 @@ restore_owner(){
   owner_restored=1
  fi
 }
+MONITOR_PID=""
 cleanup(){
+ if [[ -n "$MONITOR_PID" ]];then kill "$MONITOR_PID" >/dev/null 2>&1 || true;fi
  for i in 1 2 3; do
   docker rm -f "ltd-c-pcap-qa-inst$i-$$" >/dev/null 2>&1 || true
  done
@@ -205,12 +207,24 @@ for i in 1 2 3; do
  ) > "$OUT/worker_inst$i.log" 2>&1 &
  eval "worker_$i=\$!"
 done
+# Visible heartbeat while workers visit the 20 missing sites.
+(
+ while sleep 30;do
+  finished=$(grep -h -c '^VISIT_END ' "$OUT"/worker_inst*.log 2>/dev/null | awk '{n+=$1} END{print n+0}')
+  echo "QA20_PROGRESS $finished/20"
+ done
+) &
+MONITOR_PID=$!
 workers_failed=0
 for i in 1 2 3; do
  eval "p=\$worker_$i"
  if wait "$p"; then echo "QA_WORKER_COMPLETE inst$i"; else echo "QA_WORKER_FAILED inst$i";workers_failed=1; fi
  grep -E 'VISIT_(BEGIN|END)|CAPTURE_FAILED_START|Error:|error' "$OUT/worker_inst$i.log" | tail -16 || true
 done
+if [[ -n "$MONITOR_PID" ]];then
+ kill "$MONITOR_PID" >/dev/null 2>&1 || true
+ MONITOR_PID=""
+fi
 restore_owner
 echo '=== STRICT QA AUDIT ==='
 set +e
@@ -263,7 +277,9 @@ for r in plans:
  records.append({'instance':r['instance'],'category':r['category'],'slot':r['slot'],
    'url':r['url'],'status':status,'node_exit':exits.get(r['uid']),'html_bytes':html.stat().st_size if html.exists() else 0,
    'pcap_bytes':size,'packet_count':packets,'pcap_parsed':pcap_parsed,'qa_valid':bool(ok),
-   'errors':data.get('errors',[])})
+   'errors':data.get('errors',[]),'http_status':data.get('http_status'),
+   'consent_action':(data.get('consent') or {}).get('action'),
+   'final_url':data.get('final_url')})
  print('QA_VISIT',r['instance'],r['category'],r['slot'],status,'exit',exits.get(r['uid']),
        'pcap_bytes',size,'packets',packets,'valid',bool(ok))
 passed=(len(plans)==20 and len(exits)==20 and good==20)
@@ -276,7 +292,7 @@ print('FROZEN65_TOTAL_QA_VALID_AFTER_20',str(45+good)+'/65')
 print('REMAINING20_QA_STATUS_COUNTS',dict(collections.Counter(r['status'] for r in records)))
 for r in records:
  print('REMAINING20_SITE',r['instance'],r['category'],r['slot'],
-       r['url'],r['status'],'VALID',r['qa_valid'],'ERRORS',str(r['errors'])[:160])
+       r['url'],r['status'],'VALID',r['qa_valid'],'HTTP',r['http_status'],'CONSENT',r['consent_action'],'ERRORS',str(r['errors'])[:160])
 print('REMAINING20_PCAP_REQUIREMENTS','http_2xx_3xx','content_html','pcap_parse_and_size','consent_policy_v25')
 print('REMAINING20_PCAP_QA_STATUS','QA_PASS' if passed else 'SITES_STILL_UNAVAILABLE_OR_QA_UNRESOLVED')
 sys.exit(0 if passed else 6)
