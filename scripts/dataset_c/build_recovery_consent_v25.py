@@ -11,7 +11,7 @@ from pathlib import Path
 SRC=Path.home()/"ltd-ops/collector-qa-recovery-v1"
 DST=Path.home()/"ltd-ops/collector-qa-recovery-v25"
 BASE_SHA="a4196d17ecc2b5dc52957900a1763a6985860a8c502da5ad3851ec656bd64eeb"
-TARGET_SHA="1bc06ede565bc3dc16a79900424f32e12bca4da8f3fa7a73667616bdde786060"
+TARGET_SHA="0150884d2b0faf568289660ffce31d0536b737b3934f7bc37118c0f34fbec774"
 
 def sha(p):
  return hashlib.sha256(p.read_bytes()).hexdigest()
