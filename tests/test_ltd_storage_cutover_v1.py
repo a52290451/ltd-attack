@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from scripts.ops.cutover_historical_storage_perseo_v1 import (
-    activate_paths,rollback_paths,require
+    activate_paths,rollback_paths,require,material_differences
 )
 
 class StorageCutoverTests(unittest.TestCase):
@@ -22,6 +22,31 @@ class StorageCutoverTests(unittest.TestCase):
         (original/"frozen.txt").write_bytes(b"immutable")
         backup=home/"ltd-storage.precutover-SYNTHETIC"
         return original,data,backup
+
+    def test_root_directory_mtime_only_is_ignored(self):
+        material,ignored=material_differences(".d..t...... ./\n")
+        self.assertEqual(material,[])
+        self.assertEqual(ignored,[".d..t...... ./"])
+
+    def test_actual_file_content_change_is_never_ignored(self):
+        lines=".d..t...... ./\n>fc........ datasets/historical/data.csv\n"
+        material,ignored=material_differences(lines)
+        self.assertEqual(material,[">fc........ datasets/historical/data.csv"])
+        self.assertEqual(len(ignored),1)
+
+    def test_nested_directory_mtime_is_still_blocked(self):
+        material,ignored=material_differences(
+            ".d..t...... ./\n.d..t...... datasets/historical/\n")
+        self.assertEqual(material,[".d..t...... datasets/historical/"])
+        self.assertEqual(len(ignored),1)
+
+    def test_deletion_symlink_or_permission_diffs_are_blocked(self):
+        lines="*deleting datasets/obsolete.csv\n"
+        lines+=".L...p..... datasets/link\n"
+        lines+=".f...p..... datasets/data.csv\n"
+        material,ignored=material_differences(lines)
+        self.assertEqual(len(material),3)
+        self.assertFalse(ignored)
 
     def test_activate_preserves_original_bytes_and_backup(self):
         with TemporaryDirectory() as tmp:
