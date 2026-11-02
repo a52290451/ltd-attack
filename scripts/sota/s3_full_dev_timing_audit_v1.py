@@ -117,12 +117,12 @@ def main(max_uids,save):
                 t=numbers(row["time_vector"],"time")
                 metrics=summarize_trace(d,t)
             except (ValueError,TypeError,OverflowError) as exc:
-                errors.append({"uid":uid,"split":split,"reason":str(exc)[:130]})
+                aggregate["invalid"]+=1
+                if len(errors)<50:
+                    errors.append({"uid":uid,"split":split,"reason":str(exc)[:130]})
                 by_split[split]["invalid"]+=1
                 per_day[date]["invalid"]+=1
                 per_class[label]["invalid"]+=1
-                if len(errors)>50:
-                    raise RuntimeError("More than 50 invalid canonical DEV traces; abort without training")
                 continue
             aggregate["valid"]+=1
             by_split[split]["valid"]+=1
@@ -150,13 +150,14 @@ def main(max_uids,save):
     if max_uids==0:
         insist(len(seen)==57916 and dict(counts)==EXPECTED,
                "full DEV cohort not exactly 57916 and 19098/20160/18658")
-        insist(not errors,"unusable Historical DEV temporal vectors; count="+str(len(errors)))
+        # Still write an audit report if invalid samples were encountered;
+        # never release training until all 57,916 have valid aligned timing.
         insist(aggregate["valid"]==57916,
                "full Historical DEV trace count incomplete")
     result={
         "classification":"SOTA_S3_HISTORICAL_DEV_FULL_TIME_QUALITY_V1",
-        "status":"PASS_FULL_POPULATION" if max_uids==0 and not errors else
-                 ("BLOCKED_INVALID_TIME" if errors else "LIMITED_SMOKE_ONLY"),
+        "status":"PASS_FULL_POPULATION" if max_uids==0 and not aggregate["invalid"] else
+                 ("BLOCKED_INVALID_TIME" if aggregate["invalid"] else "LIMITED_SMOKE_ONLY"),
         "s1_manifest":str(manifest_files[0]),
         "frozen_source_sha256":s1["historical_checksums"]["historical_vectors"]["sha256"],
         "canonical_dev_uids":len(by_uid),
@@ -169,7 +170,7 @@ def main(max_uids,save):
         "samples_by_split":{x:dict(y) for x,y in by_split.items()},
         "samples_by_day":{x:dict(y) for x,y in sorted(per_day.items())},
         "samples_by_class":{x:dict(y) for x,y in sorted(per_class.items())},
-        "anonymized_samples":examples,
+        "affected_uid_examples":examples,
         "invalid_samples":errors[:50],
         "negative_interval_policy":"WFLIB_DT2_CLIP_TO_ZERO_ORIGINAL_PACKET_ORDER",
         "source_modified":False,"future_b_opened":False,
@@ -190,9 +191,10 @@ def main(max_uids,save):
     print("SOTA_S3_FULL_NEGATIVE_STEPS",aggregate["negative_steps"])
     print("SOTA_S3_FULL_CLIPPED_IN_5000",aggregate["negative_steps_used"])
     print("SOTA_S3_FULL_MAX_BACKWARD_SECONDS",max_backward)
-    print("SOTA_S3_FULL_INVALID",len(errors))
+    print("SOTA_S3_FULL_INVALID",aggregate["invalid"])
     print("FUTURE_B_UNTOUCHED=YES")
-    if errors:raise RuntimeError("Invalid canonical DEV time vectors; review report before model training")
+    if aggregate["invalid"]:
+        raise RuntimeError("Invalid canonical DEV time vectors; review saved audit before model training")
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
