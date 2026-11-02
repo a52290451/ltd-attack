@@ -7,7 +7,7 @@ BASE="/data/ltd-c-qa-bsierra/C_DIRECT_V1"
 IMAGE="ghcr.io/puppeteer/puppeteer@sha256:ffdb72533aa06e9adf99d1056fbe5b79c915869f6c2e7de8fa1f1ce8ffda0790"
 CAPTURE="tor_1site_noise:final"
 CHROME="/home/pptruser/.cache/puppeteer/chrome/linux-145.0.7632.76/chrome-linux64/chrome"
-EXPECTED="1bc06ede565bc3dc16a79900424f32e12bca4da8f3fa7a73667616bdde786060"
+EXPECTED="0150884d2b0faf568289660ffce31d0536b737b3934f7bc37118c0f34fbec774"
 [[ -d "$BASE/qa_only" && -f "$APP/capture_dom.js" && -f "$APP/quality.js" ]] ||
  { echo "BLOCKED: QA root or patch missing";exit 3; }
 [[ "$(sha256sum "$APP/capture_dom.js" | awk '{print $1}')" == "$EXPECTED" ]] ||
