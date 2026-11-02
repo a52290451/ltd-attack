@@ -2,6 +2,8 @@
 
 **Checkpoint operativo S3 y Dataset C:** [CHECKPOINT_20261102_SOTA_S3_DATASET_C_PARALLEL.md](../research/CHECKPOINT_20261102_SOTA_S3_DATASET_C_PARALLEL.md) — incluye verificaciones ya realizadas, commits de referencia, pruebas locales pendientes y procedimiento de auditoría read-only de cron/capturas. Es el historial de decisiones de implementación en curso; no sustituye los manifiestos históricos congelados.
 
+**Protocolo ex ante S4:** [DF/VarCNN — entrenamiento cronológico, semillas y métricas](SOTA_S4_EXANTE_TRAINING_V1.md). Configuración machine-readable: [sota_s4_frozen_protocol_v1.json](../../configs/sota/sota_s4_frozen_protocol_v1.json). El gate de preflight debe pasar antes de entrenar datos reales.
+
 **Manual operativo GPU S3:** [entorno PyTorch CUDA 12.8 y auditoría Historical DEV](SOTA_S3_RUNTIME_GPU_V1.md).
 
 **Estado 2026-11-02:** preparación, sin ejecución de entrenamiento ni evaluación adicional. Reconciliación con documentación histórica: [protocolo de comparación 2026-10-30](../research/LTD_ATTACK_SOTA_FAIR_COMPARISON_PROTOCOL_DRAFT_20261030.md), [inferencia congelada V4](../research/LTD_ATTACK_STATISTICAL_INFERENCE_CLOSEOUT_V4_20261030.md), [linaje de features](../FEATURE_LINEAGE.md). Este es el **punto de entrada operativo único** para SOTA; conservar los documentos originales como evidencia histórica (no son basura).
@@ -69,4 +71,4 @@ Indicadores complementarios **obligatorios**: N y días por cohorte, Top-1/Top-5
 
 `.gitignore` ya excluye `*.pcap`, `*.pth`, `*.pt`, `*.ckpt`, `*.joblib`, `results/`, `data/local/`, `__pycache__` y entornos virtuales. **Auditar** antes de eliminar archivos: no borrar pruebas científicas congeladas, scripts históricos citados, documentación de hallazgos, datos A/B, artefactos C, ni reportes con SHA. Solo se eliminará basura comprobada (logs, cachés, temporales y duplicados sin referencias), mediante rutas precisas y una revisión explícita; nunca `git clean -fdx`, borrados masivos o `docker prune`.
 
-**Situación actual:** S1 requiere superar fuentes y tests; no hay entrenamiento SOTA validado en esta versión.
+**Situación actual (2026-11-02):** S1–S3 han superado pruebas de integridad/arquitectura en Perseo (37/37 S3, 57.916 DEV auditados, forwards CPU/CUDA), con la salvedad documental del split 09A reconstruido y la verificación posterior del orden de clases. S4 dispone de **configuración ex ante y pruebas propuestas**, pero no de preflight PASS todavía ni de entrenamiento Historical. La infraestructura de almacenamiento continúa aparte: no bloquear la planificación de SOTA por un cutover de HOME.
