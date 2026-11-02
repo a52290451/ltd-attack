@@ -231,7 +231,8 @@ def run(fast):
     idx,counts,assignments_origin=assignments()
     if fast:
         print("SOTA_S1_ASSIGNMENTS_PASS",dict(counts))
-        print("SOTA_S1_FAST_ONLY=YES_NO_PAYLOAD_READ")
+        print("SOTA_S1_ASSIGNMENT_ORIGIN",assignments_origin["method"])
+        print("SOTA_S1_FAST_ONLY=YES_NO_VECTOR_READ")
         print("FUTURE_B_UNTOUCHED=YES")
         return
     meta,macro_counts,dates,sets=metadata(idx)
@@ -301,14 +302,40 @@ def run(fast):
     print("SOTA_S1_FROZEN_HISTORICAL=PASS",flush=True)
     print("FUTURE_B_UNTOUCHED=YES",flush=True)
 
+def selftest():
+    cases={
+        "2025-11-17":None,
+        "2025-11-18":"DEV_EARLY",
+        "2025-12-01":"DEV_EARLY",
+        "2025-12-02":"DEV_MIDDLE",
+        "2025-12-15":"DEV_MIDDLE",
+        "2025-12-16":"DEV_LATE",
+        "2025-12-28":"DEV_LATE",
+        "2025-12-29":"INTERNAL_TEST",
+        "2026-01-08":"INTERNAL_TEST",
+        "2026-01-09":None,
+    }
+    for date,expected in cases.items():
+        insist(frozen_date_to_split(date)==expected,
+               "date boundary selftest failed "+date)
+    insist(parse_date("2025-11-18",None)=="2025-11-18",
+           "ISO date parser mismatch")
+    insist(parse_date("", "pcap_20251228-010101.pcap")=="2025-12-28",
+           "PCAP date parser mismatch")
+    print("SOTA_S1_SELFTEST_PASS=YES_12_CASES")
+    print("NO_DATA_READ_NO_TRAINING=YES")
+
 if __name__=="__main__":
     ap=argparse.ArgumentParser()
     ap.add_argument("--fast",action="store_true",
-                    help="Verify split counts only; no dataset payload or hashing")
+                    help="Verify split counts without reading vector payload; reconstruction may read/hash Historical Macro")
+    ap.add_argument("--selftest",action="store_true",
+                    help="Test exact frozen split boundaries without accessing data")
     args=ap.parse_args()
     try:
         csv.field_size_limit(sys.maxsize)
-        run(args.fast)
+        if args.selftest:selftest()
+        else:run(args.fast)
     except Exception as error:
         print("SOTA_S1_ABORTED",type(error).__name__,str(error)[:500],
               file=sys.stderr,flush=True)
