@@ -19,10 +19,12 @@ La organización de código versionado se mantiene dentro de este repositorio:
 | Tipo | Ubicación objetivo | Política |
 |---|---|---|
 | Repositorio, scripts, documentación y código | `/home/bsierra/ltd-attack` | Única fuente Git de LTD; no crear proyectos paralelos |
-| Dependencias y virtualenv de LTD | Dentro de `/home/bsierra/ltd-attack`, fuera de Git | **Reutilizar primero**; creación/migración solamente después de inventario y aprobación de espacio |
+| Dependencias y virtualenv de LTD | `/home/bsierra/ltd-venv` (preexistente) | **Evaluar y reutilizar antes de instalar nada**; no modificarlo sin verificar compatibilidad con sus usos anteriores |
 | Código upstream WFlib fijado por commit | Subdirectorio ignorado dentro del paraguas LTD | No duplicar repositorios ni romper referencias existentes sin migración verificada |
 | Capturas, datasets, artefactos grandes, checkpoints y resultados | Almacenamiento `/data` | Mantener bases históricas y Dataset C intactos; configurar rutas centralmente |
 | Logs/evidencia operativa preexistentes | Rutas actuales hasta inventario y migración segura | No borrar, renombrar ni cambiar cron automáticamente |
+
+**Corrección confirmada con captura de terminal:** existe el entorno Python `/home/bsierra/ltd-venv` con `bin/`, `include/`, `lib/`, `lib64/` y `pyvenv.cfg`. La búsqueda anterior solo inspeccionaba `~/ltd-attack` y, por su alcance, lo omitió. **El entorno ya existente es el primer candidato de reutilización**, pero sus versiones y dependencias siguen pendientes de auditoría de solo lectura. No crear `~/ltd-attack/.venv` automáticamente.
 
 **Estado transitorio identificado el 2026-11-02:** un entorno PyTorch
 `/data/ltd-sota-bsierra/venv-cu128` fue instalado y validado en CPU/CUDA;
