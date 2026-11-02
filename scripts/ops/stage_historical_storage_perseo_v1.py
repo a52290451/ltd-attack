@@ -55,7 +55,7 @@ def rsync_args(*,verify):
     if verify:
         args+=["--checksum","--dry-run","--delete","--itemize-changes"]
     else:
-        args+=["--partial","--stats","--itemize-changes"]
+        args+=["--partial","--stats","--info=progress2"]
     return args+[str(SOURCE)+"/",str(DEST)+"/"]
 
 def stage():
