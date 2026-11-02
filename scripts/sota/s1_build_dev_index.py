@@ -35,6 +35,9 @@ DAY_RANGES={
 SHA_HIST_VECTORS="a8a88041c44e5627e126e2c29c7e068b17c8598a0b01c63a5ff1cd3105c2c7c9"
 SHA_HIST_MACRO="cadfc0848caca0b2556e03b9061f842e19e1d99d862bc39dc7c0bf56169375ce"
 SHA_ASSIGN="d095195f7b376fb8835cb4488375de68c5692573ba4e776d0b2fb909989a030d"
+FROZEN_CLASSES=ROOT/"docs/evidence/MACRO-V2-HIST/00_class_counts.csv"
+FROZEN_SITE_SPLITS=ROOT/"docs/evidence/MACRO-V2-HIST/01_per_site_split_counts.csv"
+FROZEN_DATES=ROOT/"docs/evidence/MACRO-V2-HIST/00_date_counts.csv"
 DATE_COMPACT=re.compile(r"20\d{6}")
 
 def insist(cond,reason):
@@ -69,6 +72,49 @@ def parse_date(date_id,pcap_name):
             except ValueError:pass
     return None
 
+def frozen_evidence():
+    """Independent 00/01 archived class/split/date counts, not a new class selection."""
+    with FROZEN_CLASSES.open(newline="",encoding="utf-8") as f:
+        r=csv.DictReader(f)
+        insist(set(r.fieldnames or [])=={"site_label","rows"},
+               "historical audited class-count schema changed")
+        counts={}
+        for row in r:
+            label=row["site_label"].strip()
+            insist(label and label not in counts,"duplicate/blank frozen class")
+            counts[label]=int(row["rows"])
+    insist(len(counts)==65 and sum(counts.values())==72603,
+           "audited historical population not 65 classes / 72603 captures")
+    with FROZEN_SITE_SPLITS.open(newline="",encoding="utf-8") as f:
+        r=csv.DictReader(f)
+        insist(set(r.fieldnames or [])=={"site_label",*EXPECTED},
+               "frozen per-class split schema changed")
+        bysite={}
+        for row in r:
+            label=row["site_label"].strip()
+            insist(label in counts and label not in bysite,"split label mismatch")
+            nums={split:int(row[split]) for split in EXPECTED}
+            insist(sum(nums.values())==counts[label],
+                   "archived per-site total does not match "+label)
+            bysite[label]=nums
+    insist(set(bysite)==set(counts),"frozen class and split labels differ")
+    insist(all(sum(row[split] for row in bysite.values())==n
+               for split,n in EXPECTED.items()),"frozen split totals disagree")
+    with FROZEN_DATES.open(newline="",encoding="utf-8") as f:
+        r=csv.DictReader(f)
+        insist(set(r.fieldnames or [])=={"_audit_date","rows","sites"},
+               "historical archived date-count schema changed")
+        date_counts={}
+        for row in r:
+            date=row["_audit_date"].strip()
+            insist(date not in date_counts and frozen_date_to_split(date),
+                   "duplicate or out-of-range canonical date")
+            date_counts[date]=int(row["rows"])
+    insist(len(date_counts)==52 and sum(date_counts.values())==72603,
+           "archived historical per-date 52/72603 mismatch")
+    return counts,bysite,date_counts
+
+
 def frozen_date_to_split(date):
     for split,(lo,hi,_) in DAY_RANGES.items():
         if lo<=date<=hi:return split
@@ -77,6 +123,11 @@ def frozen_date_to_split(date):
 def assignments():
     index={}
     counts=Counter()
+    class_counts,site_splits,date_counts=frozen_evidence()
+    found_site_splits=Counter()
+    found_sites=Counter()
+    found_dates=Counter()
+    excluded_noncanonical=0
     if ASSIGN.is_file():
         insist(not ASSIGN.is_symlink(),"original frozen assignment is a symlink")
         insist(sha256(ASSIGN)==SHA_ASSIGN,
@@ -109,28 +160,53 @@ def assignments():
                    ({"date_id","pcap_name"}&set(r.fieldnames or [])),
                    "canonical Historical Macro metadata missing UID/date")
             for row in r:
+                label=row["site_label"].strip()
+                if label not in class_counts:
+                    excluded_noncanonical+=1
+                    continue
                 uid=row["pcap_uid"].strip()
                 date=parse_date(row.get("date_id"),row.get("pcap_name"))
                 split=frozen_date_to_split(date or "")
                 insist(bool(uid) and uid not in index,
-                       "duplicate/blank UID while reconstructing split")
+                       "duplicate/blank canonical UID while reconstructing split")
                 insist(split is not None,
-                       "Historical Macro date outside frozen 52-day bounds")
+                       "canonical Historical Macro date outside frozen 52-day bounds")
                 index[uid]=split
                 counts[split]+=1
                 dates[split].add(date)
+                found_sites[label]+=1
+                found_site_splits[(label,split)]+=1
+                found_dates[date]+=1
         for split in EXPECTED:
             insist(len(dates[split])==DAY_RANGES[split][2],
-                   "reconstructed split date-cardinality mismatch "+split)
+                   "reconstructed canonical split date-cardinality mismatch "+split)
+        insist(dict(found_sites)==class_counts,
+               "recovered class populations differ from original audited class-count CSV")
+        insist(dict(found_dates)==date_counts,
+               "recovered daily populations differ from original audited date-count CSV")
+        insist(all(found_site_splits[(label,split)]==n
+                   for label,row in site_splits.items() for split,n in row.items()),
+               "recovered per-class-per-split populations differ from archived 01 counts")
         provenance={"method":"RECONSTRUCTED_FROM_VERIFIED_HISTORICAL_MACRO_DATES",
                     "source":str(HIST_MACRO),"sha256":SHA_HIST_MACRO,
                     "date_windows_source":"docs/FEATURE_LINEAGE.md / F6",
                     "original_assignment_sha256_expected":SHA_ASSIGN,
                     "original_assignment_hash_verified":False,
-                    "requires_original_UID_crosswalk_if_found":True}
+                    "requires_original_UID_crosswalk_if_found":True,
+                    "canonical_filter_source":str(FROZEN_CLASSES),
+                    "canonical_site_split_crosscheck":str(FROZEN_SITE_SPLITS),
+                    "canonical_date_crosscheck":str(FROZEN_DATES),
+                    "excluded_noncanonical_macro_rows":excluded_noncanonical,
+                    "per_site_per_split_counts_match_archive":True,
+                    "per_day_counts_match_archive":True}
     insist(dict(counts)==EXPECTED,
            "expected 57916 DEV + 14687 INTERNAL, found "+str(dict(counts)))
     print("SOTA_S1_ASSIGNMENTS_SOURCE",provenance["method"],flush=True)
+    if "excluded_noncanonical_macro_rows" in provenance:
+        print("SOTA_S1_EXCLUDED_NONCANONICAL_ROWS",
+              provenance["excluded_noncanonical_macro_rows"],flush=True)
+        print("SOTA_S1_PER_SITE_SPLIT_COUNTS=PASS",flush=True)
+        print("SOTA_S1_PER_DAY_COUNTS=PASS",flush=True)
     return index,counts,provenance
 
 def metadata(dev):
@@ -280,6 +356,7 @@ def run(fast):
         "dev_index_sha256":sha256(index_file),
         "label_order_file":str(label_file),
         "label_order_sha256":sha256(label_file),
+        "label_order_verified_against_frozen_score_arrays":False,
         "vector_representation":"direction_vector: -1/0/+1, fixed-size input not yet chosen",
         "vector_length_audit":vector_lengths,
         "faithful_original_df_5000_input_verified":False,
@@ -322,7 +399,10 @@ def selftest():
            "ISO date parser mismatch")
     insist(parse_date("", "pcap_20251228-010101.pcap")=="2025-12-28",
            "PCAP date parser mismatch")
-    print("SOTA_S1_SELFTEST_PASS=YES_12_CASES")
+    cc,ss,dc=frozen_evidence()
+    insist(len(cc)==65 and len(ss)==65 and len(dc)==52,
+           "archive selftest did not establish population")
+    print("SOTA_S1_SELFTEST_PASS=YES_12_CASES_PLUS_ARCHIVED_COUNTS")
     print("NO_DATA_READ_NO_TRAINING=YES")
 
 if __name__=="__main__":
