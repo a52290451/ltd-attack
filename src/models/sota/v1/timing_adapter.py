@@ -11,8 +11,11 @@ Upstream: WFlib/tools/data_processor.py at pinned WFlib
 Crucial: If X=direction*time and time[0]=0, np.sign(X[0]) is
 zero, losing the first direction. A +1 second offset to the signed
 timestamp representation preserves sign while leaving all gaps identical:
-  signed[i]=direction[i]*(1.0+time[i])
+  signed[i]=direction[i]*(offset+time[i]) with offset>abs(min(time))
   sign(signed[i])=direction[i], diff(abs(signed))=diff(time).
+In keeping with WFlib's actual DT2 transform, any negative consecutive
+timestamp deltas are set to zero, NOT sorted or rewritten. Count and report
+negative steps separately to preserve scientific provenance.
 We compute the two channels directly in Python float64 then store float32
 only after differencing; no absolute epoch precision loss. For >=5001
 packets, IAT at index 4999 needs the *5001st* timestamp (WFlib diffs
@@ -33,6 +36,9 @@ class DT2Example(NamedTuple):
     input_length:int
     gaps_considered:int
     dropped_packets:int
+    negative_gaps_total:int
+    negative_gaps_used:int
+    largest_backward_seconds:float
 
 def parse_times(raw:str)->list[float]:
     if not isinstance(raw,str) or not raw.startswith("[") or not raw.endswith("]"):
@@ -45,12 +51,11 @@ def parse_times(raw:str)->list[float]:
     if any(type(t) not in (float,int) or not math.isfinite(t) for t in values):
         raise ValueError("time_vector must contain finite numeric seconds")
     result=[float(t) for t in values]
-    if result[0]<-1e-8 or abs(result[0])>1e-3:
+    if abs(result[0])>1e-3:
         raise ValueError("expected per-PCAP relative times starting at zero")
-    for i in range(len(result)-1):
-        if result[i+1]+1e-8<result[i]:
-            raise ValueError("time_vector not monotonic")
-    if result[-1]<-1e-8:raise ValueError("invalid negative end time")
+    # PCAP frame order can contain decreasing timestamps. The WFlib DT2
+    # reference does not sort them; it clips negative *differences* to zero.
+    # We preserve original timestamps and expose negative-gap diagnostics.
     return result
 
 def dt2_from_sequences(directions:array,times:list[float],length:int=5000)->DT2Example:
@@ -67,8 +72,13 @@ def dt2_from_sequences(directions:array,times:list[float],length:int=5000)->DT2E
         raise ValueError("time entries must be finite")
     if abs(times[0])>1e-3:
         raise ValueError("relative time starts away from zero")
-    if any(times[i+1]+1e-8<times[i] for i in range(n-1)):
-        raise ValueError("timestamps decrease")
+    # WFlib DT2, data_processor.py: diff(abs(X)); negative differences -> 0.
+    # Never sort timestamps, delete packets, silently re-time observations or
+    # infer missing time. Diagnostics make each clipping event observable.
+    backward=[max(0.0,float(times[i])-float(times[i+1]))
+              for i in range(n-1)]
+    negative_total=sum(x>0 for x in backward)
+    largest_back=max(backward,default=0.0)
     n_dir=min(n,length)
     n_gaps=min(n-1,length)
     c_dir=array("f",(float(directions[i]) for i in range(n_dir)))
@@ -78,7 +88,9 @@ def dt2_from_sequences(directions:array,times:list[float],length:int=5000)->DT2E
     if len(c_time)<length:c_time.extend([0.0]*(length-len(c_time)))
     if len(c_dir)!=length or len(c_time)!=length:
         raise AssertionError("DT2 channels did not align to requested length")
-    return DT2Example(c_dir,c_time,n,length,n_gaps,max(0,n-length))
+    return DT2Example(c_dir,c_time,n,length,n_gaps,max(0,n-length),
+                      negative_total,sum(x>0 for x in backward[:n_gaps]),
+                      largest_back)
 
 def dt2_from_text(direction_text:str,time_text:str,length:int=5000)->DT2Example:
     d=parse_direction(direction_text)
@@ -91,4 +103,8 @@ def reference_signed_timestamps(directions:array,times:list[float])->list[float]
         raise ValueError("unaligned diagnostic vectors")
     if any(x not in (-1,1) for x in directions):
         raise ValueError("signed time needs observed +/-1 directions")
-    return [float(directions[i])*(float(times[i])+1.0) for i in range(len(times))]
+    if any(type(t) not in (int,float) or not math.isfinite(t) for t in times):
+        raise ValueError("nonfinite signed timestamp")
+    offset=1.0+max(0.0,-min(times))
+    return [float(directions[i])*(float(times[i])+offset)
+            for i in range(len(times))]
