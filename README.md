@@ -30,13 +30,16 @@ es una **excepción a la política**, no una estructura nueva aprobada. También
 existen `~/ltd-ops/sota` (informes y checkout upstream) y
 `~/ltd-ops/dataset-c-direct120` (logs cron), mientras
 `configs/environments/perseo.yaml` declara
-`/home/bsierra/ltd-storage`. Todavía **no se ha verificado** si
-`ltd-storage` es enlace, montaje o directorio físico. No mover nada sin
-comprobar sus referencias y el sistema de archivos real.
+`/home/bsierra/ltd-storage`. La terminal de Perseo confirma que esta
+ruta resuelve sobre sí misma y está en la partición raíz, **96 % ocupada**;
+su tamaño y dependencia exactos todavía necesitan inventario. No mover
+nada sin comprobar referencias y espacio.
 
 **No confundir GPU con disco:** el valor 96 % observado corresponde a la
 partición raíz `/`; una lectura anterior de `nvidia-smi` registró 0 %
 de uso GPU y 15.827 MiB VRAM libre, sin identificar procesos ajenos.
+
+Consulta primero el [inventario físico y plan de consolidación de Perseo](docs/operations/LTD_PERSEO_LAYOUT_CONSOLIDATION_20261102.md).
 
 Consulta el [procedimiento de organización y diagnóstico S3](docs/sota/SOTA_S3_RUNTIME_GPU_V1.md)
 y el [checkpoint de S3 y Dataset C](docs/research/CHECKPOINT_20261102_SOTA_S3_DATASET_C_PARALLEL.md).
