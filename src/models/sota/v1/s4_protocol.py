@@ -15,6 +15,11 @@ from typing import Iterable
 SPLIT_ORDER=("DEV_EARLY","DEV_MIDDLE","DEV_LATE")
 EXPECTED_COUNTS={"DEV_EARLY":19098,"DEV_MIDDLE":20160,"DEV_LATE":18658}
 EXPECTED_DAYS={"DEV_EARLY":14,"DEV_MIDDLE":14,"DEV_LATE":13}
+EXPECTED_BOUNDS={
+    "DEV_EARLY":("2025-11-18","2025-12-01"),
+    "DEV_MIDDLE":("2025-12-02","2025-12-15"),
+    "DEV_LATE":("2025-12-16","2025-12-28")
+}
 EXPECTED_UPSTREAM="537ec8e03c805540b04b95b144fa158ce50aa255"
 EXPECTED_INPUTS={"DF":(1,128,0.002,"Adamax"),
                  "VarCNN":(2,50,0.001,"Adam")}
@@ -48,10 +53,9 @@ def validate_config(c:dict)->None:
     insist(tuple(pop["training_splits"])==SPLIT_ORDER,"chronological DEV order changed")
     date_pairs=pop["dates"]
     for name in SPLIT_ORDER:
-        assert len(date_pairs[name])==2
-        lo,hi=(dt.date.fromisoformat(x) for x in date_pairs[name])
-        insist(lo<=hi and (hi-lo).days+1==EXPECTED_DAYS[name],
-               "DEV chronological date range mismatch "+name)
+        insist(len(date_pairs[name])==2
+               and tuple(date_pairs[name])==EXPECTED_BOUNDS[name],
+               "DEV exact chronological bounds mismatch "+name)
     insist(c["model_source"]["commit"]==EXPECTED_UPSTREAM,
            "WFlib upstream source changed")
     insist(set(c["model_configs"])==set(EXPECTED_INPUTS),"unexpected baselines")
@@ -122,6 +126,9 @@ def examine_s1_index(by_uid:dict)->dict:
            "not all DEV splits contain 65 classes")
     insist([len(dates[s]) for s in SPLIT_ORDER]==[14,14,13],
            "DEV date count not frozen")
+    insist(all((min(dates[s]).isoformat(),max(dates[s]).isoformat())==
+               EXPECTED_BOUNDS[s] for s in SPLIT_ORDER),
+           "DEV exact date bounds not frozen")
     insist(max(dates["DEV_EARLY"])<min(dates["DEV_MIDDLE"])
            and max(dates["DEV_MIDDLE"])<min(dates["DEV_LATE"]),
            "temporal train/validation leakage detected")
