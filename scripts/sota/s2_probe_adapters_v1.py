@@ -56,8 +56,9 @@ def run(samples_per_split):
             "canonical Historical vector schema missing")
     got=Counter()
     observations=[]
-    for example in iter_dev_vectors(source,uid_map,labels,DEFAULT_LENGTH):
-        if got[example.temporal_split]>=samples_per_split:continue
+    for example in iter_dev_vectors(
+            source,uid_map,labels,DEFAULT_LENGTH,
+            per_split_limit=samples_per_split):
         got[example.temporal_split]+=1
         fail_if(len(example.directions)!=5000,"DF input shape not 5000")
         fail_if(example.label_id not in range(65),"out-of-range class ID")
