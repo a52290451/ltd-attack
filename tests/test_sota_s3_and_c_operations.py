@@ -15,7 +15,7 @@ sys.path.insert(0,str(ROOT/"scripts"/"sota"))
 from src.models.sota.v1.upstream_models import (
     WFLIB_BLOBS,WFLIB_COMMIT,audit_signatures,get_model
 )
-from scripts.dataset_c.audit_halfsplit_operations_v1 import parse_batch
+from scripts.dataset_c.audit_halfsplit_operations_v1 import parse_batch,parse_start
 from scripts.sota.s3_time_channel_audit_v1 import parse_numeric
 
 BATCHES={
@@ -71,6 +71,18 @@ class PinnedSotaTests(unittest.TestCase):
                     parse_numeric("time",raw)
 
 class DatasetCOpsTests(unittest.TestCase):
+    def test_real_run_id_minutes_parsed(self):
+        original=parse_start("direct120_half_first_20261102T120108Z_451","first")
+        alternate=parse_start("direct120_half_second_20261102T123006Z_452","second")
+        self.assertIsNotNone(original)
+        self.assertEqual(original.strftime("%Y%m%dT%H"),"20261102T12")
+        self.assertEqual(alternate.strftime("%Y%m%dT%H"),"20261102T12")
+
+    def test_invalid_or_cross_batch_run_id_rejected(self):
+        self.assertIsNone(parse_start("direct120_half_second_20261102T123006Z_452",
+                                      "first"))
+        self.assertIsNone(parse_start("synthetic_test_only","second"))
+
     def test_original_3x20_per_batch_passes(self):
         with TemporaryDirectory() as d:
             p=Path(d)/"report.json"
