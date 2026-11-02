@@ -40,7 +40,7 @@ Detectadas revisando código versionado:
   tests/                         # Contratos de integridad
   docs/                          # Evidencia y decisiones
   .vendor/WFlib/                 # Checkout externo fijado, ignorado por Git
-  .venv/                         # Un entorno reutilizado, NO instalar todavía
+  # Entorno preexistente: /home/bsierra/ltd-venv; evaluar antes de crear .venv
 
 /data/                            # Datos y productos de investigación
   ltd-c-qa-bsierra/               # Dataset C, no alterar
@@ -81,6 +81,44 @@ git status --short
 ```
 
 **Nota:** si uno de los escaneos llega al límite de 120 s, su tamaño no queda establecido; no interpretarlo como 0. No ejecutar migración si hay rutas originales que no pudieron inventariarse. Cualquier salida del comando `crontab -l` se usa exclusivamente como evidencia, sin actualizar el planificador.
+
+## 4.1. Auditoría real de `~/ltd-venv`: se encontró y es diferente a SOTA
+
+**Salida comprobada en Perseo tras revisar el directorio hermano del repositorio:**
+
+| Elemento | `~/ltd-venv` preexistente | `/data/ltd-sota-bsierra/venv-cu128` |
+|---|---|---|
+| Python | `3.12.3`, ejecutable `/home/bsierra/ltd-venv/bin/python` | PyTorch wheel `cp312`, forward CPU/CUDA comprobado |
+| Tamaño físico | **167 MB** | **6,7 GB** |
+| NumPy | **2.5.4** | **2.2.6** |
+| Pandas | **3.1.0** | No inventariado |
+| PyTorch | **No instalado** | **2.11.0+cu128** |
+| SciPy / scikit-learn | **No instalados** | No inventariado |
+
+El archivo `~/ltd-venv/pyvenv.cfg` declara `home = /usr/bin`, `version = 3.12.3`, `executable = /usr/bin/python3.12` y `include-system-site-packages = false`. Por tanto, el entorno anterior fue un aislamiento intencional de LTD y **no se debe actualizar o borrar sin revisar sus dependencias y consumidores**. Un solo proyecto paraguas **no obliga** a mezclar librerías incompatibles; pero tampoco justifica copias o entornos redundantes sin necesidad.
+
+**Decisión de seguridad y almacenamiento:** el entorno PyTorch nuevo ocupa 6,7 GB y ya está instalado (no repetir descargas); mantenerlo sin modificación como excepción temporal hasta decidir migración. La raíz conserva ~38 GB libres y 96 % de uso, por lo que **no instalar otros 6,7 GB sobre `~/ltd-venv` todavía**. La próxima investigación deberá responder qué parte de `~/ltd-storage` y otros directorios de HOME consume espacio, qué contenidos realmente deberían estar en `/data`, y qué proyectos usan `~/ltd-venv`. Ninguna migración sin copia controlada, verificación de hash y pruebas de rutas antes de retirar el origen.
+
+### Medición siguiente (solo lectura, sin copiar ni instalar)
+
+```bash
+cd ~/ltd-attack
+echo "=== OCUPACION FISICA DIRECTA EN HOME ==="
+ionice -c3 nice -n 10 du -xhd1 "$HOME" 2>/dev/null | sort -h
+echo "=== STORAGE HISTORICO, SIN TOCAR DATOS ==="
+ionice -c3 nice -n 10 du -xhd1 "$HOME/ltd-storage" 2>/dev/null | sort -h
+echo "=== CODIGO / OPERACION LTD ==="
+for d in "$HOME/ltd-attack" "$HOME/ltd-ops" "$HOME/ltd-venv" \
+         "$HOME/ltd-collector-c-smoke-v22"; do
+  [ ! -d "$d" ] || ionice -c3 nice -n 10 du -xsh "$d"
+done
+echo "=== PARTICIONES ==="
+df -h "$HOME" /data
+echo "=== CONSUMIDORES ACTIVOS DEL ENTORNO EXISTENTE ==="
+ps -eo pid,user,args | grep -F "$HOME/ltd-venv" | grep -v grep || true
+```
+
+**No usar `du /`, `rm`, `pip install`, `mv`, `crontab -`, `docker prune` ni cambiar config durante el diagnóstico.** El total de HOME puede tardar según el número de archivos; `du` no accede a /data por ser otro montaje con `-x`. Si alguna ruta impide lectura, reportar limitación en vez de inferir un tamaño nulo.
 
 ## 5. Plan de consolidación sujeto a evidencia
 
