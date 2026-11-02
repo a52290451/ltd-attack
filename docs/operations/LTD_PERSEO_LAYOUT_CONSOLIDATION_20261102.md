@@ -129,3 +129,40 @@ ps -eo pid,user,args | grep -F "$HOME/ltd-venv" | grep -v grep || true
 5. **Separar resultados futuros de SOTA/C** bajo carpetas aprobadas en `/data` y documentar la asignación centralizada, preservando rutas de manifiestos S1/S2/S3 congeladas.
 
 **Gates científicos todavía pendientes:** semillas, presupuesto de epochs, comparación de arquitectura DF-WFlib/VarCNN-WFlib, orden exacto de 65 clases y protocolo de validación temporal. Internal 09B y Future-B no se usan para entrenar o seleccionar hiperparámetros. Dataset C continúa QA por NTP no sincronizado.
+
+## 6. Inventario causal terminado; decisión ejecutable
+
+**Evidencia de Perseo (2 noviembre):** raíz `824G/745G/38G/96%`; `/data` `2,7T/2,0T/571G/79%`.
+
+| Ruta | Ocupación | Naturaleza |
+|---|---:|---|
+| `~/ltd-storage` | **27G** | Almacenamiento histórico en disco raíz |
+| `~/ltd-storage/datasets` | **26G** | Datos históricos: preservar |
+| `~/ltd-storage/artifacts` | 694M | Artefactos: preservar |
+| `~/ltd-storage/results` | 178M | Resultados: preservar |
+| `~/ltd-storage/audits` | 158M | Evidencia: preservar |
+| `~/ltd-attack` | 35M | Código versionado en HOME |
+| `~/ltd-ops` | 4,0M | Evidencia operativa/checkouts |
+| `~/ltd-venv` | 167M | Venv original NumPy/Pandas |
+| `~/ltd-dataset-c-recovery` | 206M | Trabajo histórico |
+| `/data/ltd-sota-bsierra/venv-cu128` | 6,7G | CUDA temporal validado |
+
+`git status --short` sin cambios locales; `ps` no mostró referencias activas a `~/ltd-venv` en la instantánea, lo que no prueba ausencia de dependencias en scripts.
+
+### Fase 1 — staging seguro y verificación íntegra (no cutover)
+
+El script versionado `scripts/ops/stage_historical_storage_perseo_v1.py` hace una **copia** de `~/ltd-storage` a `/data/ltd-attack/storage`, exige montaje separado, destino exclusivo y reserva suficiente, usa `ionice -c3 nice -n 10`, `rsync -aH`, y luego efectúa una comparación con `rsync --checksum --dry-run --delete`. Con `--dry-run`, `--delete` **solo detecta archivos sobrantes**, jamás borra. El origen se conserva idéntico; no toca cron, Dataset C, entorno Python, archivos de configuración ni resultados SOTA. Reporte en el destino bajo /data.
+
+```bash
+cd ~/ltd-attack
+git fetch origin feature/macro-v2-historical-only &&
+git merge --ff-only FETCH_HEAD &&
+python3 -m py_compile scripts/ops/stage_historical_storage_perseo_v1.py &&
+python3 scripts/ops/stage_historical_storage_perseo_v1.py --stage-and-verify
+```
+
+**Aceptación:** `LTD_STAGE_VERIFY=PASS_IDENTICAL_CHECKSUM_DRY_RUN` y `LTD_SOURCE_REMOVED=NO`. Las dos copias (27G raíz + 27G /data) coexistirán temporalmente; **esto todavía no libera disco raíz**. Si el origen cambia mientras se copia, la verificación detectará las diferencias y no autoriza un cutover.
+
+### Fase 2 — pendiente de comprobación
+
+Solo con PASS de fase 1 se estudiará un cambio de ruta **reversible** que preserve el nombre histórico `~/ltd-storage` y sus consumidores, con rollback probado antes de retirar ninguna copia. No borrar ni mover el origen automáticamente. **No migrar venv durante la copia.** Tras espacio liberado de forma controlada, evaluar añadir PyTorch al entorno preexistente `~/ltd-venv` (167MB), con contrato de compatibilidad y validación CUDA; no crear un tercero ni tocar `/data/ltd-sota-bsierra/venv-cu128` todavía.
