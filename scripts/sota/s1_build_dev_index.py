@@ -17,7 +17,6 @@ import os
 from pathlib import Path
 import re
 import sys
-import tempfile
 
 ROOT=Path(__file__).resolve().parents[2]
 MANIFEST=ROOT/"docs/evidence/FINAL/09A_manifest_final_dev_refit.json"
@@ -70,23 +69,69 @@ def parse_date(date_id,pcap_name):
             except ValueError:pass
     return None
 
+def frozen_date_to_split(date):
+    for split,(lo,hi,_) in DAY_RANGES.items():
+        if lo<=date<=hi:return split
+    return None
+
 def assignments():
     index={}
     counts=Counter()
-    with ASSIGN.open("r",encoding="utf-8",newline="") as f:
-        r=csv.DictReader(f)
-        insist({"pcap_uid","temporal_split"}<=set(r.fieldnames or []),
-               "temporal assignment schema changed")
-        for row in r:
-            uid=row["pcap_uid"].strip()
-            split=row["temporal_split"].strip()
-            insist(bool(uid) and uid not in index,"duplicate/blank assigned UID")
-            insist(split in EXPECTED,"unrecognized historical split")
-            index[uid]=split
-            counts[split]+=1
+    if ASSIGN.is_file():
+        insist(not ASSIGN.is_symlink(),"original frozen assignment is a symlink")
+        insist(sha256(ASSIGN)==SHA_ASSIGN,
+               "original frozen assignment SHA256 differs from 09A manifest")
+        with ASSIGN.open("r",encoding="utf-8",newline="") as f:
+            r=csv.DictReader(f)
+            insist({"pcap_uid","temporal_split"}<=set(r.fieldnames or []),
+                   "temporal assignment schema changed")
+            for row in r:
+                uid=row["pcap_uid"].strip()
+                split=row["temporal_split"].strip()
+                insist(bool(uid) and uid not in index,"duplicate/blank assigned UID")
+                insist(split in EXPECTED,"unrecognized historical split")
+                index[uid]=split
+                counts[split]+=1
+        provenance={"method":"ORIGINAL_FROZEN_ASSIGNMENT",
+                    "source":str(ASSIGN),"sha256":SHA_ASSIGN,
+                    "original_assignment_hash_verified":True}
+    else:
+        # Original file missing at its historically registered 09A path.
+        # Recreate UID-to-time-window association from *verified Historical A*
+        # Macro metadata and the exact DEV/INTERNAL date bounds in FEATURE_LINEAGE.
+        # Never claim the reconstructed CSV matches the missing original bytes.
+        insist(sha256(HIST_MACRO)==SHA_HIST_MACRO,
+               "cannot reconstruct split from unverified Historical Macro bytes")
+        dates=defaultdict(set)
+        with HIST_MACRO.open("r",encoding="utf-8",newline="") as f:
+            r=csv.DictReader(f)
+            insist({"pcap_uid","site_label"}<=set(r.fieldnames or []) and
+                   ({"date_id","pcap_name"}&set(r.fieldnames or [])),
+                   "canonical Historical Macro metadata missing UID/date")
+            for row in r:
+                uid=row["pcap_uid"].strip()
+                date=parse_date(row.get("date_id"),row.get("pcap_name"))
+                split=frozen_date_to_split(date or "")
+                insist(bool(uid) and uid not in index,
+                       "duplicate/blank UID while reconstructing split")
+                insist(split is not None,
+                       "Historical Macro date outside frozen 52-day bounds")
+                index[uid]=split
+                counts[split]+=1
+                dates[split].add(date)
+        for split in EXPECTED:
+            insist(len(dates[split])==DAY_RANGES[split][2],
+                   "reconstructed split date-cardinality mismatch "+split)
+        provenance={"method":"RECONSTRUCTED_FROM_VERIFIED_HISTORICAL_MACRO_DATES",
+                    "source":str(HIST_MACRO),"sha256":SHA_HIST_MACRO,
+                    "date_windows_source":"docs/FEATURE_LINEAGE.md / F6",
+                    "original_assignment_sha256_expected":SHA_ASSIGN,
+                    "original_assignment_hash_verified":False,
+                    "requires_original_UID_crosswalk_if_found":True}
     insist(dict(counts)==EXPECTED,
            "expected 57916 DEV + 14687 INTERNAL, found "+str(dict(counts)))
-    return index,counts
+    print("SOTA_S1_ASSIGNMENTS_SOURCE",provenance["method"],flush=True)
+    return index,counts,provenance
 
 def metadata(dev):
     found={}
@@ -180,10 +225,10 @@ def run(fast):
            "09A manifest no longer agrees with 57916 DEV captures")
     insist(m.get("training_population",{}).get("sites")==65,
            "09A manifest no longer agrees with 65 classes")
-    for name,p in [("vectors",HIST_VECTORS),("macro",HIST_MACRO),("splits",ASSIGN)]:
+    for name,p in [("vectors",HIST_VECTORS),("macro",HIST_MACRO)]:
         insist(p.is_file() and not p.is_symlink(),"historical "+name+" source missing")
     # The split alone can be verified cheaply, independent of installed ML packages.
-    idx,counts=assignments()
+    idx,counts,assignments_origin=assignments()
     if fast:
         print("SOTA_S1_ASSIGNMENTS_PASS",dict(counts))
         print("SOTA_S1_FAST_ONLY=YES_NO_PAYLOAD_READ")
@@ -198,8 +243,9 @@ def run(fast):
     frozen={
         "historical_vectors":(HIST_VECTORS,SHA_HIST_VECTORS),
         "historical_macro":(HIST_MACRO,SHA_HIST_MACRO),
-        "historical_temporal_splits":(ASSIGN,SHA_ASSIGN),
     }
+    if assignments_origin["original_assignment_hash_verified"]:
+        frozen["historical_temporal_splits"]=(ASSIGN,SHA_ASSIGN)
     hashes={}
     for name,(p,expected) in frozen.items():
         actual=sha256(p)
@@ -228,6 +274,7 @@ def run(fast):
         "split_counts":dict(counts),
         "split_dates":dates,
         "historical_checksums":hashes,
+        "temporal_assignments_provenance":assignments_origin,
         "dev_index_file":str(index_file),
         "dev_index_sha256":sha256(index_file),
         "label_order_file":str(label_file),
@@ -249,6 +296,7 @@ def run(fast):
     print("SOTA_S1_CLASSES",len(classes),flush=True)
     print("SOTA_S1_VECTOR_LENGTH_AUDIT",vector_lengths,flush=True)
     print("SOTA_S1_SPLITS",dict(counts),flush=True)
+    print("SOTA_S1_ASSIGNMENTS_SOURCE",assignments_origin["method"],flush=True)
     print("SOTA_S1_MANIFEST",p,flush=True)
     print("SOTA_S1_FROZEN_HISTORICAL=PASS",flush=True)
     print("FUTURE_B_UNTOUCHED=YES",flush=True)
