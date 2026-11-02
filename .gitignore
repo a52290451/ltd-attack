@@ -1,3 +1,6 @@
+# External pinned source checkouts under the LTD umbrella (never vendor into Git)
+/.vendor/
+
 # Python
 __pycache__/
 *.pyc
