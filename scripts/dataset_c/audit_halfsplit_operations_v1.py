@@ -31,7 +31,7 @@ def try_cmd(args,timeout=8):
     except (OSError,subprocess.TimeoutExpired) as exc:
         return {"return_code":None,"error":type(exc).__name__}
 
-def parse_batch(path,batch):
+def parse_batch(path,batch,canonical=None,check_files=False):
     obj=json.loads(path.read_text(encoding="utf-8"))
     if obj.get("classification")!="C_DIRECT_120_HALFHOUR_QA_ONLY":
         raise ValueError("unexpected batch classification")
@@ -54,6 +54,17 @@ def parse_batch(path,batch):
             raise ValueError("category/instance/position mismatch")
         uid=(inst,cat,slot)
         if uid in ids:raise ValueError("duplicate site slot")
+        if canonical is not None and r.get("url")!=canonical.get(uid):
+            raise ValueError("site URL differs from original 120-slot inventory")
+        if check_files and r.get("qa_valid"):
+            stem=r.get("stem")
+            if not stem or not isinstance(stem,str) or "/" in stem or ".." in stem:
+                raise ValueError("missing/unsafe successful capture stem")
+            outputs=legacy.CAPTURES/obj["run_id"]/"outputs"
+            for ext in (".json",".pcap",".html"):
+                file=outputs/(stem+ext)
+                if not file.is_file() or file.stat().st_size<=0:
+                    raise ValueError("valid PCAP evidence missing "+file.name)
         ids.add(uid)
         counter[inst]+=1
         counts[r.get("status","UNKNOWN")]+=1
@@ -82,6 +93,10 @@ def audit():
     ntp=legacy.clock_info()
     disk=shutil.disk_usage(STORAGE)
     enough=disk.free>=MIN_FREE
+    # Anchor every completed site against the same immutable local 120-slot
+    # manifest used by the scheduler, not merely the expected category names.
+    canonical={legacy.key(row):row["url"] for row in legacy.inventory()}
+    if len(canonical)!=120:raise ValueError("canonical 120-slot inventory mismatch")
     reports={}
     errors=[]
     latest=[]
@@ -91,7 +106,7 @@ def audit():
             key=lambda p:p.stat().st_mtime,reverse=True)
         parsed=[]
         for p in matches[:24]:
-            try:parsed.append(parse_batch(p,b))
+            try:parsed.append(parse_batch(p,b,canonical=canonical,check_files=True))
             except (ValueError,KeyError,TypeError,OSError) as e:
                 errors.append({"path":str(p),"error":str(e)[:300]})
         reports[b]=parsed
