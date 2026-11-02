@@ -90,9 +90,6 @@ def data_arrays(source,by_uid,classes,model,stage_spec,np):
                 print("SOTA_S4_DATA_PROGRESS",i,expected,flush=True)
     require(len(parts)==expected,"incomplete stage Historical UID population")
     require(len(seen)==expected,"duplicate historical UID")
-    for split in splits:
-        require(counts[split]==sum(s["train_count"] for s in [] ) if False else True,
-                "unreachable")
     require(counts==Counter({s:sum(1 for uid,m in by_uid.items() if m[2]==s)
                             for s in splits}),"split count changed")
     train=np.array([i for i,s in enumerate(parts) if s in stage_spec["train"]],dtype=np.int64)
@@ -124,7 +121,7 @@ def run_one(model_name,stage,epoch_override):
     by_uid,classes,s1=load_s1_dev_index(S1_PATH)
     require(len(by_uid)==57916 and len(classes)==65,"invalid S1 population")
     source=Path(s1["historical_checksums"]["historical_vectors"]["path"])
-    require(source.resolve().is_file(),"Historical vector source missing")
+    require(source.is_file(),"Historical vector source missing")
     require(s1["historical_checksums"]["historical_vectors"]["sha256"]==
             cfg["population"]["source_vector_sha256"],
             "Historical source SHA differs from frozen S1")
