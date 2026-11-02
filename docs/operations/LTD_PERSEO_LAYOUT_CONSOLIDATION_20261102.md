@@ -166,3 +166,46 @@ python3 scripts/ops/stage_historical_storage_perseo_v1.py --stage-and-verify
 ### Fase 2 — pendiente de comprobación
 
 Solo con PASS de fase 1 se estudiará un cambio de ruta **reversible** que preserve el nombre histórico `~/ltd-storage` y sus consumidores, con rollback probado antes de retirar ninguna copia. No borrar ni mover el origen automáticamente. **No migrar venv durante la copia.** Tras espacio liberado de forma controlada, evaluar añadir PyTorch al entorno preexistente `~/ltd-venv` (167MB), con contrato de compatibilidad y validación CUDA; no crear un tercero ni tocar `/data/ltd-sota-bsierra/venv-cu128` todavía.
+
+## 7. Cierre real de staging y fase 2 reversible (2026-11-02)
+
+**Evidencia de Perseo:** se copiaron 28.138.252.513 bytes (457 elementos: 348 archivos, 99 directorios, 10 enlaces). El segundo pase rsync --checksum --dry-run --delete confirmó **PASS_IDENTICAL_CHECKSUM_DRY_RUN**, con 543,8 GiB libres en /data y ningún archivo original borrado. Archivo de comprobación: /data/ltd-attack/storage/.ltd_storage_verify_v1.txt.
+
+**Cutover nuevo, conservador:** scripts/ops/cutover_historical_storage_perseo_v1.py, acompañado por tests/test_ltd_storage_cutover_v1.py. --preflight verifica nuevamente todos los checksums, el marcador, las rutas científicas y la ausencia de procesos con referencia textual a la carpeta original. --activate cambia dentro de HOME el nombre del directorio original a ltd-storage.precutover-TIMESTAMP y crea un symlink ~/ltd-storage -> /data/ltd-attack/storage, sin borrar ningún dato. Guarda el estado en /data/ltd-attack/.ltd_storage_cutover_v1.json. --validate verifica el enlace y el backup. --rollback primero comprueba que la copia en /data no haya cambiado y restaura el directorio anterior; si se han producido escrituras nuevas, se niega a revertir sin reconciliación para evitar pérdida.
+
+**Ejecución 1 (solo preflight):**
+
+```bash
+cd ~/ltd-attack
+git fetch origin feature/macro-v2-historical-only && git merge --ff-only FETCH_HEAD && \
+python3 -m unittest discover -s tests -p 'test_ltd_storage_cutover_v1.py' -v && \
+python3 scripts/ops/cutover_historical_storage_perseo_v1.py --preflight
+```
+
+**Ejecución 2 (solo tras PASS y sin trabajos activos de lectura/escritura del almacenamiento histórico):**
+
+```bash
+python3 scripts/ops/cutover_historical_storage_perseo_v1.py --activate
+python3 scripts/ops/cutover_historical_storage_perseo_v1.py --validate
+readlink -f ~/ltd-storage
+LTD_ENV=perseo python3 - <<'PY'
+from src.utils.paths import load_environment
+from pathlib import Path
+c=load_environment('perseo')
+for k in ('data_root','artifact_root','result_root'):
+    p=Path(c[k]); assert p.is_dir(), (k,p)
+    print('LTD_ROUTE_PASS',k,p.resolve())
+for name in ('CLEAN_final_vectors_sites.csv','CLEAN_final_features_sites.csv'):
+    p=Path.home()/'ltd-storage/datasets/historical'/name
+    assert p.is_file() and p.stat().st_size>0, p
+print('LTD_HISTORICAL_CSV_PATHS=PASS')
+PY
+```
+
+**Rollback condicional si no hay cambios nuevos:**
+
+```bash
+python3 scripts/ops/cutover_historical_storage_perseo_v1.py --rollback
+```
+
+**Sin liberación de espacio en esta fase:** el backup original de ~27GB queda conservado bajo HOME. No ejecutar rm, modificar cron, realizar cutover de venv ni eliminar datos; liberar raíz será fase 3 y requerirá validar funcionamiento de scripts y plan de recuperación. Se conserva el bloqueo de entrenamiento SOTA hasta congelar protocolo.
