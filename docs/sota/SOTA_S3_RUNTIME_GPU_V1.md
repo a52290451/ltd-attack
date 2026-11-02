@@ -1,81 +1,122 @@
-# SOTA S3 — entorno aislado y gates RTX 5080 (2026-11-02)
+# SOTA S3 — auditoría del entorno, GPU y organización unificada de LTD
 
-**Situación:** GPU NVIDIA RTX 5080 (16303 MiB VRAM reportada), controlador 595.99.02, 16 CPU, RAM disponible 30014960 KiB. El Python de sistema carece de torch/numpy; no modificarlo. Dataset C QA continúa por cron en paralelo. **Este procedimiento solo autoriza instalación aislada, auditoría e inferencia sintética; no autoriza entrenamiento.**
+**Estado real a 2026-11-02.** La instalación aislada de PyTorch y el forward
+sintético **YA se ejecutaron** en Perseo. Este documento sustituye la orden
+anterior de instalar entornos nuevos en `/data`; **NO volver a ejecutar la
+instalación** ni crear copias hasta cerrar el inventario físico.
 
-## Fuente y versiones
+## 1. Resultados reproducibles confirmados
 
-PyTorch 2.11.0, wheel Linux CUDA 12.8 publicado por el proyecto: https://pytorch.org/get-started/previous-versions/ . Fuente única de torch: https://download.pytorch.org/whl/cu128 . NumPy 2.2.6. No instalar torchvision/torchaudio porque DF y Var-CNN WFlib no lo necesitan para forward. Fijar versiones efectivas en el informe local.
+- PyTorch `2.11.0+cu128`, NumPy `2.2.6`, CUDA runtime `12.8`.
+- GPU: NVIDIA RTX 5080, compute capability `(12,0)`, controlador `595.99.02`.
+- DF-WFlib: 3.699.393 parámetros, entrada `[2,1,5000]`,
+  logits `[2,65]` finitos; CPU y CUDA **PASS**.
+- VarCNN-WFlib: 8.806.209 parámetros, entrada `[2,2,5000]`,
+  logits `[2,65]` finitos; CPU y CUDA **PASS**.
+- Checkout WFlib fijado y verificado:
+  `537ec8e03c805540b04b95b144fa158ce50aa255`.
+- Evidencias actuales:
+  `~/ltd-ops/sota/s3_reference_20261102T151428Z.json` y
+  `~/ltd-ops/sota/s3_cuda_smoke_20261102T151430Z.json`.
+- **0 pasos de entrenamiento;** no se abrieron Future-B ni Dataset C para
+  estas inferencias.
+- Historical DEV: **37/37 tests**, 57.916/57.916 UIDs auditados,
+  `INVALID=0`, `SHA256=PASS`. Ver checkpoint científico.
 
-Arquitecturas de origen **único** y checkout fijo: FIND-Lab/Website-Fingerprinting-Library commit 537ec8e03c805540b04b95b144fa158ce50aa255, ubicado en ~/ltd-ops/sota/upstream/WFlib, sin duplicarlo en Git científico. Preflight comprueba git HEAD y blobs DF/VarCNN antes de importarlos.
+**Confusión corregida:** `/` estaba al 96 % de **capacidad de disco**
+(38 GB disponibles), NO la GPU. Lectura de recursos anterior a los forwards:
+`nvidia-smi` GPU `utilization.gpu=0` y 15.827 MiB VRAM libres de
+16.303 MiB totales. La diferencia de 476 MiB VRAM **no identifica** un proceso
+o propietario. Solo `nvidia-smi` y los PIDs en tiempo real pueden hacerlo.
 
-## Paso A. Capacidad y aislamiento en /data (revisado después de auditoría real)
+## 2. Regla de arquitectura física — LTD es un solo paraguas
 
-El 2 de noviembre, Perseo reportó **38 GB libres en /** (96 % de ocupación) y **578 GB libres en /data**. Aunque la reserva anterior de 20 GiB en HOME se cumpliría nominalmente, no se recomienda instalar varios gigabytes de bibliotecas CUDA en la partición raíz casi llena. Mantener el Python del sistema, el repositorio, los datos A/B y Dataset C sin modificaciones. Se reserva exclusivamente un directorio independiente, **/data/ltd-sota-bsierra** (fuera de los árboles de Dataset C). Nunca crear otra ubicación ni modificar permisos con sudo si no existe acceso.
+- Código versionado: **`~/ltd-attack`**. Contiene scripts de Dataset C,
+  modelos SOTA, Micro/Macro/Hybrid, pruebas, documentos y configuración.
+- Dependencias de ejecución: **dentro del área LTD del perfil `/home/bsierra`**,
+  preferentemente un único `~/ltd-attack/.venv` compatible o uno existente
+  reutilizable, ambos no versionados. No crear entornos redundantes.
+- Upstream WFlib: fuente externa fijada dentro del área del proyecto, tras
+  verificar que cambiarla no rompe el loader. No clonar duplicados.
+- **`/data` solo para datos y resultados:** PCAP, CSV, matrices derivadas,
+  reportes, checkpoints y artefactos. No instalar paquetes ni guardar código
+  fuente allí.
+- Las rutas previas bajo `~/ltd-ops` y
+  `/home/bsierra/ltd-storage` deben **inventariarse antes de reorganizarse**.
+  La configuración actual `configs/environments/perseo.yaml` todavía apunta a
+  `/home/bsierra/ltd-storage`; puede ser un enlace, montaje o carpeta física.
+  **No cambiar esa configuración a ciegas**.
 
-```bash
-cd ~/ltd-attack
-SOTA_ROOT="/data/ltd-sota-bsierra"
-umask 077
-mkdir -p "$SOTA_ROOT/tmp" || { echo "BLOCKED: sin permisos para /data/ltd-sota-bsierra"; false; }
-export TMPDIR="$SOTA_ROOT/tmp"
-python3 - <<'PY'
-from pathlib import Path
-import shutil
-p=Path("/data/ltd-sota-bsierra")
-if not p.is_dir() or not p.joinpath("tmp").is_dir():
-    raise SystemExit("BLOCKED: directoria SOTA no disponible")
-free=shutil.disk_usage(p).free
-print("SOTA_DATA_FREE_GIB",round(free/1024**3,1))
-if free < 160*1024**3:
-    raise SystemExit("BLOCKED: reserva de 160 GiB para instalar sin comprometer Dataset C")
-PY
-df -h "$SOTA_ROOT" "$HOME"
-```
+**Excepción temporal detectada:** el entorno PyTorch instalado en
+`/data/ltd-sota-bsierra/venv-cu128` funciona y es el único que actualmente
+tiene CUDA 12.8 verificado para SOTA. Su ubicación no cumple la política
+objetivo. Mantenerlo **sin usar para entrenamiento ni moverlo** hasta disponer
+del inventario y de una migración probada. Un `venv` normalmente contiene
+rutas absolutas y **no debe trasladarse con `mv` entre montajes** suponiendo
+que seguirá funcionando. Su eventual reemplazo debe probarse primero y solo
+después evaluar la eliminación exacta de la copia anterior, con autorización.
 
-Si el gate falla, **no** instalar; no borrar datos de ningún proyecto, no tocar NTP, Docker o cron. Asegurar que TMPDIR apunta a /data antes de usar pip evita descargar wheels gigantes en /tmp del sistema.
+## 3. Única auditoría de inventario (SOLO LECTURA)
 
-## Paso B. Virtualenv independiente en /data (sin sudo)
-
-Ejecutar solamente si Paso A muestra permisos y reserva satisfactoria. No reutilizar entornos ni descargar dependencias al HOME.
-
-```bash
-SOTA_ROOT="/data/ltd-sota-bsierra"
-export TMPDIR="$SOTA_ROOT/tmp"
-VENV="$SOTA_ROOT/venv-cu128"
-python3 -m venv "$VENV"
-"$VENV/bin/python" -m pip install --no-cache-dir \
-  torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
-"$VENV/bin/python" -m pip install --no-cache-dir numpy==2.2.6
-"$VENV/bin/python" -m pip freeze > "$HOME/ltd-ops/sota/env_lock_torch211_cu128.txt"
-df -h "$SOTA_ROOT" "$HOME"
-```
-
-Si falta el módulo venv/ensurepip, detenerse y registrar el error. No usar sudo, --break-system-packages ni pip de sistema. Instalar wheel con no-cache para evitar llenar el disco con duplicados descargados. La disponibilidad de rueda/compatibilidad RTX5080 solo se confirma durante la prueba real.
-
-## Paso C. Forwards sintéticos, cero datos reales
-
-```bash
-cd ~/ltd-attack
-VENV="/data/ltd-sota-bsierra/venv-cu128"
-"$VENV/bin/python" scripts/sota/s3_reference_architecture_preflight_v1.py --forward-smoke
-"$VENV/bin/python" scripts/sota/s3_cuda_synthetic_preflight_v1.py
-```
-
-Se esperan logits finitos **[2,65]** para DF con tensor **[2,1,5000]** y Var-CNN DT2 con **[2,2,5000]**, primero CPU y luego CUDA. El CUDA smoke valida runtime, compute capability SM120, commit de WFlib y cantidad de parámetros; registra evidencia JSON en ~/ltd-ops/sota. Si falla, **no entrenar**, conservar errores y revisar compatibilidad del wheel.
-
-## Paso D. Auditoría total del canal temporal Historical DEV
+Ejecutar desde Perseo; no se crean ni modifican archivos:
 
 ```bash
 cd ~/ltd-attack
-python3 -m unittest discover -s tests -p 'test_sota_s3_full_timing_audit.py' -v
-ionice -c3 nice -n 10 \
-  python3 scripts/sota/s3_full_dev_timing_audit_v1.py --max-uids 150 --save
-ionice -c3 nice -n 10 \
-  python3 scripts/sota/s3_full_dev_timing_audit_v1.py --max-uids 0 --save
+
+echo "=== GPU ACTUAL Y PROCESOS ==="
+nvidia-smi
+nvidia-smi --query-compute-apps=pid,process_name,used_gpu_memory \
+  --format=csv,noheader,nounits || true
+ps -eo pid,user,comm,%cpu,%mem --sort=-%cpu | head -n 18
+
+echo "=== SISTEMAS DE ARCHIVOS ==="
+df -h "$HOME" "$HOME/ltd-attack" "$HOME/ltd-storage" /data
+for p in "$HOME/ltd-attack" "$HOME/ltd-storage" \
+         "$HOME/ltd-ops" "$HOME/ltd-ops/sota/upstream/WFlib" \
+         "/data/ltd-sota-bsierra" "/data/ltd-c-qa-bsierra"; do
+  if [ -e "$p" ]; then
+    printf 'PATH %s -> %s\n' "$p" "$(readlink -f "$p")"
+    ls -ld "$p"
+  fi
+done
+
+echo "=== TAMAÑO DE INSTALACIONES NO CIENTIFICAS ==="
+for p in "/data/ltd-sota-bsierra/venv-cu128" \
+         "$HOME/ltd-ops/sota/upstream/WFlib" \
+         "$HOME/ltd-attack/.venv"; do
+  if [ -d "$p" ]; then du -sh "$p"; fi
+done
+echo "=== VENV EXISTENTES EN EL PARAGUAS ==="
+find "$HOME/ltd-attack" -maxdepth 4 -name pyvenv.cfg -print
+echo "=== CONFIGURACION PERSEO ACTUAL ==="
+cat configs/environments/perseo.yaml
 ```
 
-La ejecución total comprueba exactamente 57.916 UIDs DEV, 65 clases, splits, alineación dirección-tiempo, regresiones e intervalos negativos usados por DT2. **Reverifica el SHA256** del archivo Historical al completar la corrida; esto implica una lectura adicional de disco a baja prioridad. No abre Future-B, no entrenan modelos, no altera muestras. Cualquier entrada inválida o diferencia SHA bloquea entrenamiento Var-CNN.
+Los PIDs de `nvidia-smi` permiten consultar `ps -p PID -o
+pid,user,comm,args` para conocer el propietario si aún siguen vivos. Si no
+hay procesos y la GPU está ociosa, **no inferir uso por terceros** de la mera
+VRAM reservada. Esta auditoría puede mostrar procesos que corresponden a
+containers del propio usuario.
 
-## Gate científico posterior (NO aprobado)
+## 4. Gate de reorganización: pendiente de inventario
 
-Una vez los controles técnicos den PASS: fijar semillas, epochs/batch/optimizador y regla de selección temporal sin fuga de futuro; controlar presupuesto GPU y no interferir con cron; verificar el orden de 65 etiquetas con NPZ congelados solo para evaluación y no para tuning; asegurar mismos UID/fechas/etiquetas para comparaciones con LTD-Hybrid/Micro/Macro; exportar cuatro métricas Top-1, Macro-F1, Top-5, MRR y test estadístico pareado por fecha/IC95/Holm. La reconstrucción de 09A aún tiene cotejo original UID↔split pendiente. Dataset C sigue QA_ONLY por NTP no sincronizado.
+No instalar de nuevo, no borrar el directorio de `/data` ni realizar
+`mv`, `rm`, `pip install`, `docker prune`, `crontab` o cambios de
+`perseo.yaml` durante el diagnóstico. Una vez confirmemos sistemas de
+archivos, entornos existentes y tamaños:
+
+1. Seleccionar el entorno Python existente de LTD reutilizable; si no es
+   compatible, determinar espacio y estrategia controlada de reconstrucción
+   **bajo HOME**, en `~/ltd-attack/.venv`, sin afectar otros proyectos.
+2. Verificar CPU y CUDA, hashes de WFlib y reproducibilidad en el destino
+   antes de retirar la copia del venv mal ubicado.
+3. Reubicar el checkout upstream al área LTD sin duplicarlo cuando el loader
+   y los reportes puedan seguir resolviendo rutas; actualizar código,
+   documentación, tests y SHA de procedencia en **un único commit coherente**.
+4. Unificar futuras salidas **en /data**, a través de
+   `src/utils/paths.py` y la configuración Perseo, sin alterar ni perder
+   informes anteriores ni las capturas/cron de Dataset C.
+
+**No entrenar:** siguen pendientes presupuesto, semillas, validación temporal,
+contrato de etiquetas/probabilidades e integridad del protocolo estadístico
+SOTA. Dataset C permanece QA_ONLY por NTP no sincronizado.
