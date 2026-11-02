@@ -224,7 +224,9 @@ for r in plans:
  ok=(exits.get(r['uid'])=='0' and status=='OK' and data.get('requested_url')==r['url']
     and data.get('final_url') and data.get('http_status') in range(200,400)
     and data.get('visible_chars',0)>0 and html.is_file() and html.stat().st_size>512
-    and pcap_parsed and size>=8192 and packets>=12)
+    and pcap_parsed and size>=8192 and packets>=12
+    and ((r['instance']=='inst3' and r['category']=='politica' and r['slot']=='15')
+      or (isinstance(data.get('consent'),dict) and data['consent'].get('action')=='clicked')))
  good+=bool(ok)
  records.append({'instance':r['instance'],'category':r['category'],'slot':r['slot'],
    'url':r['url'],'status':status,'node_exit':exits.get(r['uid']),'html_bytes':html.stat().st_size if html.exists() else 0,
@@ -238,6 +240,7 @@ result={'classification':'QA_ONLY_NOT_SCIENTIFIC','attempts':len(plans),'valid':
         'native_proxy':'SOCKS5_DIRECT_TOR_9050','scientific_authorized':False,'visits':records}
 (out/'recovered4_pcap_summary.json').write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n')
 print('RECOVERED4_PCAP_QA_VALID',str(good)+'/4','ATTEMPTS',len(plans))
+print('RECOVERED4_PCAP_QA_REQUIREMENTS', 'http_2xx_3xx', 'content_html', 'pcap_parse_and_size', 'explicit_consent_clicked_on_3_sites')
 print('RECOVERED4_PCAP_QA_STATUS','QA_PASS' if passed else 'SITES_STILL_UNAVAILABLE_OR_QA_UNRESOLVED')
 sys.exit(0 if passed else 6)
 PY
