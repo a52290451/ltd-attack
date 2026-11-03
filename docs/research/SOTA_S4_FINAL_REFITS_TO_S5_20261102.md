@@ -31,3 +31,13 @@ git merge --ff-only FETCH_HEAD &&
 ```
 
 **Estado del gate:** script publicado, pendiente de ejecución real en Perseo. Requiere `S5_FREEZE_LABEL_GATE=PASS_NO_INFERENCE` para pasar al siguiente paso (inferencia de los checkpoints congelados en 09B y Future-B, exportación de 65 probabilidades alineadas por UID y métricas pareadas). La comparación será contra el track **DEV_FROZEN** de LTD en Future-B, no HISTORICAL_FINAL.
+
+## Resultado S5 en Perseo y siguiente ejecución (2026-11-03)
+
+El investigador ejecutó el gate S5 sobre los checkpoints definitivos. **Ambos SHA256 fueron verificados** y el orden de las 65 etiquetas es **IDENTICAL** en 09B y 10B DEV_FROZEN; las cohortes además comparten el mismo orden. El comando falló al final exclusivamente porque ya existía el archivo `frozen_s5_refits_and_labels_v1.json` y su código anterior rechazaba cualquier archivo previo, sin examinarlo. No es prueba de corrupción de datos ni de pesos. No se hizo inferencia.
+
+**Corrección puntual:** `scripts/sota/s5_freeze_and_label_alignment_v1.py` ahora, si ya existe la evidencia, compara todos sus campos científicos con el resultado verificado, salvo la marca de tiempo de creación. Si coinciden, informa `S5_FREEZE_EVIDENCE=REUSED_VERIFIED_IDENTICAL` y `S5_FREEZE_LABEL_GATE=PASS_NO_INFERENCE`; si hay cualquier conflicto de pesos, protocolo, clases o fuentes, se detiene sin sobrescribir. Si no existe, lo crea una sola vez.
+
+**Código de inferencia S5 ya publicado:** `scripts/sota/s5_infer_external_frozen_v1.py`, con opciones `--cohort 09B|10B_DEV_FROZEN` y `--model DF|VarCNN`. Cruza UID, `site_label`, etiquetas canónicas y representación `DIR`/`DT2` desde CSV originales con SHA congelado; usa exclusivamente los checkpoints C sin gradientes; exporta probabilidades 65-clases y métricas Accuracy, Macro-F1, Top-5 y MRR bajo `/data/ltd-attack/sota/s5/inference/<cohort>/<model>/`. El script no recalibra ni entrena y bloquea cambios de fuentes.
+
+Primero ejecutar gate S5 corregido, seguido de 09B DF, VarCNN y 10B DF, VarCNN de forma **secuencial**. No interpretar la validación DEV_LATE como resultado de 09B/10B, ni comparar contra HISTORICAL_FINAL en Future-B. Los análisis futuros son retrospectivos por conocimiento anterior de las cohortes. Dataset C intacto.
