@@ -97,9 +97,21 @@ def inspect():
             "external_raw_features_opened":False,"dataset_c_opened":False}
     OUT.mkdir(parents=True,exist_ok=True,mode=0o700)
     target=OUT/"frozen_s5_refits_and_labels_v1.json"
-    demand(not target.exists(),"existing freeze evidence; refuse overwrite")
-    target.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n")
-    target.chmod(0o600)
+    if target.exists():
+        demand(target.is_file() and not target.is_symlink(),
+               "existing freeze evidence is not a regular file")
+        existing=json.loads(target.read_text(encoding="utf-8"))
+        # Creation timestamp does not affect scientific provenance.
+        comparable=lambda item:{k:v for k,v in item.items()
+                                if k!="created_utc"}
+        demand(comparable(existing)==comparable(result),
+               "existing freeze evidence conflicts; preserved, no overwrite")
+        print("S5_FREEZE_EVIDENCE=REUSED_VERIFIED_IDENTICAL",flush=True)
+    else:
+        with target.open("x",encoding="utf-8") as handle:
+            handle.write(json.dumps(result,indent=2,ensure_ascii=False)+"\n")
+        target.chmod(0o600)
+        print("S5_FREEZE_EVIDENCE=CREATED",flush=True)
     print("S5_FREEZE_LABEL_GATE=PASS_NO_INFERENCE")
     print("S5_MANIFEST",target)
 
