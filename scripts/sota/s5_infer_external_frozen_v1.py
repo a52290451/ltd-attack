@@ -72,6 +72,61 @@ def read_source_subset(source,need,labels,model,np):
     x=np.stack([arrays[uid] for uid in need])
     return x
 
+def inspect_existing(target,cohort,model,checkpoint_sha,protocol_sha,source_sha,
+                     original_sha,uid,day,true,labels,np):
+    """Resume safely: reuse a COMPLETE scientifically identical result.
+
+    An empty legacy directory may be filled; any incomplete nonempty
+    directory blocks rather than deleting/overwriting evidence.
+    """
+    if not target.exists() and not target.is_symlink():
+        return "NEW"
+    check(target.is_dir() and not target.is_symlink(),
+          "existing target is not a real directory")
+    contents={p.name for p in target.iterdir()}
+    if not contents:
+        print("S5_OUTPUT_RESUME=EXISTING_EMPTY_DIRECTORY",target,flush=True)
+        return "EMPTY"
+    check(contents=={"scores_sota_aligned.npz","manifest.json"},
+          "existing output has incomplete/unknown files; preserve and inspect manually")
+    manifest_path=target/"manifest.json"
+    score_path=target/"scores_sota_aligned.npz"
+    check(not manifest_path.is_symlink() and not score_path.is_symlink(),
+          "existing output contains symlinks")
+    m=json.loads(manifest_path.read_text(encoding="utf-8"))
+    required={
+        "classification":"SOTA_S5_EXTERNAL_FROZEN_INFERENCE_V1",
+        "cohort":cohort,"model":model,"population":len(uid),
+        "checkpoint_sha256":checkpoint_sha,"protocol_sha256":protocol_sha,
+        "source_sha256":source_sha,"canonical_score_sha256":original_sha,
+        "future_b_used_for_training":False,
+        "external_scores_used_for_selection":False,
+        "dataset_c_opened":False,"training_steps":0
+    }
+    check(all(m.get(k)==v for k,v in required.items()),
+          "existing inference metadata conflicts with frozen science")
+    check(sha256_file(score_path)==m.get("sota_score_sha256"),
+          "existing inference score digest changed")
+    with np.load(score_path,allow_pickle=False) as saved:
+        check(set(saved.files)=={"pcap_uid","query_date","y_true",
+                                "candidate_labels","sota_probs"},
+              "existing SOTA output schema changed")
+        same=(np.array_equal(saved["pcap_uid"].astype(str),uid)
+              and np.array_equal(saved["query_date"].astype(str),day)
+              and np.array_equal(saved["y_true"].astype(np.int64),true)
+              and saved["candidate_labels"].astype(str).tolist()==labels)
+        check(same,"existing inference UID/date/class alignment mismatch")
+        probs=saved["sota_probs"]
+        check(probs.shape==(len(uid),65) and np.isfinite(probs).all()
+              and (probs>=0).all()
+              and np.allclose(probs.sum(axis=1),1.0,atol=2e-4,rtol=0),
+              "existing inference probabilities invalid")
+    print("S5_INFERENCE_REUSED_VERIFIED",cohort,model,
+          "ACCURACY",m["accuracy"],"MACRO_F1",m["macro_f1"],
+          "TOP5",m["top5"],"MRR",m["mrr"],flush=True)
+    print("S5_INFERENCE_MANIFEST",manifest_path,flush=True)
+    return "COMPLETE"
+
 def run(cohort,model):
     import numpy as np
     import torch
@@ -119,6 +174,13 @@ def run(cohort,model):
           "UID count or uniqueness wrong")
     check(len(labels)==65 and len(set(labels))==65,"canonical 65 classes wrong")
     check(np.all((true>=0)&(true<65)),"out-of-range canonical true labels")
+    target=OUT/cohort/model
+    status=inspect_existing(target,cohort,model,cksha,
+                            frozen["protocol_sha256"],source_sha,
+                            frozen["label_alignment"][cohort]["source_sha256"],
+                            uid,day,true,labels,np)
+    if status=="COMPLETE":
+        return
     lookup={str(u):labels[int(y)] for u,y in zip(uid,true)}
     print("S5_EXTERNAL_DATA_READING",cohort,model,
           "UIDS",len(uid),flush=True)
@@ -162,10 +224,16 @@ def run(cohort,model):
     predicted=np.bincount(ranks[:,0],minlength=65)
     f1=np.divide(2*tp,support+predicted,out=np.zeros(65,dtype=float),
                  where=(support+predicted)>0).mean()
-    target=OUT/cohort/model
-    check(not target.exists(),"inference output already exists; refuse overwrite")
-    target.mkdir(parents=True,mode=0o700)
+    if status=="NEW":
+        target.mkdir(parents=True,mode=0o700,exist_ok=False)
+    else:
+        check(status=="EMPTY" and target.is_dir()
+              and not any(target.iterdir()),
+              "previously empty directory changed while computing")
     exported=target/"scores_sota_aligned.npz"
+    check(not exported.exists() and
+          not (target/"manifest.json").exists(),
+          "refuse to overwrite existing files")
     np.savez_compressed(exported,pcap_uid=uid,query_date=day,
                         y_true=true,candidate_labels=np.array(labels),
                         sota_probs=probs)
