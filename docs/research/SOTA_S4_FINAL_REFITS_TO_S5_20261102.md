@@ -49,3 +49,23 @@ El investigador ejecutó S5 con éxito: ambos checkpoints SHA congelados y `09B`
 Se actualizó `scripts/sota/s5_infer_external_frozen_v1.py` para resolver la existencia de salida **antes de leer de nuevo todos los vectores**: si carpeta inexistente, ejecutar; si carpeta vacía, continuar sin borrar; si contiene exactamente manifiesto y NPZ, validar hashes, checkpoint/protocolo, 09B/10B, UID/fechas/clases y probabilidades, informar `S5_INFERENCE_REUSED_VERIFIED`; si contiene archivos parciales/desconocidos o evidencia divergente, bloquear sin alterar nada. Se preservan resultados históricos y el contenido de `/data`. Nuevos resultados imprimirán `S5_INFERENCE_PASS`. El nuevo código aún necesita ser sincronizado en Perseo.
 
 El bucle de ejecución será secuencial y con `break 2` al error dentro del shell interactivo, **nunca `exit 1`**. Por seguridad, S5 no permite overwrite de archivos ya creados. Esta modificación no reentrena y no accede a Dataset C.
+
+## 2026-11-03 — S5 cuatro inferencias cerradas, S6 implementado y SOTA ampliado
+
+**Perseo confirmó las cuatro evaluaciones externas (reutilización íntegra o inferencia nueva):** 09B DF Accuracy 0.9342275481718526 / Macro-F1 0.9323914139782679; 09B VarCNN 0.9729012051474093 / 0.9721640832020264; 10B DEV_FROZEN DF 0.3746427223210915 / 0.3619218200039363; 10B VarCNN 0.334466 / 0.311403. Cuatro NPZ con UID/fecha/clases/probabilidades bajo /data/ltd-attack/sota/s5/inference. S5 listo.
+
+**Nuevo S6 código:** scripts/sota/s6_compare_frozen_sota_ltd_v1.py. Lee exclusivamente scores LTD 09B y 10B DEV_FROZEN y los cuatro S5 de DF/VarCNN; verifica SHA, UID, fecha, y_true, candidate_labels, checkpoint y protocolo. Reporta 5 modelos sobre las mismas 2 cohortes, Accuracy, Macro-F1, Top-5, MRR, desgloses diarios y por sitio, rescates/perjuicios; estadística pareada de bloques de fecha con 2500 bootstrap y Holm8 exploratorio por cohorte para DF/VarCNN vs Hybrid. Intercambio de bloques exacto para métricas aditivas y Monte Carlo para Macro-F1. No reentrena ni modifica evidencias congeladas. El código y las pruebas sintéticas fueron publicados, **todavía no se ha ejecutado S6 en Perseo**.
+
+**Catálogo SOTA posterior:** docs/sota/SOTA_EXPANSION_ROADMAP_20261103.md. P1 CUMUL/SVM fiel sin features 94F contaminadas y Tik-Tok DT; P2 NetCLR/AWF/TF/RF/Holmes; P3 Proteus y Aion track ADAPTIVE independiente. No dar por terminado SOTA solo porque DF/VarCNN ya funcionan.
+
+**Comando de S6** (no altera ni reentrena S4/S5):
+
+```bash
+cd ~/ltd-attack
+git fetch origin feature/macro-v2-historical-only &&
+git merge --ff-only FETCH_HEAD &&
+/data/ltd-sota-bsierra/venv-cu128/bin/python \
+  scripts/sota/s6_compare_frozen_sota_ltd_v1.py
+```
+
+Si se interrumpe por error no lanzar `exit 1` en la shell SSH. Si S6 reporta un fallo de integridad, corregir la fuente/bug mediante procedimiento controlado y conservar todos los datos; nunca overwrites.
