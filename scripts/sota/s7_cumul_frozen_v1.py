@@ -139,7 +139,10 @@ def train(stage):
           "missing classes")
     val_metrics=None
     if stage=="B":
-        pred=model.predict(X[val_mask])
+        # Use the same probability argmax decision rule as external S7
+        # exports, not SVC.predict() which can disagree with calibrated
+        # one-vs-one voting under probability=True.
+        pred=model.predict_proba(X[val_mask]).argmax(axis=1)
         truth=y[val_mask]
         val_metrics={"accuracy":float((pred==truth).mean()),
                      "macro_f1":float(f1_score(truth,pred,
