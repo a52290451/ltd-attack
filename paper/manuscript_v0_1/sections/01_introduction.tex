@@ -1,0 +1,18 @@
+\section{Introduction}\label{sec:introduction}
+Tor conceals the content and destination of network communications from many local observers, but the encrypted packets that traverse a monitored link retain observable traffic characteristics. Website fingerprinting (WF) exploits such side-channel information to estimate which website a client visits. Deep Fingerprinting (DF) demonstrates that learned features can be highly discriminative in closed-world settings \citep{sirinam2018deep}; later work extends the modeling of temporal dependencies within traffic traces \citep{zhou2024transformer}.
+
+High accuracy on temporally proximate samples does not, however, guarantee sustained performance. Changes in web content, third-party objects, browser or Tor behavior, and acquisition conditions can alter trace distributions even when the monitored websites remain nominally the same. Prior studies have emphasized the difficulty of realistic WF evaluation and the implications of evolving data distributions \citep{jansen2024repositioning,shusterman2026drift}. Models assessed only on randomly partitioned captures risk presenting an overly favorable picture of their temporal generalization.
+
+This paper studies a complementary question: can information about repeated website observations augment the evidence contained in an individual traffic trace? The \LTD{} family contrasts a micro representation of a single website visit with a macro representation intended to encode longitudinal traffic characteristics, and examines their combination in a hybrid classifier. The aim is not to assume that every temporal change is identity-bearing. Instead, we test whether a carefully constrained complementary representation improves classification on later observations, while recognizing that predictive gains alone do not establish a causal explanation.
+
+Our current evidence comes from a retrospectively assembled, 65-class closed-world experiment. Model selection for the new SOTA baselines is conducted solely within Historical DEV. The two external evaluation cohorts, 09B and Future-B, are held fixed at evaluation time and aligned by capture identifier, but were accessible during earlier research iterations. Consequently, all reported comparisons are explicitly retrospective. The design is intended to support reproducible and transparent interpretation rather than to imply a prospective blind test.
+
+\paragraph{Contributions.} This working version makes four evidence-bounded contributions:
+\begin{enumerate}[leftmargin=*]
+\item A longitudinally informed WF research question and a micro/macro/hybrid model family evaluated under temporal distribution shift.
+\item A documented chronological baseline protocol, with explicit development partitions, source provenance, frozen checkpoint selection, and aligned evaluation cohorts.
+\item A comparison of \Hybrid{} with its component models and four implemented SOTA baselines (DF, VarCNN, CUMUL-style SVM, and Tik-Tok), exposing the considerable heterogeneity of temporal generalization.
+\item An exploratory date-block statistical analysis for DF and VarCNN, together with an explicit account of limits from post-hoc inspection, changing collection conditions, and incomplete independent validation.
+\end{enumerate}
+
+\noindent\textbf{Completion note.} Contrastive NetCLR, the expanded paired-inference family, and a separately acquired prospective Dataset C are not represented as completed experiments here.
