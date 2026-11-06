@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 780" width="1440" height="780" role="img" aria-label="LTD-Attack conceptual two-scale architecture and frozen evaluation workflow">
+<title>LTD-Attack: two temporal scales and frozen evaluation</title>
+<desc>Editorial draft, not a layer-exact reconstruction of the frozen implementation. All major elements are editable SVG text and paths.</desc>
+<defs>
+ <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#40506A"/></marker>
+ <style>
+ text{font-family:Inter,'DejaVu Sans',Arial,sans-serif;fill:#172334}
+ .head{font-size:27px;font-weight:750}.sub{font-size:14px;fill:#62748B}
+ .boxtitle{font-size:19px;font-weight:700}.boxtxt{font-size:14px;fill:#43536C}.mini{font-size:12px;fill:#6E7D91}
+ .pill{font-size:12px;font-weight:750;letter-spacing:1px}
+ .line{fill:none;stroke:#40506A;stroke-width:2.4;marker-end:url(#arrow)}
+ .dashed{fill:none;stroke:#9AABBB;stroke-width:2;stroke-dasharray:6 6;marker-end:url(#arrow)}
+ </style>
+</defs>
+<rect width="1440" height="780" fill="#FAFCFF"/>
+<text class="head" x="55" y="65">LTD-Attack — Conceptual Architecture &amp; Evaluation</text>
+<text class="sub" x="55" y="93">Two complementary temporal scales · 65-site closed-world website fingerprinting · editorial Figure 1 (editable SVG)</text>
+<g id="branch-micro">
+ <rect x="55" y="130" width="415" height="410" rx="22" fill="#F0F6FE" stroke="#9ABBE2" stroke-width="2"/>
+ <rect x="79" y="153" width="94" height="28" rx="14" fill="#D6E8FE"/><text x="126" y="172" text-anchor="middle" class="pill" fill="#255D9E">MICRO</text>
+ <text x="79" y="213" class="boxtitle">Within-visit traffic</text>
+ <text x="79" y="239" class="boxtxt">One Tor webpage visit / packet trace</text>
+ <rect x="83" y="265" width="359" height="75" rx="12" fill="#FFFFFF" stroke="#BAD0E8"/>
+ <text x="100" y="287" class="mini">Observed packet-level sequence</text>
+ <g transform="translate(105,311)">
+ <rect x="0" y="-10" width="13" height="21" rx="4" fill="#377DBE"/>
+ <rect x="23" y="-22" width="13" height="33" rx="4" fill="#8AC3F3"/>
+ <rect x="46" y="-6" width="13" height="17" rx="4" fill="#377DBE"/>
+ <rect x="69" y="-26" width="13" height="37" rx="4" fill="#8AC3F3"/>
+ <rect x="92" y="-15" width="13" height="26" rx="4" fill="#377DBE"/>
+ <rect x="115" y="-26" width="13" height="37" rx="4" fill="#8AC3F3"/>
+ <rect x="138" y="-7" width="13" height="18" rx="4" fill="#377DBE"/>
+ <rect x="161" y="-16" width="13" height="27" rx="4" fill="#8AC3F3"/>
+ <rect x="184" y="-4" width="13" height="15" rx="4" fill="#377DBE"/>
+ <text x="215" y="4" class="mini">··· packet order</text>
+ </g>
+ <path class="line" d="M263 343V376"/>
+ <rect x="92" y="380" width="342" height="74" rx="12" fill="#DCEBFB" stroke="#8BB4DB"/>
+ <text x="263" y="412" text-anchor="middle" class="boxtitle" style="font-size:17px">Micro representation</text>
+ <text x="263" y="432" text-anchor="middle" class="mini">Trace-level fingerprint</text>
+ <text x="263" y="492" text-anchor="middle" class="boxtxt">Intra-visit temporal structure</text>
+</g>
+<g id="branch-macro">
+ <rect x="503" y="130" width="415" height="410" rx="22" fill="#F0F9F4" stroke="#99CEAF" stroke-width="2"/>
+ <rect x="527" y="153" width="94" height="28" rx="14" fill="#D9F1E2"/><text x="574" y="172" text-anchor="middle" class="pill" fill="#24774E">MACRO</text>
+ <text x="527" y="213" class="boxtitle">Across-visit characteristics</text>
+ <text x="527" y="239" class="boxtxt">Longitudinal traffic descriptors</text>
+ <rect x="531" y="265" width="359" height="75" rx="12" fill="#FFFFFF" stroke="#ACD5BC"/>
+ <text x="548" y="287" class="mini">Repeated observations over time</text>
+ <path d="M554 315L602 307L650 319L698 300L746 309L794 294L856 308" fill="none" stroke="#32875B" stroke-width="3"/>
+ <g fill="#32875B"><circle cx="554" cy="315" r="4"/><circle cx="602" cy="307" r="4"/><circle cx="650" cy="319" r="4"/><circle cx="698" cy="300" r="4"/><circle cx="746" cy="309" r="4"/><circle cx="794" cy="294" r="4"/><circle cx="856" cy="308" r="4"/></g>
+ <path class="line" d="M711 343V376"/>
+ <rect x="540" y="380" width="342" height="74" rx="12" fill="#DCF3E5" stroke="#91C7A7"/>
+ <text x="711" y="412" text-anchor="middle" class="boxtitle" style="font-size:17px">Macro representation</text>
+ <text x="711" y="432" text-anchor="middle" class="mini">Longitudinal traffic information</text>
+ <text x="711" y="492" text-anchor="middle" class="boxtxt">Across-visit variation</text>
+</g>
+<g id="fusion-and-output">
+ <rect x="961" y="130" width="425" height="410" rx="22" fill="#FCF6EE" stroke="#E4BE8A" stroke-width="2"/>
+ <rect x="985" y="153" width="112" height="28" rx="14" fill="#FCE7CA"/><text x="1041" y="172" text-anchor="middle" class="pill" fill="#A66B2A">HYBRID</text>
+ <text x="985" y="213" class="boxtitle">Complementary evidence</text>
+ <text x="985" y="239" class="boxtxt">Combination of Micro and Macro</text>
+ <rect x="1010" y="288" width="325" height="76" rx="12" fill="#FFF6E9" stroke="#DEB178"/>
+ <text x="1172" y="320" text-anchor="middle" class="boxtitle" style="font-size:17px">Hybrid decision stage</text>
+ <text x="1172" y="343" text-anchor="middle" class="mini">Exact fusion is under code audit</text>
+ <path class="line" d="M1172 365V395"/>
+ <rect x="1010" y="398" width="325" height="79" rx="12" fill="#FFFFFF" stroke="#DEB178"/>
+ <text x="1172" y="430" text-anchor="middle" class="boxtitle" style="font-size:17px">Website prediction</text>
+ <text x="1172" y="452" text-anchor="middle" class="mini">65 candidate labels</text>
+ <text x="1172" y="500" text-anchor="middle" class="boxtxt">Frozen LTD-Hybrid classifier</text>
+</g>
+<path class="line" d="M470 417H495V252H955V317H1005"/>
+<path class="line" d="M918 417H944V335H1005"/>
+<rect x="55" y="572" width="1331" height="144" rx="18" fill="#FFFFFF" stroke="#D7E0EB" stroke-width="2"/>
+<text x="79" y="605" class="boxtitle" style="font-size:16px">Chronological evaluation protocol (separate from model architecture)</text>
+<rect x="79" y="622" width="353" height="61" rx="10" fill="#EDF3FA"/>
+<text x="255" y="646" class="boxtxt" text-anchor="middle">Historical DEV · n = 57,916</text>
+<text x="255" y="668" class="mini" text-anchor="middle">Fit / selection / refit only</text>
+<path class="dashed" d="M439 652H486"/>
+<rect x="495" y="622" width="336" height="61" rx="10" fill="#F4F7FB"/>
+<text x="663" y="646" class="boxtxt" text-anchor="middle">09B · n = 14,687</text>
+<text x="663" y="668" class="mini" text-anchor="middle">Retrospective frozen evaluation</text>
+<path class="dashed" d="M838 652H886"/>
+<rect x="894" y="622" width="466" height="61" rx="10" fill="#F4F7FB"/>
+<text x="1127" y="646" class="boxtxt" text-anchor="middle">Future-B · n = 18,543</text>
+<text x="1127" y="668" class="mini" text-anchor="middle">Retrospective temporal-shift evaluation</text>
+<text x="55" y="750" class="mini">FIGURE 1 — Conceptual, editable. Model-specific operators, encoder layers, features and fusion weights must be verified against frozen implementation before publication.</text>
+</svg>
