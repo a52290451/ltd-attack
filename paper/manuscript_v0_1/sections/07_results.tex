@@ -1,0 +1,9 @@
+\section{Results}\label{sec:results}
+\input{tables/main_results}
+\paragraph{Temporally proximate evaluation (09B).} The hybrid attains 97.440\% accuracy, compared with 95.002\% for Micro and 84.068\% for Macro. The strongest SOTA comparator in this cohort is VarCNN at 97.290\%, a difference of only $0.150\pp$ from the hybrid. In the original S6 family, the hybrid--VarCNN accuracy contrast is not statistically distinguishable under the reported Holm adjustment; we therefore do not characterize the 09B result as confirmed superiority over VarCNN.
+
+\paragraph{Later evaluation (Future-B).} All evaluated models undergo a substantial decrease in top-1 accuracy relative to 09B. The hybrid reaches 49.453\% accuracy and 49.262\% macro-F1 on Future-B, compared with Micro (43.116\%, 44.134\%), Macro (22.305\%, 18.328\%), DF (37.464\%, 36.192\%), and VarCNN (33.447\%, 31.140\%). The CUMUL-style SVM and Tik-Tok achieve 7.733\% and 20.105\% accuracy, respectively. These results are descriptive comparisons until the expanded paired-inference family is completed.
+
+\paragraph{Temporal deterioration.} The hybrid's observed accuracy declines by 47.987 percentage points from 09B to Future-B; the corresponding differences for Micro, Macro, DF, and VarCNN are 51.886, 61.763, 55.959, and 63.843 points. The cohorts consist of different captures, so these differences characterize cross-cohort changes rather than paired changes for individual visits. This is consistent with a serious temporal generalization problem, but cannot by itself partition the effect among website evolution, software environments, and measurement conditions.
+
+\paragraph{Incomplete comparisons.} No NetCLR accuracy, paired p-value for CUMUL/Tik-Tok, or Dataset C result is reported in this version. This omission is deliberate: the scientific narrative must not depend on anticipated findings.
