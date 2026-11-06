@@ -205,7 +205,7 @@ def main():
     losses=[]
     for epoch in range(1,101):
         model.train();running=[]
-        for (views,) in loader:
+        for views in loader:
             q=torch.cat(views,dim=0).to("cuda:0",non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
             emb=model(q)
