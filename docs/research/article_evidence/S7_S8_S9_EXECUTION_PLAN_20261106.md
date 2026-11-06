@@ -30,7 +30,7 @@
 cd ~/ltd-attack
 git fetch origin feature/macro-v2-historical-only &&
 git merge --ff-only FETCH_HEAD &&
-/data/ltd-sota-bsierra/venv-cu128/bin/python -m unittest tests.test_sota_s7_s8_features_v1 &&
+/data/ltd-sota-bsierra/venv-cu128/bin/python -m unittest discover -s tests -p 'test_sota_s7_s8_features_v1.py' &&
 /data/ltd-sota-bsierra/venv-cu128/bin/python scripts/sota/s8_s9_source_gate_v1.py &&
 /data/ltd-sota-bsierra/venv-cu128/bin/python scripts/sota/s7_cumul_frozen_v1.py --stage B
 ```
