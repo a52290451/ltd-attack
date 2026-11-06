@@ -194,9 +194,14 @@ def main():
                   "invalid augmented pair")
         backbone=modules["model"].NetCLR(out_dim=128)
         model=modules["model"].DFsimCLR(backbone,out_dim=128).cpu().train()
-        a=torch.stack([train[i][0][0] for i in range(4)])
-        b=torch.stack([train[i][1][0] for i in range(4)])
-        emb=model(torch.cat([a,b],dim=0))
+        # Each view already has shape (1, 5000): preserve channel dim.
+        a=torch.stack([train[i][0] for i in range(4)])
+        b=torch.stack([train[i][1] for i in range(4)])
+        pair_batch=torch.cat([a,b],dim=0)
+        check(pair_batch.shape==(8,1,5000),
+              "smoke model batch must be (8,1,5000)")
+        emb=model(pair_batch)
+        check(emb.shape==(8,128),"smoke embedding shape mismatch")
         loss=info_nce(emb,0.5)
         check(bool(torch.isfinite(loss).item()),"loss nonfinite")
         loss.backward()
@@ -221,9 +226,13 @@ def main():
     for epoch in range(1,101):
         model.train();running=[]
         for views in loader:
-            q=torch.cat(views,dim=0).to("cuda:0",non_blocking=True)
+            q=torch.cat(views,dim=0)
+            check(q.ndim==3 and q.shape[1:]==(1,5000) and q.shape[0]==128,
+                  "train model batch must be (128,1,5000)")
+            q=q.to("cuda:0",non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
             emb=model(q)
+            check(emb.shape==(128,128),"train embedding shape mismatch")
             loss=info_nce(emb,0.5)
             check(bool(torch.isfinite(loss).item()),"nonfinite contrastive loss")
             loss.backward();optimizer.step()
