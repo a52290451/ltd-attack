@@ -41,7 +41,8 @@ CONFIG={"model":"WFlib_NetCLR_DFsimCLR","upstream_commit":WFLIB_COMMIT,
  "augmentor":"pinned_WFlib_NetAugment_like","drop_last":True,
  "method_status":"WFlib_adapted_not_original_paper_exact",
  "reduced_batch_vs_upstream_256":True,
- "integral_augment_input":True,"burst_size_cdf_index_fix":True,\n "run_id":"pretrain_B_v2","fix_numpy_batch_smoke":True}
+ "integral_augment_input":True,"burst_size_cdf_index_fix":True,
+ "run_id":"pretrain_B_v2","fix_numpy_batch_smoke":True}
 
 def check(ok,msg):
     if not ok:raise RuntimeError("S9_BLOCKED "+msg)
