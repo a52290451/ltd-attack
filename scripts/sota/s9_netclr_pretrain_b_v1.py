@@ -40,7 +40,8 @@ CONFIG={"model":"WFlib_NetCLR_DFsimCLR","upstream_commit":WFLIB_COMMIT,
  "dataset":"Historical_DEV_EARLY_MIDDLE_only",
  "augmentor":"pinned_WFlib_NetAugment_like","drop_last":True,
  "method_status":"WFlib_adapted_not_original_paper_exact",
- "reduced_batch_vs_upstream_256":True}
+ "reduced_batch_vs_upstream_256":True,
+ "integral_augment_input":True,"burst_size_cdf_index_fix":True}
 
 def check(ok,msg):
     if not ok:raise RuntimeError("S9_BLOCKED "+msg)
@@ -130,8 +131,8 @@ def burst_distribution(X):
     weights=np.asarray([counts[int(k)] for k in values],dtype=np.float64)
     cdf=np.cumsum(weights)/weights.sum()
     check(np.isclose(cdf[-1],1.0) and np.all(np.diff(cdf)>=0),"CDF invalid")
-    # Upstream constructor internally indexes range(max_outgoing_burst_size),
-    # which does not preserve actual burst size values; record this limitation.
+    # WFlib creates a range-indexed outgoing burst list. Its CDF is indexed
+    # over observed burst-size values; restore this alignment in our adapter.
     max_outgoing=int(max(values.max()+1,len(values)+1))
     return max_outgoing,values.tolist(),cdf
 
@@ -139,7 +140,7 @@ class Views(Dataset):
     def __init__(self,X,augmentor):self.X=X;self.augmentor=augmentor
     def __len__(self):return len(self.X)
     def __getitem__(self,i):
-        x=np.array(self.X[i],dtype=np.float32,copy=True)
+        # WFlib add_outgoing_burst calls random.randint with burst sizes.\n        # Float32 sizes fail in Python 3.12; original packet directions are integers.\n        x=np.array(self.X[i],dtype=np.int32,copy=True)
         views=[]
         for _ in range(2):
             augmented=np.asarray(self.augmentor.augment(x.copy()),dtype=np.float32)
@@ -170,6 +171,13 @@ def main():
     X,cache=build_cache()
     maximum,values,cdf=burst_distribution(X)
     augmentor=modules["augment"].Augmentor(maximum,values,cdf)
+    # Correct the distribution/index mismatch of this pinned WFlib variant:
+    # the CDF is over observed sizes, hence its index must resolve to those
+    # observed sizes rather than an invented range(0, max_outgoing).
+    augmentor.outgoing_burst_sizes=list(values)
+    check(len(augmentor.outgoing_burst_sizes)==len(cdf) and
+          all(type(v) is int and v>0 for v in values),
+          "unaligned outgoing burst CDF")
     train=Views(X,augmentor)
     if args.stage=="smoke":
         # Detect upstream augmentation edge cases before launching a full run.
