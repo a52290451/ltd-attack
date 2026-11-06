@@ -41,7 +41,7 @@ CONFIG={"model":"WFlib_NetCLR_DFsimCLR","upstream_commit":WFLIB_COMMIT,
  "augmentor":"pinned_WFlib_NetAugment_like","drop_last":True,
  "method_status":"WFlib_adapted_not_original_paper_exact",
  "reduced_batch_vs_upstream_256":True,
- "integral_augment_input":True,"burst_size_cdf_index_fix":True}
+ "integral_augment_input":True,"burst_size_cdf_index_fix":True,\n "run_id":"pretrain_B_v2","fix_numpy_batch_smoke":True}
 
 def check(ok,msg):
     if not ok:raise RuntimeError("S9_BLOCKED "+msg)
@@ -140,7 +140,7 @@ class Views(Dataset):
     def __init__(self,X,augmentor):self.X=X;self.augmentor=augmentor
     def __len__(self):return len(self.X)
     def __getitem__(self,i):
-        # WFlib add_outgoing_burst calls random.randint with burst sizes.\n        # Float32 sizes fail in Python 3.12; original packet directions are integers.\n        x=np.array(self.X[i],dtype=np.int32,copy=True)
+        # WFlib add_outgoing_burst expects integer burst sizes.\n        # Input directions are integers; leave them integral until after augmentation.\n        x=np.array(self.X[i],dtype=np.int32,copy=True)
         views=[]
         for _ in range(2):
             augmented=np.asarray(self.augmentor.augment(x.copy()),dtype=np.float32)
@@ -179,6 +179,10 @@ def main():
           all(type(v) is int and v>0 for v in values),
           "unaligned outgoing burst CDF")
     train=Views(X,augmentor)
+    # Fail before launching GPU work if augmentor cannot produce a full batch.
+    sample=next(iter(DataLoader(train,batch_size=4,shuffle=False,num_workers=0)))
+    check(len(sample)==2 and all(v.shape==(4,1,5000) for v in sample),
+          "contrastive batch shape invalid")
     if args.stage=="smoke":
         # Detect upstream augmentation edge cases before launching a full run.
         for i in np.linspace(0,len(train)-1,128,dtype=int):
@@ -187,8 +191,8 @@ def main():
                   "invalid augmented pair")
         backbone=modules["model"].NetCLR(out_dim=128)
         model=modules["model"].DFsimCLR(backbone,out_dim=128).cpu().train()
-        a=torch.stack([train[i][0][0] for i in range(4)])[:,None,:]
-        b=torch.stack([train[i][1][0] for i in range(4)])[:,None,:]
+        a=torch.stack([train[i][0][0] for i in range(4)])
+        b=torch.stack([train[i][1][0] for i in range(4)])
         emb=model(torch.cat([a,b],dim=0))
         loss=info_nce(emb,0.5)
         check(bool(torch.isfinite(loss).item()),"loss nonfinite")
@@ -198,7 +202,7 @@ def main():
               "upstream_burst_values",len(values),flush=True)
         return
     check(torch.cuda.is_available(),"GPU required")
-    target=OUT/"pretrain_B"
+    target=OUT/"pretrain_B_v2"
     check(not target.exists(),"pretrain B already exists; no overwrite")
     target.mkdir(parents=True,mode=0o700)
     torch.cuda.manual_seed_all(42)
