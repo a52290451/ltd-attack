@@ -1,0 +1,10 @@
+\section{Threats to Validity and Research Ethics}\label{sec:validity}
+\paragraph{Retrospective selection.} Future-B was previously inspected during the broader project. The 65-site class set may also be conditioned on availability of later observations. Consequently, fixed-score analysis is not equivalent to a previously unseen, prospectively held-out test, and the inference is exploratory.
+
+\paragraph{Acquisition confounders.} Timestamp discontinuities, Tor/browser version variation, client geography, network path, crawler instrumentation, and capture scheduling may influence the measured distribution. A change in classifier performance is not, in isolation, identification of a particular drift mechanism. Capture metadata, negative timestamp steps, and source hashes will be released or summarized as permitted.
+
+\paragraph{Representation availability.} A longitudinal profile could inadvertently exploit site-conditioned aggregates or temporal information not available at decision time. This possibility must be ruled out by tracing the final data construction and inference code. The original three-page workshop proposal is not sufficient evidence of the implemented architecture.
+
+\paragraph{Benchmark limitations.} The present benchmark is 65-class, single-tab, closed-world Tor traffic. It does not evaluate open-world base rates, background traffic, multiclass unknown rejection, deployed defenses, user behavioral variation, or broader site families. Single-seed point estimates do not quantify variability across training runs.
+
+\paragraph{Responsible measurement.} The uploaded workshop draft states that traces were collected by automated visits to public websites through isolated Tor clients and that no human users were monitored. These statements should be reverified against collection logs, data retention practices, and institutional ethics guidance before submission. The reported analysis concerns security evaluation and its implications for Tor users' privacy, not interception of individual people's browsing histories.
