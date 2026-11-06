@@ -1,0 +1,12 @@
+\section{Datasets and Chronological Protocol}\label{sec:data}
+\paragraph{Historical DEV.} The frozen development corpus comprises 57,916 unique captures from 65 website labels. DEV\_EARLY has 19,098 traces, DEV\_MIDDLE has 20,160, and DEV\_LATE has 18,658. Baseline phase B trains on EARLY+MIDDLE ($n=39,258$) and selects the model using DEV\_LATE; phase C refits the frozen recipe using the complete 57,916 historical traces. These data form the sole basis for fitting or selecting S7--S9 baselines.
+
+\paragraph{Retrospective evaluation cohorts.} Cohort 09B contains 14,687 traces observed on 11 dates. Future-B (identifier 10B\_DEV\_FROZEN) contains 18,543 traces observed on 16 dates. The cohorts have 65 closed-world labels and are separately aligned by identifier, date, and class index. Results across cohorts should not be treated as paired visits of the same capture.
+
+\input{tables/dataset_counts}
+
+\paragraph{Frozen evaluation discipline.} Model preprocessing and selection must be established without reference to either evaluation cohort. External evaluation uses a single frozen phase-C model per baseline. All comparisons require a one-to-one UID agreement, class-order agreement, finite score arrays, and checksums of model and inference artifacts. The observed historical baseline pipelines follow this protocol, but the evaluation cohorts had been inspected during earlier stages of the broader study. We therefore distinguish \emph{frozen execution} from a \emph{prospective blind test}.
+
+\paragraph{Temporal capture quality.} For Tik-Tok's historical timing preparation, 195,691 negative consecutive timestamp differences were detected among the 57,916 historical traces. Original frame order was preserved; no silent timestamp reordering was applied. This count measures observed backward steps and does not directly equal the number of affected captures. Device clock behavior and timestamp quality should be investigated and reported separately.
+
+\paragraph{Prospective extension.} Dataset C is being recollected through a direct, non-bridge Tor acquisition stack and is not used in the results in this manuscript. Its eligibility as a separate test depends on acquisition and clock-quality checks, label compatibility, and a freeze of all model and decision rules preceding any analysis of that dataset.
