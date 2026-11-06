@@ -141,7 +141,9 @@ class Views(Dataset):
     def __init__(self,X,augmentor):self.X=X;self.augmentor=augmentor
     def __len__(self):return len(self.X)
     def __getitem__(self,i):
-        # WFlib add_outgoing_burst expects integer burst sizes.\n        # Input directions are integers; leave them integral until after augmentation.\n        x=np.array(self.X[i],dtype=np.int32,copy=True)
+        # WFlib add_outgoing_burst expects integer burst sizes.
+        # Keep source packet directions integral during augmentation.
+        x=np.array(self.X[i],dtype=np.int32,copy=True)
         views=[]
         for _ in range(2):
             augmented=np.asarray(self.augmentor.augment(x.copy()),dtype=np.float32)
