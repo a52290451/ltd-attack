@@ -1,0 +1,28 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Frozen model comparison. Accuracy, macro-F1, and top-5 are percentages; MRR is a unitless rank score. Values for LTD and DF/VarCNN come from S6; CUMUL-style from S7; Tik-Tok from S8. NetCLR not yet evaluated.}
+\label{tab:main}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrrr}
+\toprule
+Cohort & Model & Acc. & Macro-F1 & Top-5 & MRR \\
+\midrule
+09B & LTD-Micro & 95.002 & 94.818 & 99.020 & 0.9685 \\
+ & LTD-Macro & 84.068 & 83.946 & 98.523 & 0.9039 \\
+ & \textbf{LTD-Hybrid} & \textbf{97.440} & \textbf{97.379} & \textbf{99.816} & \textbf{0.9853} \\
+ & DF & 93.423 & 93.239 & 99.163 & 0.9593 \\
+ & VarCNN & 97.290 & 97.216 & 99.775 & 0.9840 \\
+ & CUMUL-style & 69.994 & 68.944 & 93.253 & 0.8023 \\
+ & Tik-Tok & 94.110 & 93.858 & 99.135 & 0.9632 \\
+\midrule
+Future-B & LTD-Micro & 43.116 & 44.134 & 72.399 & 0.5615 \\
+ & LTD-Macro & 22.305 & 18.328 & 57.995 & 0.3865 \\
+ & \textbf{LTD-Hybrid} & \textbf{49.453} & \textbf{49.262} & \textbf{80.559} & \textbf{0.6306} \\
+ & DF & 37.464 & 36.192 & 75.020 & 0.5358 \\
+ & VarCNN & 33.447 & 31.140 & 67.244 & 0.4880 \\
+ & CUMUL-style & 7.733 & 2.849 & 33.646 & 0.2265 \\
+ & Tik-Tok & 20.105 & 18.557 & 52.214 & 0.3535 \\
+\bottomrule
+\end{tabular}
+\end{table}
