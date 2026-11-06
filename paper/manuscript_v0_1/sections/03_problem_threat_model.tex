@@ -1,0 +1,13 @@
+\section{Problem Setting and Threat Model}\label{sec:threat}
+We consider a \emph{closed-world} WF setting in which an observer attempts to identify one of $K=65$ monitored websites from an encrypted Tor traffic trace. A trace $x_i$ contains observable packet-level information in its original capture order; each example is associated with a website label $y_i\in\{1,\ldots,K\}$, an acquisition date $d_i$, and a stable capture identifier $u_i$.
+
+A conventional classifier models $p_\theta(y\mid x_i)$. The proposed family introduces a longitudinal context representation $z_i$ derived from traffic characteristics associated with repeated observations. Its hybrid form conceptually predicts
+\begin{equation}
+ \hat y_i=\arg\max_{k\in\{1,\dots,K\}} f_{\theta}(x_i,z_i)_k.
+ \label{eq:hybrid}
+\end{equation}
+This expression is intentionally model-agnostic. Exact encoder layers, feature dimensions, normalization, fusion weights, and final score combination must be transcribed from the frozen trained implementation and verified before the architecture figure and method equations can be finalized.
+
+\paragraph{Attacker access and assumptions.} The attacker is assumed to observe direction, timing, and other packet metadata on a monitored Tor connection, not decrypted page contents. The benchmark uses known monitored classes. Training and evaluation share the 65-class label vocabulary; unknown-site detection is outside this evaluation. The provenance and online availability of longitudinal context are part of the model assumptions, not something that can be inferred from accuracy results.
+
+\paragraph{Temporal distribution shift.} Let $P_{\mathrm{dev}}(X,Y)$ and $P_{\mathrm{eval}}(X,Y)$ denote the joint distributions represented by historical training and later evaluation cohorts. We use \emph{temporal distribution shift} descriptively when the sampled traces differ. Accuracy degradation alone cannot determine whether the underlying mechanism is concept drift, covariate shift, acquisition artifacts, or combinations thereof. We therefore avoid causal drift attribution absent additional diagnostics.
