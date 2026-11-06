@@ -1,0 +1,19 @@
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[>=Latex, node distance=5mm and 11mm,
+  every node/.style={font=\small},
+  stage/.style={draw=black!70,rounded corners,align=center,text width=3.2cm,minimum height=1.15cm,fill=black!2},
+  eval/.style={draw=black!70,rounded corners,align=center,text width=3.0cm,minimum height=1.15cm,fill=black!8}]
+\node[stage] (dev) {Historical DEV\\57,916 traces};
+\node[stage,right=of dev] (b) {Chronological phase B\\Fit: Early+Middle\\Select: Late};
+\node[stage,right=of b] (c) {Frozen phase C\\Refit: all Historical DEV};
+\node[eval,below=12mm of c] (test) {Fixed evaluation\\09B / Future-B};
+\node[eval,left=of test] (audit) {UID/class alignment\\Metrics and paired analysis};
+\draw[->,thick] (dev)--(b);
+\draw[->,thick] (b)--(c);
+\draw[->,thick] (c)--(test);
+\draw[->,thick] (test)--(audit);
+\end{tikzpicture}
+\caption{Editable diagram of the experimental pipeline, \emph{not} the final internal neural architecture. Phase B selection and phase C refit use only historical development data; 09B and Future-B are frozen retrospective evaluations.}
+\label{fig:research-pipeline}
+\end{figure}
