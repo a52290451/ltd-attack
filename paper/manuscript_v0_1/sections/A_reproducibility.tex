@@ -1,0 +1,16 @@
+\section{Reproducibility Checklist}\label{app:repro}
+This appendix enumerates the evidence required before submission. A checkmark in the project tracking file must point to an actual immutable result, not simply an executed command.
+\begin{enumerate}[leftmargin=*]
+\item Immutable source code revision, WFlib upstream commit and blob checksums, and hardware/software inventory.
+\item Historical DEV manifest containing UID, site-label mapping, date split, and file hashes.
+\item All phase-B hyperparameters and selection metrics, plus phase-C checkpoint and training-set provenance.
+\item Per-example probability artifacts for 09B and Future-B with verified UID/date/class-order alignment.
+\item Complete SOTA statistics, uncertainty estimation, multiple-testing family, and cluster-date assumptions.
+\item Final trained LTD micro/macro/hybrid architecture audit: inputs, transformations, fusion, XGBoost role, and online feature availability.
+\item Per-model training time, resource usage, seed controls, checkpoint cadence, and run logs.
+\item Prospective Dataset C integrity gate and full embargo on model/decision tuning from that cohort, if used.
+\end{enumerate}
+\paragraph{Evidence paths.} Recorded frozen results are preserved in the repository's
+\path{docs/research/article_evidence/} directory, including the S6, S7,
+and S8 result manifests dated 2026-11-06. Underlying checkpoint manifests
+remain on Perseo and require independent, read-only reconciliation before release.
