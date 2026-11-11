@@ -6,6 +6,17 @@ PY="/data/ltd-sota-bsierra/venv-cu128/bin/python"
 OUT="/data/ltd-attack/sota/s9_netclr_wflib_adapted_seed42"
 LOGDIR="/data/ltd-attack/sota/s9_netclr_orchestration_logs"
 STAGE="$1"
+# PI policy: author-source-first. Current S9 stages are WFlib-adapted only,
+# NEVER silently treat them as original NetCLR authors' reproduction.
+case "$STAGE" in
+  all|B|C|09B|Future-B|results)
+    if [[ "${LTD_ALLOW_WFLIB_ADAPTED_S9:-NO}" != "YES" ]]; then
+      echo "BLOCKED_AUTHOR_SOURCE_FIRST: This runner trains/evaluates WFlib-adapted NetCLR, NOT the authors' NetCLR."
+      echo "Original NetCLR exists at SPIN-UMass; prioritize original notebook adapter."
+      echo "To run an expressly labeled ADAPTED secondary benchmark, export LTD_ALLOW_WFLIB_ADAPTED_S9=YES."
+      exit 6
+    fi ;;
+esac
 case "$STAGE" in
   preflight)
     "$PY" -m py_compile \
