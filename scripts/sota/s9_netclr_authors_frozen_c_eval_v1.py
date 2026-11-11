@@ -37,7 +37,7 @@ def b_evidence():
     p=B.TARGET/"manifest.json"
     must(p.is_file(),"supervised B manifest not yet available")
     m=json.loads(p.read_text())
-    must(m.get("classification")=="S9_AUTHOR_NETCLR_AUTHORS_SUPERVISED_B_V1"
+    must(m.get("classification")=="S9_NETCLR_AUTHORS_SUPERVISED_B_V1"
          and m.get("config")==B.CONFIG,"B manifest provenance invalid")
     ep=m.get("selected_epoch")
     hist=m.get("history",[])
@@ -132,7 +132,7 @@ def evaluate(cohort):
     mp=TARGET/"manifest.json"
     must(mp.is_file(),"C must be completed before evaluation")
     c=json.loads(mp.read_text())
-    must(c.get("classification")=="S9_NETCLR_HISTORICAL_C_FROZEN_V1"
+    must(c.get("classification")=="S9_NETCLR_AUTHORS_HISTORICAL_C_FROZEN_V1"
          and c.get("config")==B.CONFIG and
          c.get("refit_epochs")==evidence["selected_epoch"],
          "C manifest does not match frozen B")
