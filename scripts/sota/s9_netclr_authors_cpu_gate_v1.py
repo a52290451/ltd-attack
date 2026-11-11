@@ -20,7 +20,9 @@ import random
 import sys
 from pathlib import Path
 
-REPO=Path.home()/"ltd-ops/sota/upstream_original_2026/S9_NetCLR_Authors"
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+from scripts.sota.sota_paths_v1 import ORIGINAL
+REPO=ORIGINAL/"S9_NetCLR_Authors"
 COMMIT="c53ca10df0cad6bd5c8b27301a10dcc464278187"
 PRE=REPO/"artifacts/src/NetCLR/pre-training.ipynb"
 FIN=REPO/"artifacts/src/NetCLR/fine-tuning-cw.ipynb"
