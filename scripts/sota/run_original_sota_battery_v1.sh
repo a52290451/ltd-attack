@@ -85,20 +85,6 @@ case "$MODE" in
   gpu-all)
     echo "Use guarded/resumable v2 orchestrator; old one-shot is deprecated."
     "$PY" "$SOTA/original_sota_orchestrator_v2.py" --stage all --run ;;
-  gpu-all-legacy)
-    check_gpu
-    [[ -x "$KPY" ]] || {
-      echo "BLOCKED: isolated original Keras environment missing";exit 5;
-    }
-    # Original-author models; separate output paths, fail-fast on any stage error.
-    bash "$SOTA/run_s9_netclr_authors_v1.sh" all
-    bash "$SOTA/run_s11_swallow_authors_v1.sh" all
-    bash "$SOTA/run_s12_wfcat_authors_v1.sh" all
-    for model in DF VarCNN TikTok RoFiRe; do
-      bash "$SOTA/run_authors_keras_s3_s4_s8_v1.sh" "$model" all
-    done
-    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/original_authors_results_integrity_v1.py" --model all --save
-    echo "SOTA_BATTERY_AUTHORS_EXECUTED_AND_FROZEN_EVIDENCE_AUDITED" ;;
   *)
     echo "Usage: bash $0 {cpu-preflight|cpu-integration|cpu-prepare|host-check|statistics|gpu-all}"
     exit 2 ;;
