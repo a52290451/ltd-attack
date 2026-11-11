@@ -94,13 +94,21 @@ def cache():
         must(dict(zip(*np.unique(s,return_counts=True)))==
              {0:19098,1:20160,2:18658},"WFCAT split counts")
         return X,y,s,m
-    must(not CACHE.exists(),"partial WFCAT cache, refusing overwrite")
+    if CACHE.exists():
+        known=sorted(p.name for p in CACHE.iterdir())
+        must(known in ([],["iat_uint16.npy.partial"]),
+             "incomplete WFCAT cache has unexpected files: "+str(known))
+        if known:
+            (CACHE/"iat_uint16.npy.partial").unlink()
+            print("S12_WFCAT_RESTART_INCOMPLETE_CPU_MEMMAP_ONLY",flush=True)
+        else:
+            print("S12_WFCAT_RESUME_EMPTY_CPU_CACHE_DIR",flush=True)
     transform,_=upstream()
     by_uid,cl,s1=load_s1_dev_index(S1)
     spec=s1["historical_checksums"]["historical_vectors"]
     source=Path(spec["path"])
     must(digest(source)==spec["sha256"],"frozen Historical vector digest")
-    CACHE.mkdir(parents=True,mode=0o700)
+    CACHE.mkdir(parents=True,mode=0o700,exist_ok=True)
     tmp=CACHE/"iat_uint16.npy.partial"
     X=np.lib.format.open_memmap(tmp,mode="w+",dtype=np.uint16,
                                 shape=(57916,18,1800))
