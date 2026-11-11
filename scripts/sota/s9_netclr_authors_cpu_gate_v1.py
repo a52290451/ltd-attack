@@ -80,10 +80,29 @@ def inspect():
     extracted={name:extract_class(pre,name) for name in
                (*MODEL_CLASSES,AUGMENT_CLASS)}
     fine={name:extract_class(fin,name) for name in MODEL_CLASSES}
+    # The authors' fine-tuning notebook adds an active diagnostic print(n)
+    # inside DFNet.weight_init; remove ONLY this debug statement for parity
+    # comparison, not from the implementation executed in the smoke.
+    def normalized_ast(source,allow_debug=False):
+        tree=ast.parse(source)
+        if allow_debug:
+            class RemoveKnownDebug(ast.NodeTransformer):
+                def visit_Expr(self,node):
+                    if (isinstance(node.value,ast.Call)
+                        and isinstance(node.value.func,ast.Name)
+                        and node.value.func.id=="print"
+                        and len(node.value.args)==1
+                        and isinstance(node.value.args[0],ast.Name)
+                        and node.value.args[0].id=="n"):
+                        return None
+                    return self.generic_visit(node)
+            tree=RemoveKnownDebug().visit(tree)
+            ast.fix_missing_locations(tree)
+        return ast.dump(tree,include_attributes=False)
     for name in MODEL_CLASSES:
-        must(ast.dump(ast.parse(extracted[name][1]),include_attributes=False)
-             ==ast.dump(ast.parse(fine[name][1]),include_attributes=False),
-             "authors pretrain and fine-tuning class drift "+name)
+        must(normalized_ast(extracted[name][1])
+             ==normalized_ast(fine[name][1],allow_debug=True),
+             "authors pretrain and fine-tuning topology drift "+name)
     all_pre="\n".join(pre)
     must("batch_size = 256" in all_pre and "temperature = 0.5" in all_pre,
          "original notebook hyperparameter contract changed")
@@ -104,7 +123,7 @@ def inspect():
       "finetune_notebook_sha256":sha(FIN),
       "model_cell_indices":{k:extracted[k][0] for k in MODEL_CLASSES},
       "augmentor_cell_index":extracted[AUGMENT_CLASS][0],
-      "source_model_ast_equal_between_notebooks":True,
+      "source_model_ast_equivalent_ignoring_finetune_debug_print":True,
       "source_compatibility_fix_count":1,"rules":RULES,
       "source_used":"authors_original, not WFlib",
       "runtime_training_performed":False,
