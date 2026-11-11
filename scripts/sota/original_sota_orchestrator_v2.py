@@ -131,6 +131,8 @@ def main():
     require(opts.stage=="status" or opts.run or opts.dry_run,
             "must explicitly specify --dry-run or --run")
     if opts.run:
+        subprocess.run([PY,str(SOTA/"sota_host_readiness_certificate_v1.py"),
+                        "--stage","inspect"],cwd=ROOT,check=True)
         require(S1.is_file() and S5.is_file() and FUTURE.is_file(),
                 "missing chronological S1/S5/Future references on this host")
         # SHA inspection is intentionally skipped in status/dry-run, but is
