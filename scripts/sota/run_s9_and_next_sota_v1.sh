@@ -12,7 +12,8 @@ case "$STAGE" in
       scripts/sota/s9_netclr_pretrain_b_v1.py \
       scripts/sota/s9_netclr_supervised_b_v1.py \
       scripts/sota/s9_netclr_frozen_c_eval_v1.py \
-      scripts/sota/s10_s13_upstream_source_gate_v1.py
+      scripts/sota/s10_s13_upstream_source_gate_v1.py \
+      scripts/sota/s9_netclr_results_gate_v1.py
     "$PY" -u scripts/sota/s9_netclr_supervised_b_v1.py --stage smoke
     "$PY" - "$OUT" <<'PY'
 import json,sys
@@ -51,11 +52,13 @@ PY
               --stage evaluate --cohort 10B_DEV_FROZEN 2>&1 | tee "$log" ;;
     esac
     ;;
+  results)
+    "$PY" -u scripts/sota/s9_netclr_results_gate_v1.py ;;
   audit-upstream)
     "$PY" -u scripts/sota/s10_s13_upstream_source_gate_v1.py --stage inspect ;;
   fetch-upstream)
     "$PY" -u scripts/sota/s10_s13_upstream_source_gate_v1.py --stage fetch ;;
   *)
-    echo "USAGE: bash scripts/sota/run_s9_and_next_sota_v1.sh {preflight|B|C|09B|Future-B|audit-upstream|fetch-upstream}"
+    echo "USAGE: bash scripts/sota/run_s9_and_next_sota_v1.sh {preflight|B|C|09B|Future-B|results|audit-upstream|fetch-upstream}"
     exit 2 ;;
 esac
