@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 MODE="$1"
-DEST="/data/ltd-sota-bsierra/venv-keras-authors"
+DEST="${LTD_SOTA_KERAS_VENV_DIR:-/data/ltd-sota-bsierra/venv-keras-authors}"
 case "$MODE" in
   install)
     if [[ -e "$DEST" ]]; then
