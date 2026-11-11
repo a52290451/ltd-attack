@@ -87,8 +87,8 @@ class ContractTests(unittest.TestCase):
     def test_metrics_single_wrong_classifier(self):
         y=np.arange(65,dtype=np.int64)
         p=np.eye(65,dtype=np.float32)
-        p[0,:]=0
-        p[0,1]=1
+        p[0,:]=np.arange(65,dtype=np.float32)
+        p[0,:]/=p[0,:].sum()
         x=st.profile(p,y)
         r=st.stats(x,y,np.arange(65))
         self.assertLess(r[0],1)
@@ -105,6 +105,5 @@ class ContractTests(unittest.TestCase):
         source=(SOTA/"run_original_sota_battery_v1.sh").read_text()
         self.assertIn('original_sota_orchestrator_v2.py',source)
         self.assertIn('SOTA_HOST', (SOTA/"sota_zeus_evidence_bootstrap_v1.py").read_text())
-        self.assertIn('NO', "NO")
 if __name__=="__main__":
     unittest.main(verbosity=2)
