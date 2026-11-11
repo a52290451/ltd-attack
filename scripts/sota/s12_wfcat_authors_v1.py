@@ -29,13 +29,14 @@ from src.models.sota.v1.data_adapter import (
     load_s1_dev_index,parse_direction,digest)
 from src.models.sota.v1.timing_adapter import parse_times
 
-SOURCE=Path.home()/"ltd-ops/sota/upstream_2026/S12_WFCAT"
+from scripts.sota.sota_paths_v1 import MODERN, ARTIFACT, STORAGE, S1, S5, FUTURE
+SOURCE=MODERN/"S12_WFCAT"
 COMMIT="cd382d30f7d33714fa4d025cddb3daaf2ffb0f09"
-S1=Path.home()/"ltd-ops/sota/s1_dev_frozen_20261102T130232Z/s1_manifest.json"
-OUT=Path("/data/ltd-attack/sota/s12_wfcat_authors_iat_seed42")
+
+OUT=ARTIFACT/"s12_wfcat_authors_iat_seed42"
 CACHE=OUT/"historical_cache"
 COHORTS={"09B":14687,"10B_DEV_FROZEN":18543}
-S5=Path("/data/ltd-attack/sota/s5/frozen_s5_refits_and_labels_v1.json")
+
 CFG={"model":"authors_WFCAT","upstream_commit":COMMIT,
      "feature":"iat_histogram_9_bins_per_direction","seq_length":1800,
      "time_window_seconds":0.044,"num_classes":65,
@@ -260,14 +261,14 @@ def evaluate(cohort):
     n=COHORTS[cohort]
     must(len(uid)==n and len(set(uid))==n and len(names)==65,"cohort UID/labels")
     true_by_uid={str(k):str(names[v]) for k,v in zip(uid,y)}
-    src=(Path.home()/"ltd-storage/datasets/historical/CLEAN_final_vectors_sites.csv"
+    src=(STORAGE/"historical/CLEAN_final_vectors_sites.csv"
          if cohort=="09B" else
-         Path.home()/"ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv")
+         STORAGE/"future/CLEAN_final_vectors_sites_concept_drift.csv")
     if cohort=="09B":
         s1=json.loads(S1.read_text())
         expected=s1["historical_checksums"]["historical_vectors"]["sha256"]
     else:
-        fm=json.loads((ROOT/"docs/evidence/FINAL/FUTURE-B/10B_manifest_future_b.json").read_text())
+        fm=json.loads((FUTURE).read_text())
         expected=fm["future_inputs"]["micro"]["sha256"]
     must(sha(src)==expected,"external CSV digest mismatch")
     transform,Model=upstream()
