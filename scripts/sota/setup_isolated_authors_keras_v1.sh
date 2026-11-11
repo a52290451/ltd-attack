@@ -4,7 +4,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 MODE="$1"
-DEST="${LTD_SOTA_KERAS_VENV_DIR:-/data/ltd-sota-bsierra/venv-keras-authors}"
+if [[ -n "${LTD_SOTA_KERAS_VENV_DIR:-}" ]]; then
+  DEST="$LTD_SOTA_KERAS_VENV_DIR"
+elif [[ -n "${LTD_SOTA_KERAS_PY:-}" ]]; then
+  DEST="${LTD_SOTA_KERAS_PY%/bin/python}"
+else
+  DEST="/data/ltd-sota-bsierra/venv-keras-authors"
+fi
 case "$MODE" in
   install)
     if [[ -e "$DEST" ]]; then
