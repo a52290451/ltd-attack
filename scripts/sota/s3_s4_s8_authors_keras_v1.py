@@ -122,12 +122,28 @@ def guard_gpu():
 
 def local_data(name):
     if name=="TikTok":
-        from scripts.sota import s8_tiktok_train_b_v1 as D
-        X,y,s,_,m=D.load_data()
-        return X,y,s,{"source_cache_sha256":sha(D.OUT/"historical_cache_v1/manifest.json")}
-    from scripts.sota import s9_netclr_supervised_b_v1 as D
-    X,y,s,m=D.prepare_cache()
-    return X,y,s,{"source_cache_sha256":sha(D.CACHE/"manifest.json")}
+        base=OUT/"s8_tiktok_wflib_dt_seed42/historical_cache_v1"
+        m=json.loads((base/"manifest.json").read_text())
+        required={"dt_float32.npy","labels.npy","split.npy"}
+        require(required<=set(m["sha256"]),"TikTok cache missing file hashes")
+        for filename in required:
+            require(sha(base/filename)==m["sha256"][filename],
+                    "TikTok historical cache SHA mismatch "+filename)
+        X=np.load(base/"dt_float32.npy",mmap_mode="r")
+    else:
+        base=OUT/"s9_netclr_wflib_adapted_seed42/supervised_dev_cache_v1"
+        m=json.loads((base/"manifest.json").read_text())
+        required={"directions.npy","labels.npy","split.npy"}
+        require(required<=set(m["sha256"]),"Historical cache missing file hashes")
+        for filename in required:
+            require(sha(base/filename)==m["sha256"][filename],
+                    "Historical direction cache SHA mismatch "+filename)
+        X=np.load(base/"directions.npy",mmap_mode="r")
+    y=np.load(base/"labels.npy",mmap_mode="r")
+    split=np.load(base/"split.npy",mmap_mode="r")
+    require(m.get("external_data_opened") is False
+            and m.get("dataset_c_opened") is False,"cache provenance violation")
+    return X,y,split,{"source_cache_sha256":sha(base/"manifest.json")}
 
 def config(name,source_sha):
     return {"model":name,"author_architecture":REGISTRY[name]["architecture"],
@@ -244,8 +260,7 @@ def evaluate(name,cohort):
          if cohort=="09B" else
          Path.home()/"ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv")
     if cohort=="09B":
-        from scripts.sota.s9_netclr_supervised_b_v1 import source
-        _,_,s1,_=source()
+        s1=json.loads((Path.home()/"ltd-ops/sota/s1_dev_frozen_20261102T130232Z/s1_manifest.json").read_text())
         reference_hash=s1["historical_checksums"]["historical_vectors"]["sha256"]
     else:
         fm=json.loads((ROOT/"docs/evidence/FINAL/FUTURE-B/10B_manifest_future_b.json").read_text())
