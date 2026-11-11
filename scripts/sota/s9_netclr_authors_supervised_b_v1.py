@@ -37,7 +37,7 @@ SPEC = importlib.util.spec_from_file_location("ltd_s9_pretraining_pinned", PRETR
 P = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(P)
 OUT = P.OUT
-S1 = P.S1
+S1 = P.DATA.S1
 CHECKPOINT = OUT / "pretrain_B_v1/checkpoint_epoch_100.pt"
 PRETRAIN_MANIFEST = OUT / "pretrain_B_v1/manifest.json"
 CACHE = P.DATA.CACHE
