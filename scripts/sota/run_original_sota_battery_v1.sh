@@ -6,8 +6,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 MODE="$1"
-PY="/data/ltd-sota-bsierra/venv-cu128/bin/python"
-KPY="/data/ltd-sota-bsierra/venv-keras-authors/bin/python"
+PY="${LTD_SOTA_PYTORCH_PY:-/data/ltd-sota-bsierra/venv-cu128/bin/python}"
+KPY="${LTD_SOTA_KERAS_PY:-/data/ltd-sota-bsierra/venv-keras-authors/bin/python}"
 SOTA="scripts/sota"
 check_gpu() {
   active="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
