@@ -84,7 +84,7 @@ case "$MODE" in
     echo "ORIGINAL_SOTA_HISTORICAL_CPU_CACHE_PASS" ;;
   gpu-all)
     echo "Use guarded/resumable v2 orchestrator; old one-shot is deprecated."
-    CUDA_VISIBLE_DEVICES=-1 "$PY" "$SOTA/original_sota_orchestrator_v2.py" --stage all --run ;;
+    "$PY" "$SOTA/original_sota_orchestrator_v2.py" --stage all --run ;;
   gpu-all-legacy)
     check_gpu
     [[ -x "$KPY" ]] || {
