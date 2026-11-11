@@ -45,7 +45,8 @@ def sha(p):
     return h.hexdigest()
 def model_source(name):
     x=REGISTRY[name]
-    base=BASE/x["repo"]
+    base=(Path.home()/"ltd-ops/sota/upstream_2026" if name=="RoFiRe"
+          else BASE)/x["repo"]
     r=subprocess.run(["git","-C",str(base),"rev-parse","HEAD"],
                      capture_output=True,text=True,check=True)
     require(r.stdout.strip()==x["commit"],"unpinned author source")
@@ -221,7 +222,7 @@ def train(name,stage):
         # The authors' DyWin augmentation is extracted verbatim from feature/features.py.
         # Use first 5 chronological samples per class + 10x augmented copies.
         # The original default uses 200x; reduced multiplier is explicit.
-        authorbase=BASE/REGISTRY[name]["repo"]
+        authorbase=Path.home()/"ltd-ops/sota/upstream_2026"/REGISTRY[name]["repo"]
         feature_path=authorbase/"feature/features.py"
         text=feature_path.read_text()
         tree=ast.parse(text)
