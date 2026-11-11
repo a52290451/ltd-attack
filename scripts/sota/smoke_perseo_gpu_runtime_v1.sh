@@ -12,7 +12,7 @@ if [[ -n "$active" ]]; then
   exit 5
 fi
 echo "===== PyTorch CUDA allocation smoke ====="
-/data/ltd-sota-bsierra/venv-cu128/bin/python - <<'PY'
+"${LTD_SOTA_PYTORCH_PY:-/data/ltd-sota-bsierra/venv-cu128/bin/python}" - <<'PY'
 import torch
 assert torch.cuda.is_available(), "PyTorch CUDA unavailable"
 print("TORCH",torch.__version__,"CUDA",torch.version.cuda)
@@ -24,7 +24,7 @@ torch.cuda.synchronize()
 print("TORCH_CUDA_SMALL_ALLOCATION_PASS")
 PY
 echo "===== TensorFlow GPU visibility (no tensors) ====="
-/data/ltd-sota-bsierra/venv-keras-authors/bin/python - <<'PY'
+"${LTD_SOTA_KERAS_PY:-/data/ltd-sota-bsierra/venv-keras-authors/bin/python}" - <<'PY'
 import tensorflow as tf
 print("TENSORFLOW",tf.__version__)
 gpus=tf.config.list_physical_devices("GPU")
