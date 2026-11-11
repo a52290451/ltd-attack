@@ -10,8 +10,9 @@ import argparse,hashlib,json
 from pathlib import Path
 import numpy as np
 
-ROOT=Path("/data/ltd-attack/sota")
-S5=ROOT/"s5/frozen_s5_refits_and_labels_v1.json"
+from scripts.sota.sota_paths_v1 import ARTIFACT, S5
+ROOT=ARTIFACT
+
 N={"09B":14687,"10B_DEV_FROZEN":18543}
 MODELS={
  "S3_DF_Authors":ROOT/"authors_df_seed42",
