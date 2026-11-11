@@ -461,9 +461,51 @@ def evaluate(cohort):
     (dest/"manifest.json").write_text(json.dumps(info,indent=2)+"\n")
     print("S11_SWALLOW_EXTERNAL_PASS",cohort,json.dumps(metrics),flush=True)
 
+def integration_smoke():
+    """CPU only: original CIF, 3 NetAugment methods, BYOL update, save/load."""
+    import tempfile
+    seed()
+    fun,Resnet,MLP,Aug=origin()
+    times=np.arange(160,dtype=np.float64)*0.025
+    signs=np.where(np.arange(160)%3==0,1,-1)
+    x,load,duration=cif(signs,times,fun)
+    aug=Aug()
+    for method in ("trace_fluctuation","trace_aggregation","trace_flatten"):
+        view=np.asarray(getattr(aug,method)(
+            x.astype(np.float32).copy(),load,duration))
+        must(view.shape==(2,1000) and np.isfinite(view).all(),
+             "authors Swallow augmentation method "+method+" malformed")
+    online,MLP,_=network()
+    target,_,_=network()
+    target.load_state_dict(online.state_dict(),strict=True)
+    predictor=MLP(in_channels=128,mlp_hidden_size=512,projection_size=128)
+    online.train();target.eval();predictor.train()
+    batch=torch.from_numpy(np.stack([x.astype(np.float32)]*4))[:,None,:,:]
+    with torch.no_grad():targets=target(batch)
+    preds=predictor(online(batch))
+    loss=nce_byol(preds,targets)
+    must(bool(torch.isfinite(loss).item()),"nonfinite CPU BYOL loss")
+    opt=torch.optim.SGD(list(online.parameters())+list(predictor.parameters()),
+                        lr=0.03,momentum=0.9)
+    opt.zero_grad(set_to_none=True)
+    loss.backward()
+    opt.step()
+    with tempfile.TemporaryDirectory(prefix="swallow_original_cpu_") as td:
+        ck=Path(td)/"model.pt"
+        torch.save({"model":online.state_dict(),"config":CONFIG},ck)
+        reloaded=torch.load(ck,map_location="cpu",weights_only=True)
+        probe,_,_=network()
+        probe.load_state_dict(reloaded["model"],strict=True)
+    print("S11_SWALLOW_AUTHORS_INTEGRATION_CPU_PASS",
+          json.dumps({"original_source_commit":COMMIT,
+                      "BYOL_loss":float(loss.item()),
+                      "original_CIF_shape":list(x.shape),
+                      "augmentation_methods":3,
+                      "checkpoint_roundtrip":True}),flush=True)
+
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("--stage",choices=["smoke","prepare","pretrain-B",
+    p.add_argument("--stage",choices=["smoke","integration-smoke","prepare","pretrain-B",
                                        "supervised-B","C","evaluate"],required=True)
     p.add_argument("--cohort",choices=list(COHORTS))
     args=p.parse_args()
@@ -475,6 +517,7 @@ def main():
             z=net(torch.tensor(x,dtype=torch.float32)[None,None])
         must(z.shape==(1,128),"original Swallow ResNet output shape")
         print("S11_SWALLOW_AUTHORS_SOURCE_CPU_SMOKE_PASS",COMMIT,flush=True)
+    elif args.stage=="integration-smoke":integration_smoke()
     elif args.stage=="prepare":
         cache();print("S11_SWALLOW_CIF_CPU_PREPARE_PASS",flush=True)
     elif args.stage=="pretrain-B":pretrain()
