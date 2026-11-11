@@ -7,7 +7,7 @@ MAIN="scripts/sota/s12_wfcat_authors_v1.py"
 mkdir -p "${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s12_wfcat_authors_iat_seed42/logs
 log="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s12_wfcat_authors_iat_seed42/logs/$(date -u +%Y%m%dT%H%M%SZ)_$STAGE.log"
 case "$STAGE" in
-  smoke|prepare)
+  smoke|integration-smoke|prepare)
     CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --stage "$STAGE" 2>&1 | tee "$log" ;;
   B|C)
     active="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
