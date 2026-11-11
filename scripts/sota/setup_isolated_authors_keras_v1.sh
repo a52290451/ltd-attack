@@ -16,7 +16,7 @@ case "$MODE" in
     CUDA_VISIBLE_DEVICES=-1 "$DEST/bin/python" -m pip install \
       --upgrade pip
     CUDA_VISIBLE_DEVICES=-1 "$DEST/bin/python" -m pip install \
-      "tensorflow==2.20.0" "scikit-learn>=1.5,<2.0" \
+      "tensorflow[and-cuda]==2.20.0" "scikit-learn>=1.5,<2.0" \
       "numpy>=1.26,<2.2"
     echo "ISOLATED_AUTHORS_KERAS_INSTALLED $DEST"
     ;;
