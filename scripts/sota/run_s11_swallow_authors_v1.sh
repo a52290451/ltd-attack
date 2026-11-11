@@ -8,7 +8,7 @@ LOGS="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s11_swallow_authors_seed4
 mkdir -p "$LOGS"
 log="$LOGS/$(date -u +%Y%m%dT%H%M%SZ)_$STAGE.log"
 case "$STAGE" in
-  smoke|prepare)
+  smoke|integration-smoke|prepare)
     CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --stage "$STAGE" 2>&1 | tee "$log" ;;
   pretrain-B|supervised-B|C)
     active="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
