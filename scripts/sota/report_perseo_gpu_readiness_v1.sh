@@ -16,8 +16,8 @@ fi
 echo "===== ACTIVE PROCESS DETAILS (IF ACCESSIBLE) ====="
 nvidia-smi
 echo "===== ORIGINAL PYTORCH / TENSORFLOW ENVS ====="
-/data/ltd-sota-bsierra/venv-cu128/bin/python -m pip show torch torchvision 2>/dev/null | grep -E '^(Name|Version):' || true
-/data/ltd-sota-bsierra/venv-keras-authors/bin/python -m pip show tensorflow keras 2>/dev/null | grep -E '^(Name|Version):' || true
+"${LTD_SOTA_PYTORCH_PY:-/data/ltd-sota-bsierra/venv-cu128/bin/python}" -m pip show torch torchvision 2>/dev/null | grep -E '^(Name|Version):' || true
+"${LTD_SOTA_KERAS_PY:-/data/ltd-sota-bsierra/venv-keras-authors/bin/python}" -m pip show tensorflow keras 2>/dev/null | grep -E '^(Name|Version):' || true
 echo "===== INTERPRETATION ====="
 echo "This is an observation, not a reservation. Recheck immediately before GPU training."
 echo "Other users may be hidden by driver visibility; check full nvidia-smi table."
