@@ -322,9 +322,48 @@ def evaluate(cohort):
     (target/"manifest.json").write_text(json.dumps(m,indent=2)+"\n")
     print("S12_WFCAT_EXTERNAL_PASS",cohort,json.dumps(metrics),flush=True)
 
+def integration_smoke():
+    """CPU: actual authors' IAT feature, two optimizer steps and checkpoint I/O."""
+    import tempfile
+    seed()
+    transform,Model=upstream()
+    times=np.arange(100,dtype=np.float64)*0.013
+    direction=np.where(np.arange(100)%3==0,1,-1)
+    x=create_feature(direction,times,transform)
+    model=Model(num_classes=65,iat_bins=9,num_kernels_1d=4,num_kernels_2d=4)
+    model.train()
+    opt=torch.optim.AdamW(model.parameters(),lr=0.001,weight_decay=0.0005)
+    batch=torch.from_numpy(np.repeat(x.astype(np.float32)[None],4,axis=0))
+    y=torch.arange(4,dtype=torch.long)
+    for _ in range(2):
+        opt.zero_grad(set_to_none=True)
+        logits=model(batch)
+        must(logits.shape==(4,65),"WFCAT CPU 65-way training output")
+        loss=nn.CrossEntropyLoss()(logits,y)
+        must(bool(torch.isfinite(loss).item()),"nonfinite WFCAT training loss")
+        loss.backward();opt.step()
+    model.eval()
+    with torch.inference_mode():before=model(batch)
+    with tempfile.TemporaryDirectory(prefix="wfcat_original_cpu_") as td:
+        ck=Path(td)/"model.pt"
+        torch.save({"model":model.state_dict(),"config":CFG},ck)
+        state=torch.load(ck,map_location="cpu",weights_only=True)
+        loaded=Model(num_classes=65,iat_bins=9,num_kernels_1d=4,
+                     num_kernels_2d=4)
+        loaded.load_state_dict(state["model"],strict=True)
+        loaded.eval()
+        with torch.inference_mode():after=loaded(batch)
+    must(torch.allclose(before,after,atol=1e-5,rtol=1e-5),
+         "WFCAT checkpoint numerical parity")
+    print("S12_WFCAT_AUTHORS_INTEGRATION_CPU_PASS",
+          json.dumps({"authors_commit":COMMIT,"training_batches":2,
+                      "feature_shape":list(x.shape),
+                      "checkpoint_roundtrip":True,
+                      "training_loss":float(loss.item())}),flush=True)
+
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument("--stage",choices=["smoke","prepare","B","C","evaluate"],required=True)
+    parser.add_argument("--stage",choices=["smoke","integration-smoke","prepare","B","C","evaluate"],required=True)
     parser.add_argument("--cohort",choices=list(COHORTS))
     a=parser.parse_args()
     if a.stage=="smoke":
@@ -337,6 +376,7 @@ def main():
             out=model(torch.tensor(x,dtype=torch.float32)[None])
         must(out.shape==(1,65),"WFCAT CPU model smoke output")
         print("S12_WFCAT_AUTHORS_SOURCE_SMOKE_PASS",COMMIT,flush=True)
+    elif a.stage=="integration-smoke":integration_smoke()
     elif a.stage=="prepare":cache();print("S12_WFCAT_CPU_CACHE_PASS",flush=True)
     elif a.stage in ("B","C"):train(a.stage)
     else:
