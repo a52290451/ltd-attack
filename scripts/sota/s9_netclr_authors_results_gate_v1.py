@@ -10,7 +10,8 @@ import json,hashlib
 from pathlib import Path
 import numpy as np
 
-BASE=Path("/data/ltd-attack/sota/s9_netclr_author_original_v1")
+from scripts.sota.sota_paths_v1 import ARTIFACT
+BASE=ARTIFACT/"s9_netclr_author_original_v1"
 COHORTS={"09B":14687,"10B_DEV_FROZEN":18543}
 
 def sha(path):
