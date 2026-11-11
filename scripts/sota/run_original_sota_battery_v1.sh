@@ -36,7 +36,8 @@ case "$MODE" in
       "$SOTA/sota_zeus_evidence_bootstrap_v1.py" \
       "$SOTA/original_sota_paired_date_stats_v1.py" \
       "$SOTA/sota_paths_v1.py" \
-      "$SOTA/test_original_sota_contract_v1.py"
+      "$SOTA/test_original_sota_contract_v1.py" \
+      "$SOTA/run_original_sota_paired_comparisons_v1.py"
     echo "===== OFFLINE END-TO-END STAGE CONTRACT TESTS ====="
     CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/test_original_sota_contract_v1.py"
     echo "===== VERIFY PINNED AUTHORS REPOSITORIES ====="
@@ -68,6 +69,8 @@ case "$MODE" in
     echo "ORIGINAL_SOTA_CPU_TRAIN_SAVE_RELOAD_INTEGRATION_PASS" ;;
   host-check)
     CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/sota_zeus_evidence_bootstrap_v1.py" --stage inspect ;;
+  statistics)
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/run_original_sota_paired_comparisons_v1.py" ;;
   cpu-prepare)
     CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_s9_netclr_authors_v1.sh" preflight
     echo "===== Historical TikTok DT cache (shared data only; NO WFlib fit) ====="
@@ -93,6 +96,6 @@ case "$MODE" in
     CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/original_authors_results_integrity_v1.py" --model all --save
     echo "SOTA_BATTERY_AUTHORS_EXECUTED_AND_FROZEN_EVIDENCE_AUDITED" ;;
   *)
-    echo "Usage: bash $0 {cpu-preflight|cpu-integration|cpu-prepare|host-check|gpu-all}"
+    echo "Usage: bash $0 {cpu-preflight|cpu-integration|cpu-prepare|host-check|statistics|gpu-all}"
     exit 2 ;;
 esac
