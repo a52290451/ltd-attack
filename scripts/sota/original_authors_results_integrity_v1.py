@@ -8,8 +8,10 @@ metrics. Refuses partial or missing cohorts. No CUDA and no Dataset C.
 from __future__ import annotations
 import argparse,hashlib,json
 from pathlib import Path
+import sys
 import numpy as np
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from scripts.sota.sota_paths_v1 import ARTIFACT, S5
 ROOT=ARTIFACT
 
