@@ -27,6 +27,15 @@ assert m["dataset_c_opened"] is False
 print("NETCLR_PRETRAIN_SOURCE_CONTRACT_PASS",m["checkpoint_sha256"])
 PY
     ;;
+  all)
+    # Strict end-to-end S9 sequence. Fail fast; never skip or overwrite stages.
+    bash "$0" preflight
+    bash "$0" B
+    bash "$0" C
+    bash "$0" 09B
+    bash "$0" Future-B
+    bash "$0" results
+    ;;
   B|C|09B|Future-B)
     if [[ "$STAGE" == "B" || "$STAGE" == "C" ]]; then
       command -v nvidia-smi >/dev/null || { echo "NVIDIA_SMI_MISSING"; exit 5; }
@@ -59,6 +68,6 @@ PY
   fetch-upstream)
     "$PY" -u scripts/sota/s10_s13_upstream_source_gate_v1.py --stage fetch ;;
   *)
-    echo "USAGE: bash scripts/sota/run_s9_and_next_sota_v1.sh {preflight|B|C|09B|Future-B|results|audit-upstream|fetch-upstream}"
+    echo "USAGE: bash scripts/sota/run_s9_and_next_sota_v1.sh {preflight|all|B|C|09B|Future-B|results|audit-upstream|fetch-upstream}"
     exit 2 ;;
 esac
