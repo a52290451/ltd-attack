@@ -33,6 +33,8 @@ case "$MODE" in
    "$PY" scripts/sota/sota_zeus_evidence_bootstrap_v1.py --stage inspect >/dev/null
    GPU="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
    test -z "$GPU" || { echo "BLOCKED: GPU busy $GPU";exit 5; }
+   echo "===== LIVE CUDA GATE BEFORE DETACH ====="
+   bash scripts/sota/smoke_perseo_gpu_runtime_v1.sh
    RUN="$(date -u +%Y%m%dT%H%M%SZ)_$MODEL"
    OUT="$TRACK/$RUN"
    mkdir "$OUT"
