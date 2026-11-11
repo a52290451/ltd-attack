@@ -38,7 +38,7 @@ PY
     fi
     mkdir -p "$LOGDIR"
     stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-    log="$LOGDIR/s9_$STAGE_$stamp.log"
+    log="$LOGDIR/s9_${STAGE}_${stamp}.log"
     echo "LTD_S9_STAGE=$STAGE LOG=$log"
     case "$STAGE" in
       B) "$PY" -u scripts/sota/s9_netclr_supervised_b_v1.py \
