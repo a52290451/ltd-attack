@@ -25,7 +25,8 @@ case "$MODE" in
       "$SOTA/s9_netclr_authors_results_gate_v1.py" \
       "$SOTA/s3_s4_s8_authors_keras_v1.py" \
       "$SOTA/s11_swallow_authors_v1.py" \
-      "$SOTA/s12_wfcat_authors_v1.py"
+      "$SOTA/s12_wfcat_authors_v1.py" \
+      "$SOTA/original_authors_results_integrity_v1.py"
     echo "===== VERIFY PINNED AUTHORS REPOSITORIES ====="
     python3 "$SOTA/s3_s9_original_sources_gate_v1.py" --stage inspect
     "$PY" "$SOTA/s10_s13_upstream_source_gate_v1.py" --stage inspect
@@ -61,7 +62,8 @@ case "$MODE" in
     for model in DF VarCNN TikTok RoFiRe; do
       bash "$SOTA/run_authors_keras_s3_s4_s8_v1.sh" "$model" all
     done
-    echo "SOTA_BATTERY_AUTHORS_EXECUTED_VERIFY_FROZEN_EVIDENCE" ;;
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/original_authors_results_integrity_v1.py" --model all --save
+    echo "SOTA_BATTERY_AUTHORS_EXECUTED_AND_FROZEN_EVIDENCE_AUDITED" ;;
   *)
     echo "Usage: bash $0 {cpu-preflight|cpu-prepare|gpu-all}"
     exit 2 ;;
