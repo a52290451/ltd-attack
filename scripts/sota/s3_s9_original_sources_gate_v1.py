@@ -16,7 +16,9 @@ from pathlib import Path
 import subprocess
 import sys
 
-ROOT=Path.home()/"ltd-ops"/"sota"/"upstream_original_2026"
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+from scripts.sota.sota_paths_v1 import ORIGINAL
+ROOT=ORIGINAL
 REPOS={
  "S3_DF_Authors":{
     "url":"https://github.com/deep-fingerprinting/df.git",
