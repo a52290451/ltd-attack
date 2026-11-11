@@ -17,6 +17,11 @@ check_gpu() {
 }
 case "$MODE" in
   cpu-preflight)
+    echo "===== SHELL SYNTAX ====="
+    for script in "$SOTA"/run_*authors*.sh "$SOTA"/run_original_sota_battery_v1.sh "$SOTA"/setup_isolated_authors_keras_v1.sh; do
+      bash -n "$script"
+    done
+    echo "SHELL_SYNTAX_PASS"
     echo "===== COMPILE NEW SOTA PIPELINES ====="
     "$PY" -m py_compile \
       "$SOTA/s9_netclr_authors_pretrain_b_v1.py" \
