@@ -4,7 +4,7 @@ cd "$(dirname "$0")/../.."
 PY="${LTD_SOTA_PYTORCH_PY:-/data/ltd-sota-bsierra/venv-cu128/bin/python}"
 STAGE="$1"
 MAIN="scripts/sota/s12_wfcat_authors_v1.py"
-mkdir -p "${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s12_wfcat_authors_iat_seed42/logs
+mkdir -p "${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s12_wfcat_authors_iat_seed42/logs"
 log="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s12_wfcat_authors_iat_seed42/logs/$(date -u +%Y%m%dT%H%M%SZ)_$STAGE.log"
 case "$STAGE" in
   smoke|integration-smoke|prepare)
