@@ -2,6 +2,8 @@
 
 ## Status — evidence, not forecasts
 
+> **Author-source-first correction (11 Nov 2026).** DF, VarCNN, Tik-Tok and NetCLR have publicly available implementation artifacts released by their authors. Their current WFlib results remain frozen *adapted/ported baselines*, not preferred primary original-source replications. CUMUL has publicly available third-party reproduced source; original author source availability has not been independently established as a maintained GitHub repository. Refer to `docs/research/article_evidence/S3_S9_ORIGINAL_SOTA_SOURCE_AUDIT_20261111.md`. The WFlib-NetCLR stage runner now requires `LTD_ALLOW_WFLIB_ADAPTED_S9=YES` explicitly to prevent accidental relabeling; no primary original-NetCLR benchmark has been run.
+
 | ID | Model | Original scientific implementation used | Local adaptation | Execution gate |
 |---|---|---|---|---|
 | S3 | Deep Fingerprinting (DF, 2018) | Pinned [WFlib DF](https://github.com/FIND-Lab/Website-Fingerprinting-Library), not the original authors' unmodified reproduction | Historical DEV chronological B/C and frozen UID-aligned evaluation | Completed |
