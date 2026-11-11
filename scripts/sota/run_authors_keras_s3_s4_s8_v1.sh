@@ -14,7 +14,7 @@ MAIN="scripts/sota/s3_s4_s8_authors_keras_v1.py"
 mkdir -p /data/ltd-attack/sota/authors_keras_logs
 log="/data/ltd-attack/sota/authors_keras_logs/$(date -u +%Y%m%dT%H%M%SZ)_$MODEL-$STAGE.log"
 case "$STAGE" in
-  smoke) "$PY" -u "$MAIN" --model "$MODEL" --stage smoke 2>&1 | tee "$log" ;;
+  smoke) CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage smoke 2>&1 | tee "$log" ;;
   B|C)
     active="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
     if [[ -n "$active" ]]; then echo "BLOCKED_GPU_OCCUPIED $active"; exit 5; fi
@@ -23,7 +23,7 @@ case "$STAGE" in
   09B|Future-B)
     cohort="09B"
     if [[ "$STAGE" == "Future-B" ]]; then cohort="10B_DEV_FROZEN"; fi
-    "$PY" -u "$MAIN" --model "$MODEL" --stage evaluate --cohort "$cohort" 2>&1 | tee "$log" ;;
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage evaluate --cohort "$cohort" 2>&1 | tee "$log" ;;
     ;;
   all)
     bash "$0" "$MODEL" smoke
