@@ -19,6 +19,9 @@ FROZEN_REFERENCE={
  "09B":os.environ.get("LTD_SOTA_LTD_REFERENCE_09B"),
  "10B_DEV_FROZEN":os.environ.get("LTD_SOTA_LTD_REFERENCE_FUTURE_B")}
 def main():
+    # Verify every candidate against the canonical S5 UID/label order first.
+    subprocess.run([PY,str(ROOT/"scripts/sota/original_authors_results_integrity_v1.py"),
+                    "--model","all"],cwd=ROOT,check=True)
     for cohort,path in FROZEN_REFERENCE.items():
         if not path or not Path(path).is_file():
             raise RuntimeError("SOTA_PAIRED_BATTERY_BLOCKED missing "+
