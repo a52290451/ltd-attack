@@ -59,10 +59,22 @@ def main():
              "probability contract mismatch "+cohort)
         must(np.all((y>=0)&(y<65)),"labels invalid "+cohort)
         top=np.argmax(p,axis=1)
-        acc=float((top==y).mean())
+        order=np.argsort(-p,axis=1)
+        rank=(order==y[:,None]).argmax(axis=1)+1
+        tp=np.bincount(y[top==y],minlength=65)
+        support=np.bincount(y,minlength=65)
+        pred=np.bincount(top,minlength=65)
+        macro_f1=float(np.divide(2*tp,support+pred,
+                       out=np.zeros(65,dtype=np.float64),
+                       where=(support+pred)>0).mean())
+        recomputed={"accuracy":float((top==y).mean()),
+                    "macro_f1":macro_f1,
+                    "top5":float((rank<=5).mean()),
+                    "mrr":float(np.mean(1.0/rank))}
         metrics=x["metrics"]
-        must(abs(acc-metrics["accuracy"])<1e-8,
-             "reported accuracy differs from artifact "+cohort)
+        for k,v in recomputed.items():
+            must(k in metrics and abs(float(metrics[k])-v)<1e-8,
+                 "reported "+k+" differs from artifact "+cohort)
         collected[cohort]={"n":n,"metrics":metrics,
                            "score_sha256":x["score_sha256"],
                            "checkpoint_sha256":x["checkpoint_sha256"]}
