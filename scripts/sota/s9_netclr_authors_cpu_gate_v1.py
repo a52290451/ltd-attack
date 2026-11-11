@@ -179,8 +179,35 @@ def smoke(model_src,aug_src,report):
             "shift","augment"}
     must(needed<=methods,"authors augmentation function set changed")
     print("S9_AUTHOR_AUGMENT_SIGNATURE_PASS",sorted(methods),flush=True)
-    print("S9_AUTHOR_AUGMENT_RUNTIME_GATE_PENDING",
-          "upstream notebook CDF/index mismatch requires explicit parity resolution")
+    # Synthetic-only execution of the ORIGINAL author Augmentor. Construct the
+    # authors' globals from a known distribution; do not inject WFlib's fix.
+    # This checks compatibility, not scientific augmentation fidelity.
+    burst_samples=[1,2,3,4]*100
+    max_outgoing_burst_size=max(burst_samples)
+    counts,bins=np.histogram(burst_samples,bins=max_outgoing_burst_size-1)
+    pdf=counts/counts.sum()
+    cdf=np.zeros_like(bins)
+    cdf[1:]=np.cumsum(pdf)
+    namespace.update({
+       "outgoing_burst_sizes":burst_samples,
+       "max_outgoing_burst_size":max_outgoing_burst_size,
+       "OUTGOING_BURST_SIZE_CDF":cdf,
+    })
+    exec(compile(aug_ast,"s9_author_original_augmentor","exec"),namespace)
+    random.seed(42)
+    np.random.seed(42)
+    aug=namespace["Augmentor"]()
+    seq=np.zeros(5000,dtype=np.int32)
+    seq[:250]=np.asarray(([1]*35+[-1]*40+[1]*25+[-1]*30)*2)[:250]
+    for _ in range(12):
+        out=np.asarray(aug.augment(seq.copy()))
+        must(out.shape==(5000,) and
+             np.all(np.isin(out,[-1,0,1])),
+             "original authors' augmentation synthetic output")
+    print("S9_AUTHOR_AUGMENT_SYNTHETIC_CPU_PASS",
+          "augmented_traces",12,"original_CDF_bins",len(cdf),flush=True)
+    print("S9_AUTHOR_AUGMENT_FIDELITY_AUDIT_PENDING",
+          "source-level sample distribution vs Historical DEV not yet validated")
 
 def main():
     ap=argparse.ArgumentParser()
