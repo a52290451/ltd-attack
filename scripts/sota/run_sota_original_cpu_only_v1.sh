@@ -10,7 +10,8 @@ echo "===== PYTHON SYNTAX ====="
   scripts/sota/s3_s9_original_sources_gate_v1.py \
   scripts/sota/s3_s9_cpu_source_readiness_v1.py \
   scripts/sota/s9_netclr_authors_cpu_gate_v1.py \
-  scripts/sota/s9_netclr_authors_prepare_cpu_v1.py
+  scripts/sota/s9_netclr_authors_prepare_cpu_v1.py \
+  scripts/sota/s9_netclr_authors_augment_historical_audit_v1.py
 
 echo "===== SOURCE PINS ====="
 "$PY" -u scripts/sota/s3_s9_original_sources_gate_v1.py --stage inspect
@@ -28,8 +29,12 @@ case "$STAGE" in
     echo "===== HISTORICAL DEV CPU CACHE ====="
     "$PY" -u scripts/sota/s9_netclr_authors_prepare_cpu_v1.py
     echo "SOTA_ORIGINAL_CPU_PREPARE_DEV_PASS" ;;
+  audit-augment)
+    echo "===== ORIGINAL NETCLR HISTORICAL AUGMENTATION AUDIT ====="
+    "$PY" -u scripts/sota/s9_netclr_authors_augment_historical_audit_v1.py --write
+    echo "SOTA_ORIGINAL_CPU_AUGMENT_DIAGNOSTIC_COMPLETED" ;;
   *)
-    echo "USAGE: bash scripts/sota/run_sota_original_cpu_only_v1.sh {quick|prepare-dev}"
+    echo "USAGE: bash scripts/sota/run_sota_original_cpu_only_v1.sh {quick|prepare-dev|audit-augment}"
     exit 2 ;;
 esac
 echo "NO_CUDA_TRAINING_STARTED"
