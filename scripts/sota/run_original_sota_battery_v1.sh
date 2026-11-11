@@ -35,7 +35,10 @@ case "$MODE" in
       "$SOTA/original_sota_orchestrator_v2.py" \
       "$SOTA/sota_zeus_evidence_bootstrap_v1.py" \
       "$SOTA/original_sota_paired_date_stats_v1.py" \
-      "$SOTA/sota_paths_v1.py"
+      "$SOTA/sota_paths_v1.py" \
+      "$SOTA/test_original_sota_contract_v1.py"
+    echo "===== OFFLINE END-TO-END STAGE CONTRACT TESTS ====="
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/test_original_sota_contract_v1.py"
     echo "===== VERIFY PINNED AUTHORS REPOSITORIES ====="
     python3 "$SOTA/s3_s9_original_sources_gate_v1.py" --stage inspect
     "$PY" "$SOTA/s10_s13_upstream_source_gate_v1.py" --stage inspect
