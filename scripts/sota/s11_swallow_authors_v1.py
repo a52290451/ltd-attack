@@ -136,7 +136,7 @@ def cache():
     spec=s1["historical_checksums"]["historical_vectors"]
     src=Path(spec["path"])
     must(digest(src)==spec["sha256"],"frozen DEV changed")
-    CACHE.mkdir(parents=True,mode=0o700)
+    CACHE.mkdir(parents=True,mode=0o700,exist_ok=True)
     temp=CACHE/"cif_uint16.npy.partial"
     X=np.lib.format.open_memmap(temp,mode="w+",dtype=np.uint16,
                                 shape=(57916,2,1000))
