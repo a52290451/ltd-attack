@@ -38,7 +38,24 @@ def run_status():
     if not p.exists():return "NOT_STARTED"
     d=TRACK/p.read_text().strip()
     return (d/"status").read_text().strip() if (d/"status").exists() else "STARTING"
+def active_stage():
+    latest=TRACK/"latest_run"
+    if not latest.is_file():return None
+    d=TRACK/latest.read_text().strip()
+    if not (d/"status").is_file() or (d/"status").read_text().strip()!="RUNNING":
+        return None
+    log=d/"console.log"
+    if not log.is_file():return None
+    with log.open("rb") as f:
+        f.seek(0,2)
+        f.seek(max(0,f.tell()-131072))
+        txt=f.read().decode("utf-8",errors="replace")
+    markers=[line.split() for line in txt.splitlines()
+             if line.startswith("SOTA_BATTERY_V2_EXEC ")]
+    return tuple(markers[-1][1:3]) if markers else None
+
 def main():
+    active=active_stage()
     report={"classification":"LTD_SOTA_MODEL_READONLY_PROGRESS_V1",
             "host":os.uname().nodename,
             "background_status":run_status(),"models":{}}
@@ -49,6 +66,8 @@ def main():
                 st=v2.state(model,stage,folder,klass,cohort)
             except (RuntimeError,ValueError,KeyError,FileNotFoundError) as e:
                 st="BLOCKED_INVALID_EVIDENCE: "+str(e)[:150]
+            if active==(model,stage) and st=="BLOCKED_PARTIAL_OUTPUT":
+                st="RUNNING_UNFINISHED_STAGE"
             p=latest_log(model,stage)
             records[stage]={"status":st,
                             "last_event":last_event(p),
