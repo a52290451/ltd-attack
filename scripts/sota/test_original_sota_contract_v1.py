@@ -18,6 +18,7 @@ import numpy as np
 SOTA=ROOT/"scripts/sota"
 PYFILES=[
  "sota_paths_v1.py","sota_zeus_evidence_bootstrap_v1.py",
+ "report_original_sota_progress_v1.py",
  "original_sota_orchestrator_v2.py","original_sota_paired_date_stats_v1.py",
  "s9_netclr_authors_cpu_gate_v1.py","s9_netclr_authors_pretrain_b_v1.py",
  "s9_netclr_authors_supervised_b_v1.py",
@@ -29,6 +30,7 @@ PYFILES=[
 ]
 SHELLFILES=[
  "run_original_sota_battery_v1.sh",
+ "run_original_sota_background_v1.sh",
  "run_s9_netclr_authors_v1.sh","run_s11_swallow_authors_v1.sh",
  "run_s12_wfcat_authors_v1.sh","run_authors_keras_s3_s4_s8_v1.sh",
  "setup_isolated_authors_keras_v1.sh",
