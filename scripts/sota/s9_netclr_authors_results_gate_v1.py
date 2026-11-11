@@ -8,8 +8,10 @@ Never modifies original artifacts or reports external numbers from pretraining.
 from __future__ import annotations
 import json,hashlib
 from pathlib import Path
+import sys
 import numpy as np
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from scripts.sota.sota_paths_v1 import ARTIFACT
 BASE=ARTIFACT/"s9_netclr_author_original_v1"
 COHORTS={"09B":14687,"10B_DEV_FROZEN":18543}
