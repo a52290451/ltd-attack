@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Author-code Keras SOTA S3 DF, S4 VarCNN(direction), S8 TikTok.
+"""Author-code Keras SOTA S3 DF, S4 VarCNN(direction), S8 TikTok and S10 RoFiRe.
 
 Imports exact class/function bodies extracted by AST from PINNED authors'
 source files, not WFlib. Legacy Keras compatibility is applied outside the
@@ -26,6 +26,9 @@ REGISTRY={
  "VarCNN":{"repo":"S4_VarCNN_Authors","commit":"e5db76a86fcbf8839f764b9aca241749d1c1f700",
        "path":"var_cnn.py","names":["dilated_basic_1d","basic_1d","ResNet18","get_model"],
        "input":"direction","architecture":"authors_VarCNN_direction_branch_only"},
+ "RoFiRe":{"repo":"S10_RoFiRe","commit":"7ef45ee7c9af9ac04048456992d3d96398791bbc",
+       "path":"model/DF.py","names":["RMSNorm","DFVarNet"],
+       "input":"directional_timing","architecture":"authors_RoFiRe_DFVarNet_plus_DyWin"},
  "TikTok":{"repo":"S8_TikTok_Authors","commit":"0aa56660b435d88f3542939b3f08c0ba1409dbf5",
        "path":"DL_Experiments/cw_attack.py","names":["ConvNet"],
        "input":"directional_timing","architecture":"authors_TikTok_DT_original_classifier"},
@@ -64,6 +67,7 @@ def model_source(name):
 def keras_space():
     import keras
     from keras import layers
+    import tensorflow as tf
     from keras.models import Sequential,Model
     from keras.initializers import glorot_uniform
     from keras.callbacks import ReduceLROnPlateau,EarlyStopping,ModelCheckpoint
@@ -71,7 +75,7 @@ def keras_space():
         kwargs.pop("decay",None)
         if "lr" in kwargs:kwargs["learning_rate"]=kwargs.pop("lr")
         return keras.optimizers.Adamax(*args,**kwargs)
-    return {"keras":keras,"np":np,"Sequential":Sequential,"Model":Model,
+    return {"keras":keras,"tf":tf,"Layer":layers.Layer,"np":np,"Sequential":Sequential,"Model":Model,
             "Input":keras.Input,"Conv1D":layers.Conv1D,"MaxPooling1D":layers.MaxPooling1D,
             "BatchNormalization":layers.BatchNormalization,"Activation":layers.Activation,
             "Flatten":layers.Flatten,"Dense":layers.Dense,"Dropout":layers.Dropout,
@@ -107,6 +111,8 @@ def make_model(name):
     exec(compile(tree,"pinned_authors_original","exec"),ns)
     if name=="DF":
         return ns["DFNet"].build(input_shape=(5000,1),classes=65),digest
+    if name=="RoFiRe":
+        return ns["DFVarNet"].build(input_shape=(5000,1),classes=65),digest
     return ns["ConvNet"].build(classes=65,input_shape=(5000,1)),digest
 
 def seed():
@@ -121,7 +127,7 @@ def guard_gpu():
             "GPU busy: "+r.stdout.strip())
 
 def local_data(name):
-    if name=="TikTok":
+    if name in ("TikTok","RoFiRe"):
         base=OUT/"s8_tiktok_wflib_dt_seed42/historical_cache_v1"
         m=json.loads((base/"manifest.json").read_text())
         required={"dt_float32.npy","labels.npy","split.npy"}
@@ -179,10 +185,12 @@ def train(name,stage):
     seed()
     model,digest=make_model(name)
     cfg=config(name,digest)
-    model.compile(optimizer=keras_space()["keras"].optimizers.Adamax(
-                    learning_rate=0.002) if name!="VarCNN"
-                  else keras_space()["keras"].optimizers.Adam(learning_rate=0.001),
-                  loss="sparse_categorical_crossentropy",metrics=["accuracy"])
+    import keras
+    optimizer=(keras.optimizers.Adam(learning_rate=0.001) if name=="VarCNN"
+               else keras.optimizers.Adamax(learning_rate=0.002))
+    loss=(keras.losses.CategoricalCrossentropy(label_smoothing=0.1)
+          if name=="RoFiRe" else "sparse_categorical_crossentropy")
+    model.compile(optimizer=optimizer,loss=loss,metrics=["accuracy"])
     tr=np.flatnonzero(s!=2) if stage=="B" else np.arange(57916)
     va=np.flatnonzero(s==2) if stage=="B" else np.empty(0,dtype=int)
     import keras
@@ -209,6 +217,45 @@ def train(name,stage):
     folder.mkdir(parents=True,mode=0o700)
     input_x=np.asarray(X[tr],dtype=np.float32)[:,:,None]
     input_y=np.asarray(y[tr],dtype=np.int64)
+    if name=="RoFiRe":
+        # The authors' DyWin augmentation is extracted verbatim from feature/features.py.
+        # Use first 5 chronological samples per class + 10x augmented copies.
+        # The original default uses 200x; reduced multiplier is explicit.
+        authorbase=BASE/REGISTRY[name]["repo"]
+        feature_path=authorbase/"feature/features.py"
+        text=feature_path.read_text()
+        tree=ast.parse(text)
+        nodes=[q for q in tree.body if isinstance(q,ast.ClassDef)
+               and q.name=="Augmentor"]
+        require(len(nodes)==1,"missing official RoFiRe Augmentor class")
+        augment_src=ast.get_source_segment(text,nodes[0])
+        ns={"np":np,"random":random,"X_y":[]}
+        exec(compile(ast.parse(augment_src),"rofire_original_DyWin","exec"),ns)
+        class Log:
+            def info(self,*a,**k):pass
+        aug=ns["Augmentor"](Log(),0.3,5,"",10,"")
+        selected=[]
+        for label in range(65):
+            matches=tr[np.asarray(y[tr],dtype=int)==label]
+            require(len(matches)>=5,"RoFiRe class missing 5 historical samples")
+            selected.extend(matches[:5])
+        random.seed(42)
+        for j in selected:
+            for _ in range(9):
+                row=np.concatenate((np.asarray(X[int(j)],dtype=np.float32),
+                                    np.asarray([float(y[int(j)]),0.0])))
+                aug.dywin(row)
+        augmented=np.asarray(ns["X_y"],dtype=np.float32)
+        require(augmented.shape==(65*5*9,5002),"authors' DyWin output contract")
+        input_x=np.concatenate((input_x,augmented[:,:5000,None]),axis=0)
+        input_y=np.concatenate((input_y,augmented[:,-2].astype(np.int64)))
+        print("AUTHORS_ROFIRE_DYWIN_APPLIED",
+              json.dumps({"selected_original":325,"augmented":len(augmented),
+                          "multiplier":10,"original_default_multiplier":200,
+                          "authors_features_sha256":sha(feature_path)}),
+              flush=True)
+    if name=="RoFiRe":
+        input_y=keras.utils.to_categorical(input_y,num_classes=65)
     print("AUTHORS_SOTA_TRAIN_BEGIN",name,stage,len(tr),epochs,flush=True)
     history=model.fit(input_x,input_y,batch_size=64,epochs=epochs,
                       shuffle=True,verbose=2,callbacks=callbacks)
@@ -279,13 +326,20 @@ def evaluate(name,cohort):
             require(key not in vectors and row["site_label"]==expected[key],
                     "UID/label mismatch")
             ds=parse_direction(row["direction_vector"])
-            if name=="TikTok":
+            if name in ("TikTok","RoFiRe"):
                 ts=parse_times(row["time_vector"])
                 values=tiktok_dt_from_sequences(ds,ts)
             else:values=fixed_length(ds)
             vectors[key]=np.asarray(values,dtype=np.float32)
     require(len(vectors)==n,"missing cohort vectors")
-    model=keras.models.load_model(ck,compile=False)
+    if name=="RoFiRe":
+        code,digest=model_source(name)
+        ns=keras_space()
+        exec(compile(ast.parse(code),"rofire_original_layers","exec"),ns)
+        model=keras.models.load_model(ck,compile=False,
+                 custom_objects={"RMSNorm":ns["RMSNorm"]})
+    else:
+        model=keras.models.load_model(ck,compile=False)
     out=np.empty((n,65),dtype=np.float32)
     for start in range(0,n,256):
         stop=min(n,start+256)
