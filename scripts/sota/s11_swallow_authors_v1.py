@@ -119,7 +119,7 @@ def cache():
         t=np.load(files[3]);dur=np.load(files[4])
         must(X.shape==(57916,2,1000) and len(y)==len(s)==len(t)==len(dur)==57916,
              "CIF cached shapes")
-        must(dict(zip(*np.unique(s,return_counts=True)))==
+        must({int(k):int(v) for k,v in zip(*np.unique(s,return_counts=True))}==
              {0:19098,1:20160,2:18658},"CIF chrono split")
         return X,y,s,t,dur,m
     if CACHE.exists():
