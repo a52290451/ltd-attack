@@ -31,7 +31,7 @@ def main():
     assert y.shape==(57916,),y.shape
     assert s.shape==(57916,),s.shape
     import numpy as np
-    hist=dict(zip(*np.unique(s,return_counts=True)))
+    hist={int(k):int(v) for k,v in zip(*np.unique(s,return_counts=True))}
     assert hist=={0:19098,1:20160,2:18658},hist
     assert set(map(int,np.unique(y)))==set(range(65))
     assert manifest["external_data_opened"] is False
