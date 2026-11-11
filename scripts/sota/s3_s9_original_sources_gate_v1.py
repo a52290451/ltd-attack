@@ -68,7 +68,7 @@ def inspect(key,record):
         dirty=command(["git","-C",str(path),"status","--porcelain",
                        "--untracked-files=no"])
         absent=[rel for rel in record["paths"] if not (path/rel).is_file()]
-        status=("PINNED_AUTHORS_SOURCE_PASS" if sha==record["commit"]
+        status=("PINNED_PUBLIC_SOURCE_PASS" if sha==record["commit"]
                 and not dirty and not absent else "BLOCKED")
         return {"id":key,"path":str(path),"commit":sha,
                 "source_class":record["kind"],"status":status,
@@ -95,7 +95,7 @@ def main():
     results=[inspect(k,v) for k,v in REPOS.items()]
     print("S3_S9_ORIGINAL_PROVENANCE_AUDIT",
           json.dumps(results,indent=2,ensure_ascii=False),flush=True)
-    if not all(x["status"]=="PINNED_AUTHORS_SOURCE_PASS" for x in results):
+    if not all(x["status"]=="PINNED_PUBLIC_SOURCE_PASS" for x in results):
         raise SystemExit(3)
     print("S3_S9_ORIGINAL_SOURCES_PIN_PASS",flush=True)
     print("NO_HISTORICAL_BENCHMARK_EXECUTED; ORIGINAL_DATA_ADAPTER_GATE_REQUIRED",
