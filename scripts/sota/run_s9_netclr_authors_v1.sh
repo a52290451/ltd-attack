@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-PY="/data/ltd-sota-bsierra/venv-cu128/bin/python"
+PY="${LTD_SOTA_PYTORCH_PY:-/data/ltd-sota-bsierra/venv-cu128/bin/python}"
 STAGE="$1"
-LOGS="/data/ltd-attack/sota/s9_netclr_author_original_v1/logs"
+LOGS="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s9_netclr_author_original_v1/logs"
 case "$STAGE" in
   preflight)
     "$PY" -m py_compile scripts/sota/s9_netclr_authors_pretrain_b_v1.py \
