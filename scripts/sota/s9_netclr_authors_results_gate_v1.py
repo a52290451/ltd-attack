@@ -27,7 +27,7 @@ def main():
     c=BASE/"refit_C_v1/manifest.json"
     must(c.is_file(),"C manifest missing")
     cinfo=json.loads(c.read_text())
-    must(cinfo.get("classification")=="S9_AUTHOR_NETCLR_AUTHORS_HISTORICAL_C_FROZEN_V1",
+    must(cinfo.get("classification")=="S9_NETCLR_AUTHORS_HISTORICAL_C_FROZEN_V1",
          "C class mismatch")
     must(sha(cinfo["checkpoint"])==cinfo["checkpoint_sha256"],
          "C checkpoint altered")
@@ -37,7 +37,7 @@ def main():
         scores=folder/"scores_sota_aligned.npz"
         must(m.is_file() and scores.is_file(),"incomplete "+cohort)
         x=json.loads(m.read_text())
-        must(x.get("classification")=="S9_AUTHOR_NETCLR_AUTHORS_FROZEN_EXTERNAL_V1"
+        must(x.get("classification")=="S9_NETCLR_AUTHORS_FROZEN_EXTERNAL_V1"
              and x.get("cohort")==cohort and x.get("n")==n,
              "manifest mismatch "+cohort)
         must(x.get("C_manifest_sha256")==sha(c),
