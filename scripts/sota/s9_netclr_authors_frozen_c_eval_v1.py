@@ -27,7 +27,7 @@ SPEC.loader.exec_module(B)
 P=B.P
 OUT=B.OUT
 TARGET=OUT/"refit_C_v1"
-S5=Path("/data/ltd-attack/sota/s5/frozen_s5_refits_and_labels_v1.json")
+from scripts.sota.sota_paths_v1 import S5, STORAGE, FUTURE
 COHORTS={"09B":14687,"10B_DEV_FROZEN":18543}
 
 def must(ok,why):
@@ -155,13 +155,13 @@ def evaluate(cohort):
     must(len(uid)==n and len(set(uid))==n and len(names)==65 and
          np.all((y>=0)&(y<65)),"external population or class mismatch")
     true_by_uid={str(k):str(names[int(yy)]) for k,yy in zip(uid,y)}
-    vectors=(Path.home()/"ltd-storage/datasets/historical/CLEAN_final_vectors_sites.csv"
+    vectors=(STORAGE/"historical/CLEAN_final_vectors_sites.csv"
              if cohort=="09B" else
-             Path.home()/"ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv")
+             STORAGE/"future/CLEAN_final_vectors_sites_concept_drift.csv")
     if cohort=="09B":
         expected=c["historical_source_sha256"]
     else:
-        fm=json.loads((ROOT/"docs/evidence/FINAL/FUTURE-B/10B_manifest_future_b.json").read_text())
+        fm=json.loads((FUTURE).read_text())
         expected=fm["future_inputs"]["micro"]["sha256"]
     must(P.sha(vectors)==expected,"external vectors hash mismatch")
     from src.models.sota.v1.data_adapter import parse_direction, fixed_length
