@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 MODEL="$1"
 STAGE="$2"
-case "$MODEL" in DF|VarCNN|TikTok);; *) echo "model must be DF, VarCNN or TikTok"; exit 2;; esac
+case "$MODEL" in DF|VarCNN|TikTok|RoFiRe);; *) echo "model must be DF, VarCNN, TikTok or RoFiRe"; exit 2;; esac
 PY="/data/ltd-sota-bsierra/venv-keras-authors/bin/python"
 if [[ ! -x "$PY" ]]; then
   echo "BLOCKED_KERAS_ENV_MISSING: $PY"
