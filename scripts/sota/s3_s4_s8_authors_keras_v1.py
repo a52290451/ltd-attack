@@ -148,8 +148,14 @@ def local_data(name):
         X=np.load(base/"directions.npy",mmap_mode="r")
     y=np.load(base/"labels.npy",mmap_mode="r")
     split=np.load(base/"split.npy",mmap_mode="r")
-    require(m.get("external_data_opened") is False
-            and m.get("dataset_c_opened") is False,"cache provenance violation")
+    # Legacy TikTok cache used "future_b_opened" rather than
+    # "external_data_opened". These represent the same no-external-fit
+    # constraint, with positive assertion required for each cache type.
+    no_external=(m.get("external_data_opened") is False
+                 if name not in ("TikTok","RoFiRe")
+                 else m.get("future_b_opened") is False)
+    require(no_external and m.get("dataset_c_opened") is False,
+            "cache provenance violation")
     return X,y,split,{"source_cache_sha256":sha(base/"manifest.json")}
 
 def config(name,source_sha):
