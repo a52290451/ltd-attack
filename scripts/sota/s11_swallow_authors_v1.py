@@ -65,15 +65,25 @@ def origin():
     # Upstream trace_aggregation has an unconditional continue before i += 1
     # for <=20 handshake packets, causing infinite loops. Explicit patch
     # scoped to the ORIGINAL function's AST; source checkout is never modified.
-    method=inspect.getsource(source_aug.Augmentor.trace_aggregation)
-    method=textwrap.dedent(method)
-    old="if packet_sum <= self.handshake_packet_sum:\n            continue"
-    new="if packet_sum <= self.handshake_packet_sum:\n            i += 1\n            continue"
-    must(method.count(old)==1,"unexpected source aggregation loop; inspect")
-    patched=method.replace(old,new)
-    namespace=dict(source_aug.__dict__)
-    exec(compile(patched,"swallow_authors_loop_fix","exec"),namespace)
-    source_aug.Augmentor.trace_aggregation=namespace["trace_aggregation"]
+    # Original source remains unchanged on disk. Only patch the specific
+    # handshake branch of the original trace_aggregation method, preserving
+    # the indentation as published. The adapter calls origin() more than once.
+    if not getattr(source_aug.Augmentor, "_ltd_aggregation_patched", False):
+        import re
+        method=textwrap.dedent(
+            inspect.getsource(source_aug.Augmentor.trace_aggregation))
+        pattern=r"(?m)^([ \\t]*)if packet_sum <= self\\.handshake_packet_sum:\\n([ \\t]*)continue[ \\t]*$"
+        matches=list(re.finditer(pattern,method))
+        must(len(matches)==1,
+             "expected one original trace_aggregation handshake branch")
+        def insert_increment(m):
+            return (m.group(1)+"if packet_sum <= self.handshake_packet_sum:\\n"
+                    +m.group(2)+"i += 1\\n"+m.group(2)+"continue")
+        patched=re.sub(pattern,insert_increment,method)
+        namespace=dict(source_aug.__dict__)
+        exec(compile(patched,"swallow_authors_loop_fix","exec"),namespace)
+        source_aug.Augmentor.trace_aggregation=namespace["trace_aggregation"]
+        source_aug.Augmentor._ltd_aggregation_patched=True
     return fun,ResNet18,MLPHead,source_aug.Augmentor
 
 def cif(direction,times,fun):
