@@ -379,10 +379,52 @@ def evaluate(name,cohort):
     (dest/"manifest.json").write_text(json.dumps(info,indent=2)+"\n")
     print("AUTHOR_SOTA_EXTERNAL_PASS",name,cohort,json.dumps(metrics),flush=True)
 
+def integration_smoke(name):
+    """Original model: 2 real optimizer updates, immutable CPU-only temporary I/O."""
+    import tempfile
+    import keras
+    seed()
+    model,digest=make_model(name)
+    optimizer=(keras.optimizers.Adam(learning_rate=0.001)
+               if name=="VarCNN" else keras.optimizers.Adamax(learning_rate=0.002))
+    is_rofire=(name=="RoFiRe")
+    loss=(keras.losses.CategoricalCrossentropy(label_smoothing=0.1)
+          if is_rofire else "sparse_categorical_crossentropy")
+    model.compile(optimizer=optimizer,loss=loss,metrics=["accuracy"])
+    rng=np.random.default_rng(42)
+    x=rng.normal(0,0.3,size=(4,5000,1)).astype(np.float32)
+    y=np.arange(4,dtype=np.int64)
+    labels=keras.utils.to_categorical(y,65) if is_rofire else y
+    for _ in range(2):
+        value=model.train_on_batch(x,labels)
+        require(np.isfinite(np.asarray(value,dtype=np.float64)).all(),
+                "Keras original optimizer step produced nonfinite loss")
+    before=model.predict(x,batch_size=2,verbose=0)
+    require(before.shape==(4,65) and np.isfinite(before).all(),
+            "invalid 65-way post-update prediction")
+    with tempfile.TemporaryDirectory(prefix="ltd_authors_keras_cpu_") as td:
+        p=Path(td)/"model.keras"
+        model.save(p)
+        if is_rofire:
+            source,_=model_source(name)
+            ns=keras_space()
+            exec(compile(ast.parse(source),"rofire_original_layers","exec"),ns)
+            loaded=keras.models.load_model(
+                p,compile=False,custom_objects={"RMSNorm":ns["RMSNorm"]})
+        else:
+            loaded=keras.models.load_model(p,compile=False)
+        after=loaded.predict(x,batch_size=2,verbose=0)
+    require(np.allclose(before,after,atol=1e-5,rtol=1e-5),
+            "save/reload numerical prediction mismatch")
+    print("AUTHOR_KERAS_TRAIN_SAVE_RELOAD_CPU_PASS",
+          json.dumps({"model":name,"source_sha256":digest,
+                      "trained_batches":2,"saved_model_roundtrip":True,
+                      "output_shape":list(after.shape)}),flush=True)
+
 def main():
     a=argparse.ArgumentParser()
     a.add_argument("--model",choices=list(REGISTRY),required=True)
-    a.add_argument("--stage",choices=("smoke","B","C","evaluate"),required=True)
+    a.add_argument("--stage",choices=("smoke","integration-smoke","B","C","evaluate"),required=True)
     a.add_argument("--cohort",choices=list(COHORTS))
     args=a.parse_args()
     if args.stage=="smoke":
@@ -391,6 +433,7 @@ def main():
         require(m.output_shape[-1]==65,"65-class output requirement")
         print("AUTHOR_KERAS_MODEL_SMOKE_PASS",args.model,
               "sha256",s,"output_shape",m.output_shape,flush=True)
+    elif args.stage=="integration-smoke":integration_smoke(args.model)
     elif args.stage in ("B","C"):train(args.model,args.stage)
     else:
         require(args.cohort is not None,"cohort required")
