@@ -11,7 +11,7 @@ if [[ ! -x "$PY" ]]; then
   exit 5
 fi
 MAIN="scripts/sota/s3_s4_s8_authors_keras_v1.py"
-mkdir -p "${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/authors_keras_logs
+mkdir -p "${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/authors_keras_logs"
 log="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/authors_keras_logs/$(date -u +%Y%m%dT%H%M%SZ)_$MODEL-$STAGE.log"
 case "$STAGE" in
   smoke) CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage smoke 2>&1 | tee "$log" ;;
