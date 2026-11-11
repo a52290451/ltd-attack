@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-PY="/data/ltd-sota-bsierra/venv-cu128/bin/python"
+PY="${LTD_SOTA_PYTORCH_PY:-/data/ltd-sota-bsierra/venv-cu128/bin/python}"
 MAIN="scripts/sota/s11_swallow_authors_v1.py"
 STAGE="$1"
-LOGS="/data/ltd-attack/sota/s11_swallow_authors_seed42/logs"
+LOGS="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/s11_swallow_authors_seed42/logs"
 mkdir -p "$LOGS"
 log="$LOGS/$(date -u +%Y%m%dT%H%M%SZ)_$STAGE.log"
 case "$STAGE" in
