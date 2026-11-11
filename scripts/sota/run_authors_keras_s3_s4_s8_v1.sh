@@ -14,7 +14,7 @@ MAIN="scripts/sota/s3_s4_s8_authors_keras_v1.py"
 mkdir -p "${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/authors_keras_logs"
 log="${LTD_SOTA_ARTIFACT_ROOT:-/data/ltd-attack/sota}/authors_keras_logs/$(date -u +%Y%m%dT%H%M%SZ)_$MODEL-$STAGE.log"
 case "$STAGE" in
-  smoke) CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage smoke 2>&1 | tee "$log" ;;
+  smoke|integration-smoke) CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage "$STAGE" 2>&1 | tee "$log" ;;
   B|C)
     active="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
     if [[ -n "$active" ]]; then echo "BLOCKED_GPU_OCCUPIED $active"; exit 5; fi
@@ -31,5 +31,5 @@ case "$STAGE" in
     bash "$0" "$MODEL" C
     bash "$0" "$MODEL" 09B
     bash "$0" "$MODEL" Future-B ;;
-  *) echo "stage must be smoke|B|C|09B|Future-B|all"; exit 2 ;;
+  *) echo "stage must be smoke|integration-smoke|B|C|09B|Future-B|all"; exit 2 ;;
 esac
