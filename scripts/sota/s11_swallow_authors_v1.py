@@ -127,10 +127,13 @@ def cache():
         # memmap. Never touch complete/frozen files, and never delete a
         # directory containing artifacts from another process.
         known=sorted(p.name for p in CACHE.iterdir())
-        must(known==["cif_uint16.npy.partial"],
+        must(known in ([],["cif_uint16.npy.partial"]),
              "partial/nonstandard Swallow CIF cache; inspect manually: "+str(known))
-        (CACHE/"cif_uint16.npy.partial").unlink()
-        print("S11_SWALLOW_RESTART_INCOMPLETE_CPU_MEMMAP_ONLY",flush=True)
+        if known:
+            (CACHE/"cif_uint16.npy.partial").unlink()
+            print("S11_SWALLOW_RESTART_INCOMPLETE_CPU_MEMMAP_ONLY",flush=True)
+        else:
+            print("S11_SWALLOW_RESUME_EMPTY_CPU_CACHE_DIR",flush=True)
     fun,_,_,_=origin()
     by_uid,classes,s1=load_s1_dev_index(S1)
     spec=s1["historical_checksums"]["historical_vectors"]
