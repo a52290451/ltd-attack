@@ -31,7 +31,11 @@ case "$MODE" in
       "$SOTA/s3_s4_s8_authors_keras_v1.py" \
       "$SOTA/s11_swallow_authors_v1.py" \
       "$SOTA/s12_wfcat_authors_v1.py" \
-      "$SOTA/original_authors_results_integrity_v1.py"
+      "$SOTA/original_authors_results_integrity_v1.py" \
+      "$SOTA/original_sota_orchestrator_v2.py" \
+      "$SOTA/sota_zeus_evidence_bootstrap_v1.py" \
+      "$SOTA/original_sota_paired_date_stats_v1.py" \
+      "$SOTA/sota_paths_v1.py"
     echo "===== VERIFY PINNED AUTHORS REPOSITORIES ====="
     python3 "$SOTA/s3_s9_original_sources_gate_v1.py" --stage inspect
     "$PY" "$SOTA/s10_s13_upstream_source_gate_v1.py" --stage inspect
@@ -50,12 +54,28 @@ case "$MODE" in
       echo "KERAS_VENV_NOT_INSTALLED: run setup_isolated_authors_keras_v1.sh install"
     fi
     echo "ORIGINAL_SOTA_CPU_PREFLIGHT_PASS_NO_CUDA_TRAINING" ;;
+  cpu-integration)
+    echo "===== CPU ORIGINAL-AUTHORS GRADIENT/SERIALIZATION INTEGRATION ====="
+    CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_s11_swallow_authors_v1.sh" integration-smoke
+    CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_s12_wfcat_authors_v1.sh" integration-smoke
+    [[ -x "$KPY" ]] || { echo "BLOCKED_KERAS_ENV_MISSING"; exit 5; }
+    for model in DF VarCNN TikTok RoFiRe; do
+      CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_authors_keras_s3_s4_s8_v1.sh" "$model" integration-smoke
+    done
+    echo "ORIGINAL_SOTA_CPU_TRAIN_SAVE_RELOAD_INTEGRATION_PASS" ;;
+  host-check)
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/sota_zeus_evidence_bootstrap_v1.py" --stage inspect ;;
   cpu-prepare)
     CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_s9_netclr_authors_v1.sh" preflight
+    echo "===== Historical TikTok DT cache (shared data only; NO WFlib fit) ====="
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -c "from scripts.sota.s8_tiktok_train_b_v1 import load_data; a=load_data(); print('S8_TIKTOK_AUTHOR_INPUT_CACHE_PASS', len(a[1]))"
     CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_s11_swallow_authors_v1.sh" prepare
     CUDA_VISIBLE_DEVICES=-1 bash "$SOTA/run_s12_wfcat_authors_v1.sh" prepare
     echo "ORIGINAL_SOTA_HISTORICAL_CPU_CACHE_PASS" ;;
   gpu-all)
+    echo "Use guarded/resumable v2 orchestrator; old one-shot is deprecated."
+    CUDA_VISIBLE_DEVICES=-1 "$PY" "$SOTA/original_sota_orchestrator_v2.py" --stage all --run ;;
+  gpu-all-legacy)
     check_gpu
     [[ -x "$KPY" ]] || {
       echo "BLOCKED: isolated original Keras environment missing";exit 5;
@@ -70,6 +90,6 @@ case "$MODE" in
     CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$SOTA/original_authors_results_integrity_v1.py" --model all --save
     echo "SOTA_BATTERY_AUTHORS_EXECUTED_AND_FROZEN_EVIDENCE_AUDITED" ;;
   *)
-    echo "Usage: bash $0 {cpu-preflight|cpu-prepare|gpu-all}"
+    echo "Usage: bash $0 {cpu-preflight|cpu-integration|cpu-prepare|host-check|gpu-all}"
     exit 2 ;;
 esac
