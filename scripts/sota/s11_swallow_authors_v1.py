@@ -25,12 +25,13 @@ sys.path.insert(0,str(ROOT))
 from src.models.sota.v1.data_adapter import load_s1_dev_index,parse_direction,digest
 from src.models.sota.v1.timing_adapter import parse_times
 
-SOURCE=Path.home()/"ltd-ops/sota/upstream_2026/S11_Swallow"
+from scripts.sota.sota_paths_v1 import MODERN, ARTIFACT, STORAGE, S1, S5, FUTURE
+SOURCE=MODERN/"S11_Swallow"
 COMMIT="c6dc304bca6e61b10b36b00178ee84e38c17961b"
-S1=Path.home()/"ltd-ops/sota/s1_dev_frozen_20261102T130232Z/s1_manifest.json"
-OUT=Path("/data/ltd-attack/sota/s11_swallow_authors_seed42")
+
+OUT=ARTIFACT/"s11_swallow_authors_seed42"
 CACHE=OUT/"historical_cif_cache"
-S5=Path("/data/ltd-attack/sota/s5/frozen_s5_refits_and_labels_v1.json")
+
 COHORTS={"09B":14687,"10B_DEV_FROZEN":18543}
 CONFIG={"method":"Swallow_BBYOL_ResNet18_authors_source_adapted",
         "commit":COMMIT,"seed":42,"classes":65,"representation":"authors_CIF_2x1000",
@@ -398,14 +399,14 @@ def evaluate(cohort):
     n=COHORTS[cohort]
     must(len(uid)==n and len(set(uid))==n and len(names)==65,"cohort contract")
     lookup={str(k):str(names[v]) for k,v in zip(uid,y)}
-    src=(Path.home()/"ltd-storage/datasets/historical/CLEAN_final_vectors_sites.csv"
+    src=(STORAGE/"historical/CLEAN_final_vectors_sites.csv"
          if cohort=="09B" else
-         Path.home()/"ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv")
+         STORAGE/"future/CLEAN_final_vectors_sites_concept_drift.csv")
     if cohort=="09B":
         m1=json.loads(S1.read_text())
         expected=m1["historical_checksums"]["historical_vectors"]["sha256"]
     else:
-        fm=json.loads((ROOT/"docs/evidence/FINAL/FUTURE-B/10B_manifest_future_b.json").read_text())
+        fm=json.loads((FUTURE).read_text())
         expected=fm["future_inputs"]["micro"]["sha256"]
     must(sha(src)==expected,"external vectors changed")
     fun,_,_,_=origin()
