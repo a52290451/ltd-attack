@@ -26,8 +26,8 @@ sys.path.insert(0,str(ROOT))
 from src.models.sota.v1.data_adapter import load_s1_dev_index,parse_direction,digest,fixed_length
 from src.models.sota.v1.upstream_models import resolve_checkout,verify_checkout,WFLIB_COMMIT
 
-S1=Path.home()/"ltd-ops/sota/s1_dev_frozen_20261102T130232Z/s1_manifest.json"
-OUT=Path("/data/ltd-attack/sota/s9_netclr_wflib_adapted_seed42")
+from scripts.sota.sota_paths_v1 import ARTIFACT, S1
+OUT=ARTIFACT/"s9_netclr_wflib_adapted_seed42"
 SOURCE_BLOBS={
  "model":("WFlib/models/NetCLR.py","f63cdf80046220baf0544e967ce7a6077a7096e4"),
  "augment":("WFlib/tools/netclr_augmentor.py","e28a587c6caa31b39397354316a7d22edeb4b414")
