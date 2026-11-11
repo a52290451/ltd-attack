@@ -17,8 +17,9 @@ import numpy as np
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
-BASE=Path.home()/"ltd-ops/sota/upstream_original_2026"
-OUT=Path("/data/ltd-attack/sota")
+from scripts.sota.sota_paths_v1 import ORIGINAL, MODERN, ARTIFACT, STORAGE, S1, S5, FUTURE
+BASE=ORIGINAL
+OUT=ARTIFACT
 REGISTRY={
  "DF":{"repo":"S3_DF_Authors","commit":"38df0c15a089f13228e4df06bd5269c8a37340fa",
        "path":"src/Model_NoDef.py","names":["DFNet"],"input":"direction",
@@ -34,7 +35,7 @@ REGISTRY={
        "input":"directional_timing","architecture":"authors_TikTok_DT_original_classifier"},
 }
 COHORTS={"09B":14687,"10B_DEV_FROZEN":18543}
-S5=Path("/data/ltd-attack/sota/s5/frozen_s5_refits_and_labels_v1.json")
+
 
 def require(ok,msg):
     if not ok:raise RuntimeError("SOTA_AUTHORS_KERAS_BLOCKED "+msg)
@@ -45,7 +46,7 @@ def sha(p):
     return h.hexdigest()
 def model_source(name):
     x=REGISTRY[name]
-    base=(Path.home()/"ltd-ops/sota/upstream_2026" if name=="RoFiRe"
+    base=(MODERN if name=="RoFiRe"
           else BASE)/x["repo"]
     r=subprocess.run(["git","-C",str(base),"rev-parse","HEAD"],
                      capture_output=True,text=True,check=True)
@@ -310,14 +311,14 @@ def evaluate(name,cohort):
     require(len(uid)==n and len(set(uid))==n and len(labels)==65,
             "external UID/label coverage")
     expected={str(k):str(labels[int(v)]) for k,v in zip(uid,y)}
-    src=(Path.home()/"ltd-storage/datasets/historical/CLEAN_final_vectors_sites.csv"
+    src=(STORAGE/"historical/CLEAN_final_vectors_sites.csv"
          if cohort=="09B" else
-         Path.home()/"ltd-storage/datasets/future/CLEAN_final_vectors_sites_concept_drift.csv")
+         STORAGE/"future/CLEAN_final_vectors_sites_concept_drift.csv")
     if cohort=="09B":
-        s1=json.loads((Path.home()/"ltd-ops/sota/s1_dev_frozen_20261102T130232Z/s1_manifest.json").read_text())
+        s1=json.loads((S1).read_text())
         reference_hash=s1["historical_checksums"]["historical_vectors"]["sha256"]
     else:
-        fm=json.loads((ROOT/"docs/evidence/FINAL/FUTURE-B/10B_manifest_future_b.json").read_text())
+        fm=json.loads((FUTURE).read_text())
         reference_hash=fm["future_inputs"]["micro"]["sha256"]
     require(sha(src)==reference_hash,"external vector source changed")
     from src.models.sota.v1.data_adapter import parse_direction,fixed_length
