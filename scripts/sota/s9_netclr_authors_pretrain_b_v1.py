@@ -31,7 +31,8 @@ def load(path,name):
     return module
 G=load(GATE,"s9_authors_source_gate")
 DATA=load(BPATH,"s9_historical_cache")
-OUT=Path("/data/ltd-attack/sota/s9_netclr_author_original_v1")
+from scripts.sota.sota_paths_v1 import ARTIFACT
+OUT=ARTIFACT/"s9_netclr_author_original_v1"
 TARGET=OUT/"pretrain_B_v1"
 CONFIG={"classification":"S9_NETCLR_AUTHORS_MODEL_AUGMENT_HISTORICAL_B",
         "source_commit":G.COMMIT,"train":["DEV_EARLY","DEV_MIDDLE"],
