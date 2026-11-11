@@ -91,7 +91,12 @@ def cif(direction,times,fun):
     arr=np.asarray(direction,dtype=np.int64)
     t=np.asarray(times,dtype=np.float64)
     must(np.isfinite(t).all() and (t>=0).all(),"CIF nonfinite/negative times")
-    must((np.diff(t)>=0).all(),"original CIF requires chronological packet timestamps")
+    # Original ProcessData.py retains the incoming packet order and calls
+    # CIF.fun directly. Some captured timestamps regress; do not sort packets
+    # (sorting would change the feature distribution and topology). The
+    # original CIF computes each slot index from each packet's timestamp.
+    # Preserve that upstream behavior; negative gaps are counted separately.
+    must(float(t[-1])>0 and len(t)>=2,"original CIF needs positive final load time")
     # Original CIF.fun consumes signs, not packet lengths. This is the
     # same input semantics as its own ProcessData.py for +/-1 traces.
     matrix,load,duration=fun(t,arr)
@@ -117,7 +122,15 @@ def cache():
         must(dict(zip(*np.unique(s,return_counts=True)))==
              {0:19098,1:20160,2:18658},"CIF chrono split")
         return X,y,s,t,dur,m
-    must(not CACHE.exists(),"partial Swallow CIF cache; no overwrite")
+    if CACHE.exists():
+        # Prior failing CPU run creates only a partially written local .npy
+        # memmap. Never touch complete/frozen files, and never delete a
+        # directory containing artifacts from another process.
+        known=sorted(p.name for p in CACHE.iterdir())
+        must(known==["cif_uint16.npy.partial"],
+             "partial/nonstandard Swallow CIF cache; inspect manually: "+str(known))
+        (CACHE/"cif_uint16.npy.partial").unlink()
+        print("S11_SWALLOW_RESTART_INCOMPLETE_CPU_MEMMAP_ONLY",flush=True)
     fun,_,_,_=origin()
     by_uid,classes,s1=load_s1_dev_index(S1)
     spec=s1["historical_checksums"]["historical_vectors"]
@@ -132,6 +145,8 @@ def cache():
     duration=np.empty(57916,dtype=np.float64)
     mapping={"DEV_EARLY":0,"DEV_MIDDLE":1,"DEV_LATE":2}
     seen=set();counts=Counter();n=0
+    regressions=0
+    traces_with_regressions=0
     csv.field_size_limit(sys.maxsize)
     with src.open(newline="",encoding="utf-8") as f:
         reader=csv.DictReader(f)
@@ -143,8 +158,12 @@ def cache():
             must(uid not in seen,"duplicate DEV UID")
             label,date,sp=by_uid[uid]
             must(label==row["site_label"],"DEV UID class mismatch")
-            x,t,dt=cif(parse_direction(row["direction_vector"]),
-                       parse_times(row["time_vector"]),fun)
+            dirs=parse_direction(row["direction_vector"])
+            times=parse_times(row["time_vector"])
+            backward=int(np.count_nonzero(np.diff(times)<0))
+            regressions+=backward
+            traces_with_regressions+=int(backward>0)
+            x,t,dt=cif(dirs,times,fun)
             X[n]=x;y[n]=classes[label];s[n]=mapping[sp]
             load_time[n]=t;duration[n]=dt
             seen.add(uid);counts[sp]+=1;n+=1
@@ -161,6 +180,9 @@ def cache():
     np.save(files[4],duration,allow_pickle=False)
     m={"classification":"S11_SWALLOW_CIF_SOURCE_HISTORICAL_CACHE_V1",
        "source_commit":COMMIT,"original_CIF_sha256":sha(SOURCE/"CIF.py"),
+       "timestamp_regressions":regressions,
+       "traces_with_timestamp_regressions":traces_with_regressions,
+       "timestamp_policy":"preserve_packet_order_use_original_CIF_fun_no_sort",
        "n":n,"counts":dict(counts),
        "historical_sha256":spec["sha256"],
        "sha256":{p.name:sha(p) for p in files},
