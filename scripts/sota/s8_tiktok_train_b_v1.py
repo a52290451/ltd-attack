@@ -24,8 +24,9 @@ from src.models.sota.v1.timing_adapter import parse_times
 from src.models.sota.v1.tiktok_adapter import tiktok_dt_from_sequences
 from src.models.sota.v1.upstream_models import resolve_checkout, verify_checkout, WFLIB_COMMIT
 
-S1=Path.home()/"ltd-ops/sota/s1_dev_frozen_20261102T130232Z/s1_manifest.json"
-OUT=Path("/data/ltd-attack/sota/s8_tiktok_wflib_dt_seed42")
+from scripts.sota.sota_paths_v1 import S1 as FROZEN_S1, ARTIFACT
+S1=FROZEN_S1
+OUT=ARTIFACT/"s8_tiktok_wflib_dt_seed42"
 REL="WFlib/models/TikTok.py"
 BLOB="8736ef4d7d4c00bb1559def532f511cb8e142625"
 COUNTS={"DEV_EARLY":19098,"DEV_MIDDLE":20160,"DEV_LATE":18658}
