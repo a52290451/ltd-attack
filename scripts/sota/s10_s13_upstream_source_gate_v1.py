@@ -11,7 +11,9 @@ import argparse, json, subprocess, sys
 from pathlib import Path
 from datetime import datetime, timezone
 
-ROOT=Path.home()/"ltd-ops/sota/upstream_2026"
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+from scripts.sota.sota_paths_v1 import MODERN
+ROOT=MODERN
 REPOS={
  "S10_RoFiRe":{"url":"https://github.com/AISec-EWHA/RoFiRe.git",
    "commit":"7ef45ee7c9af9ac04048456992d3d96398791bbc",
