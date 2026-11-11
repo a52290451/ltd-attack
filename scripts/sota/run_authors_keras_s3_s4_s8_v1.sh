@@ -18,12 +18,12 @@ case "$STAGE" in
   B|C)
     active="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits)"
     if [[ -n "$active" ]]; then echo "BLOCKED_GPU_OCCUPIED $active"; exit 5; fi
-    "$PY" -u "$MAIN" --model "$MODEL" --stage "$STAGE" 2>&1 | tee "$log" ;;
+    "$PY" -u "$MAIN" --model "$MODEL" --stage "$STAGE" 2>&1 | tee "$log"
     ;;
   09B|Future-B)
     cohort="09B"
     if [[ "$STAGE" == "Future-B" ]]; then cohort="10B_DEV_FROZEN"; fi
-    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage evaluate --cohort "$cohort" 2>&1 | tee "$log" ;;
+    CUDA_VISIBLE_DEVICES=-1 "$PY" -u "$MAIN" --model "$MODEL" --stage evaluate --cohort "$cohort" 2>&1 | tee "$log"
     ;;
   all)
     bash "$0" "$MODEL" smoke
