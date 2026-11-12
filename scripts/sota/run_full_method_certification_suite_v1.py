@@ -196,6 +196,7 @@ def main():
     trajectory=dest/"swallow_trajectory.json"
     seven=dest/"seven_date_bootstrap.json"
     temporal=dest/"full_temporal_population.json"
+    upstream_parity=dest/"upstream_training_parity.json"
     def strict_sources():
         r=repo_pins(ops)
         must(all(v.get("status","").startswith("PASS") for k,v in r.items()
@@ -210,6 +211,10 @@ def main():
         return r
     step("source_repositories_pinned",strict_sources)
     step("frozen_B_C_training_contracts",strict_stages)
+    step("pinned_author_training_defaults_and_modes",
+         lambda:run_script("audit_pinned_upstream_training_parity_v1.py",
+              ["--repo",str(a.repo),"--base",str(a.base),
+               "--output",str(upstream_parity)]))
     step("historical_external_UID_disjoint",lambda:uid_disjoint(ops,root))
     ok0=step("independent_3model_prediction_integrity",
        lambda:run_script("audit_existing_original_sota_readonly_v1.py",
