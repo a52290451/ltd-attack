@@ -154,7 +154,13 @@ def main():
     p.add_argument("--base",type=Path,default=Path("/data/datasets_brayan/ltd-sota-2026"))
     p.add_argument("--audit-root",type=Path,required=True)
     p.add_argument("--run-id",default=None)
+    p.add_argument("--own-09b",type=Path,default=None,
+                   help="Optional own-model canonical 09B score NPZ")
+    p.add_argument("--own-future-b",type=Path,default=None,
+                   help="Optional own-model canonical Future-B score NPZ")
     a=p.parse_args()
+    must((a.own_09b is None)==(a.own_future_b is None),
+         "supply BOTH own-model cohort NPZs, or neither")
     stamp=a.run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dest=a.audit_root/("certification_"+stamp)
     must(not dest.exists(),"audit output exists: "+str(dest))
@@ -225,6 +231,15 @@ def main():
     step("all_7_prediction_alignment_2500_paired_date_bootstrap",
          lambda:run_script("audit_all_seven_paired_date_bootstrap_v1.py",
               ["--base",str(a.base),"--bootstrap","2500","--output",str(seven)]))
+    if a.own_09b is not None:
+        step("own_model_canonical_score_alignment",
+             lambda:run_script("audit_own_model_alignment_v1.py",
+              ["--base",str(a.base),"--own-09b",str(a.own_09b),
+               "--own-future-b",str(a.own_future_b),
+               "--output",str(dest/"own_model_alignment.json")]))
+    else:
+        out["steps"]["own_model_canonical_score_alignment"]={
+            "status":"PENDING","reason":"No own-model aligned NPZ files were supplied"}
     out["fidelity"]={
         "paper_exact_status":"NOT_DEMONSTRATED",
         "scope":"authors-source-adapted seven-model benchmark; VarCNN direction branch only",
@@ -251,8 +266,11 @@ def main():
         "All 7: independent source-to-adapter architecture/feature/loss/optimizer/augment parity certification and versioned deviation matrix.",
         "No leakage: independently audit cohort source dates and UID, selection paths and checkpoint dependency graph.",
         "Own-model comparison: enforce canonical UID/date/candidate_labels, same scores schema, identical frozen cohorts and preregistered metrics/CI. Do not compare directly to original paper numbers."]
-    allok=all(x["status"]=="PASS" for x in out["steps"].values())
-    out["status"]="AUDIT_STEPS_PASS_METHODS_NOT_YET_CERTIFIED" if allok else "AUDIT_INCOMPLETE_INVESTIGATE_FAILURES"
+    failed=[k for k,x in out["steps"].items() if x["status"]=="FAIL"]
+    pending=[k for k,x in out["steps"].items() if x["status"]=="PENDING"]
+    out["status"]=("AUDIT_FAILURES_REQUIRE_CORRECTION" if failed else
+                   "AUDIT_TECHNICAL_GATES_PASS_METHODS_NOT_YET_CERTIFIED" if not pending else
+                   "AUDIT_COMPLETED_METHOD_FIDELITY_AND_OWN_MODEL_PARITY_PENDING")
     out["suitable_for_paper_now"]=False
     out["statistical_notes"]=[
       "Bootstrap has 11 distinct 09B capture dates and 16 Future-B dates; generalization beyond these observed date clusters is unproven.",
