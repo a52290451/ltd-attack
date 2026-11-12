@@ -32,5 +32,16 @@ print("TF_VISIBLE_GPUS",gpus)
 if not gpus:
     raise SystemExit("BLOCKED_TF_GPU_NOT_VISIBLE")
 print("TF_GPU_VISIBLE_PASS")
+# GPU visibility alone does not prove that sm_120 kernels work. Explicitly
+# execute float32 and Conv1D GPU kernels before allowing any training.
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu,True)
+with tf.device("/GPU:0"):
+    x=tf.ones((4,128,1),dtype=tf.float32)
+    y=tf.keras.layers.Conv1D(8,3)(x)
+    value=tf.reduce_sum(y)
+result=float(value.numpy())
+assert __import__("math").isfinite(result), "TensorFlow GPU returned nonfinite value"
+print("TF_CUDA_CONV_PASS",result,flush=True)
 PY
 echo "SOTA_GPU_RUNTIME_SMOKE_PASS"
