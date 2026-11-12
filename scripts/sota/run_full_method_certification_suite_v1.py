@@ -195,6 +195,7 @@ def main():
     cause=dest/"swallow_cause.json"
     trajectory=dest/"swallow_trajectory.json"
     seven=dest/"seven_date_bootstrap.json"
+    temporal=dest/"full_temporal_population.json"
     def strict_sources():
         r=repo_pins(ops)
         must(all(v.get("status","").startswith("PASS") for k,v in r.items()
@@ -231,6 +232,10 @@ def main():
     step("all_7_prediction_alignment_2500_paired_date_bootstrap",
          lambda:run_script("audit_all_seven_paired_date_bootstrap_v1.py",
               ["--base",str(a.base),"--bootstrap","2500","--output",str(seven)]))
+    step("full_09B_FutureB_temporal_population_and_class_date_profiles",
+         lambda:run_script("audit_full_external_temporal_population_v1.py",
+              ["--repo",str(a.repo),"--base",str(a.base),
+               "--output",str(temporal)]))
     if a.own_09b is not None:
         step("own_model_canonical_score_alignment",
              lambda:run_script("audit_own_model_alignment_v1.py",
