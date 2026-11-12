@@ -187,9 +187,22 @@ def main():
     forensic=dest/"forensic.json"
     chain=dest/"chain.json"
     cause=dest/"swallow_cause.json"
+    trajectory=dest/"swallow_trajectory.json"
     seven=dest/"seven_date_bootstrap.json"
-    step("source_repositories_pinned",lambda:repo_pins(ops))
-    step("frozen_B_C_training_contracts",lambda:stage_checks(root))
+    def strict_sources():
+        r=repo_pins(ops)
+        must(all(v.get("status","").startswith("PASS") for k,v in r.items()
+                 if k!="NetCLR"),"some pinned upstream sources failed: "+
+             json.dumps({k:v for k,v in r.items() if v.get("status")=="FAIL"}))
+        return r
+    def strict_stages():
+        r=stage_checks(root)
+        must(all(v["status"]=="PASS_B_C_STAGE_CONTRACT_ONLY" for v in r.values()),
+             "B/C stage contract invalid: "+
+             json.dumps({k:v for k,v in r.items() if v["status"]=="FAIL"}))
+        return r
+    step("source_repositories_pinned",strict_sources)
+    step("frozen_B_C_training_contracts",strict_stages)
     step("historical_external_UID_disjoint",lambda:uid_disjoint(ops,root))
     ok0=step("independent_3model_prediction_integrity",
        lambda:run_script("audit_existing_original_sota_readonly_v1.py",
@@ -205,6 +218,10 @@ def main():
                lambda:run_script("audit_swallow_representation_cause_v1.py",
                 ["--repo",str(a.repo),"--base",str(a.base),
                  "--chain-json",str(chain),"--output",str(cause)]))
+            step("Swallow_BYOL_epoch_20_40_60_80_100_augmentation_trajectory",
+               lambda:run_script("audit_swallow_pretrain_trajectory_v1.py",
+                ["--repo",str(a.repo),"--base",str(a.base),
+                 "--output",str(trajectory)]))
     step("all_7_prediction_alignment_2500_paired_date_bootstrap",
          lambda:run_script("audit_all_seven_paired_date_bootstrap_v1.py",
               ["--base",str(a.base),"--bootstrap","2500","--output",str(seven)]))
