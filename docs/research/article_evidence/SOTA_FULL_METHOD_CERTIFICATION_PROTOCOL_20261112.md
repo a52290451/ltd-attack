@@ -51,3 +51,13 @@ Si ya existen archivos NPZ de predicciones propias con esquema canónico `pcap_u
 ## Evidencia del artículo
 
 Para revisión por pares, archivar junto al manuscrito: Git commit de la suite, código y commit original de cada upstream, SHA de datos/manifiestos/checkpoints/NPZ, código concreto de conversión de features, pérdidas y configuraciones efectivas, reporte de paridad original, criterios cronológicos predefinidos, resultados de auditoría, IC pareados y decisiones sobre experimentos nuevos. Reportar `VarCNN direction branch` como tal, no el ensemble completo.
+
+## Auditorías incorporadas a la suite
+
+- `audit_pinned_upstream_training_parity_v1.py`: diferencias estáticas entre el código fuente original de Swallow y WFCAT y los adaptadores de entrenamiento (incluidos modo objetivo BYOL, épocas, batch, multiplicador de vistas). Confirma desviaciones, **no** su causalidad.
+- `audit_swallow_pretrain_trajectory_v1.py`: representa checkpoints originales inmutables de épocas 20/40/60/80/100 y mide diversidad de vistas de augmentación.
+- `audit_full_external_temporal_population_v1.py`: recorre todas las capturas congeladas de 09B/Future-B, comprueba SHA/UID/clases, distribución global, por fecha y por clase de paquetes, duración y retrocesos de tiempo.
+- `audit_all_seven_paired_date_bootstrap_v1.py`: comprobación de poblaciones iguales entre los siete y diferencias pareadas de accuracy (2.500 réplicas por fecha).
+- `audit_own_model_alignment_v1.py`: puerta opcional para importar nuestros propios scores NPZ sin inferir el orden de etiquetas.
+
+La suite produce resultados forenses aun cuando no se adjunten scores propios. En ese caso reporta PENDING para la comparación y no emite certificado científico final.
