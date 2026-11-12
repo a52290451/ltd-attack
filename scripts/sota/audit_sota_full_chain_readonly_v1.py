@@ -171,7 +171,30 @@ def external_samples(repo,root,storage,limit=64):
     from src.models.sota.v1.timing_adapter import parse_times
     from scripts.sota import s11_swallow_authors_v1 as S
     from scripts.sota import s12_wfcat_authors_v1 as W
-    wtransform,_=W.upstream()
+    # Swallow and WFCAT both define top-level packages named "models".
+    # Loading the WFCAT model here is unnecessary: this phase only needs its
+    # upstream feature extractor. Import features.py explicitly by file path,
+    # bypassing the conflicting models package cached by Swallow.
+    import importlib.util
+    import subprocess
+    upstream_root=W.SOURCE
+    source_file=upstream_root/"src/features.py"
+    need(source_file.is_file(),"WFCAT upstream feature module missing")
+    git_rev=subprocess.run(
+        ["git","-C",str(upstream_root),"rev-parse","HEAD"],
+        text=True,capture_output=True,check=True).stdout.strip()
+    need(git_rev==W.COMMIT,"WFCAT upstream source commit mismatch")
+    modified=subprocess.run(
+        ["git","-C",str(upstream_root),"status","--porcelain",
+         "--untracked-files=no"],text=True,capture_output=True,check=True).stdout.strip()
+    need(not modified,"WFCAT upstream source tracked modifications")
+    spec=importlib.util.spec_from_file_location(
+        "ltd_wfcat_isolated_feature_module",source_file)
+    need(spec is not None and spec.loader is not None,
+         "WFCAT feature module could not be loaded")
+    feature_module=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(feature_module)
+    wtransform=feature_module.feature_transform
     cif_fun,_,_,_=S.origin()
     out={}
     for cohort,folder,path in (
