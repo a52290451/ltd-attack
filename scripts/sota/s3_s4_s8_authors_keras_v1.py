@@ -229,7 +229,7 @@ def train(name,stage):
         # The authors' DyWin augmentation is extracted verbatim from feature/features.py.
         # Use first 5 chronological samples per class + 10x augmented copies.
         # The original default uses 200x; reduced multiplier is explicit.
-        authorbase=Path.home()/"ltd-ops/sota/upstream_2026"/REGISTRY[name]["repo"]
+        authorbase=MODERN/REGISTRY[name]["repo"]
         feature_path=authorbase/"feature/features.py"
         text=feature_path.read_text()
         tree=ast.parse(text)
