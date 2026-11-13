@@ -15,7 +15,7 @@ check() {
   CUDA_VISIBLE_DEVICES=-1 TF_CPP_MIN_LOG_LEVEL=3 "$1" -c 'import keras,tensorflow,numpy,sklearn' >/dev/null 2>&1
 }
 chosen=""
-for path in "$LTD_SOTA_KERAS_PY" \
+for path in "$(printenv LTD_SOTA_KERAS_PY || true)" \
   "$BASE/runtime/venv-keras-authors/bin/python" \
   "$BASE/venv-keras-authors/bin/python" \
   "/data/ltd-sota-bsierra/venv-keras-authors/bin/python" \
