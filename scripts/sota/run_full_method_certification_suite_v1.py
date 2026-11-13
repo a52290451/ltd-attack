@@ -197,6 +197,7 @@ def main():
     seven=dest/"seven_date_bootstrap.json"
     temporal=dest/"full_temporal_population.json"
     upstream_parity=dest/"upstream_training_parity.json"
+    uid_forensic=dest/"uid_collision_forensics.json"
     def strict_sources():
         r=repo_pins(ops)
         must(all(v.get("status","").startswith("PASS") for k,v in r.items()
@@ -216,6 +217,12 @@ def main():
               ["--repo",str(a.repo),"--base",str(a.base),
                "--output",str(upstream_parity)]))
     step("historical_external_UID_disjoint",lambda:uid_disjoint(ops,root))
+    # Always classify overlap by comparing the immutable underlying vectors;
+    # the disjoint UID gate remains FAIL and must not be silently waived.
+    step("historical_future_UID_collision_raw_trace_forensics",
+         lambda:run_script("audit_dev_future_uid_collision_forensics_v1.py",
+              ["--repo",str(a.repo),"--base",str(a.base),
+               "--output",str(uid_forensic)]))
     ok0=step("independent_3model_prediction_integrity",
        lambda:run_script("audit_existing_original_sota_readonly_v1.py",
              ["--artifact-root",str(root),"--output",str(forensic)]))
