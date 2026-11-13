@@ -342,42 +342,42 @@ def main():
     best09="RoFiRe (adapted)"
     bestfuture="VarCNN direction-only"
     section=[
-      r"\\subsection{Comparison with source-adapted state-of-the-art methods}",
+      r"\subsection{Comparison with source-adapted state-of-the-art methods}",
       r"All methods were evaluated on the same frozen 65-class monitored-site "
       r"cohorts: Historical 09B (14,687 captures over 11 dates) and "
       r"Future-B (18,543 captures over 16 dates). Historical model "
-      r"selection used DEV\\_LATE; final refitting used the historical "
+      r"selection used DEV\_LATE; final refitting used the historical "
       r"development population. The Future-B cohort was reserved for "
       r"evaluation and did not determine fitted hyperparameters.",
-      r"\\input{table_performance.tex}",
-      r"LTD-Hybrid obtained accuracies of 97.44\\% on Historical 09B and "
-      r"49.45\\% on Future-B, exceeding the best adapted SOTA model "
-      r"in each cohort: RoFiRe (94.21\\%) and the direction-only "
-      r"VarCNN variant (44.55\\%), respectively. The corresponding "
+      r"\input{table_performance.tex}",
+      r"LTD-Hybrid obtained accuracies of 97.44\% on Historical 09B and "
+      r"49.45\% on Future-B, exceeding the best adapted SOTA model "
+      r"in each cohort: RoFiRe (94.21\%) and the direction-only "
+      r"VarCNN variant (44.55\%), respectively. The corresponding "
       r"accuracy differences were 3.23 and 4.90 percentage points.",
-      r"\\subsection{Paired uncertainty and focused statistical tests}",
-      r"The 95\\% uncertainty intervals for paired differences were "
+      r"\subsection{Paired uncertainty and focused statistical tests}",
+      r"The 95\% uncertainty intervals for paired differences were "
       r"estimated from 2,500 bootstrap resamples of date clusters. "
       r"The 14 focused LTD-Hybrid accuracy comparisons additionally "
-      r"underwent exact two-sided sign-reversal tests over the 2^D "
+      "r"underwent exact two-sided sign-reversal tests over $2^D$ "
       r"possible swaps of whole-day paired outcomes (D=11 and 16). "
       r"Family-wise error was adjusted by Holm over these 14 contrasts.",
-      r"\\input{table_accuracy_inference.tex}",
+      r"\input{table_accuracy_inference.tex}",
       "The exact Holm-adjusted focused analysis yielded "+
-      str(exact_sig)+r"/14 comparisons with p<0.05. "
+      str(exact_sig)+r"/14 comparisons with $p<0.05$. "
       r"These 14 contrasts were assembled during the analysis and "
       r"must be interpreted as posthoc focused tests rather than "
       r"prospectively registered confirmatory hypotheses. "
       r"The broader 168-test Monte Carlo Holm family retained "+
-      str(mc_global_sig)+r"/14 focused comparisons below p<0.05, "
+      str(mc_global_sig)+r"/14 focused comparisons below $p<0.05$, "
       r"highlighting sensitivity of significance claims to "
       r"the multiplicity family.",
-      r"\\subsection{Temporal change and methodological scope}",
+      r"\subsection{Temporal change and methodological scope}",
       r"The historical-to-future decline in accuracy was 47.99 "
       r"percentage points for LTD-Hybrid. Cross-cohort declines "
       r"are descriptive and are not paired date-level inference. "
       r"Future-B VarCNN direction-only had slightly higher Top-5 "
-      r"accuracy than LTD-Hybrid (80.98\\% versus 80.56\\%), "
+      r"accuracy than LTD-Hybrid (80.98\% versus 80.56\%), "
       r"so the superiority statement is restricted to accuracy.",
       r"These baselines reuse identifiable author-source implementations "
       r"with protocol adaptations rather than the exact complete "
