@@ -78,21 +78,19 @@ def main():
         must(p_v2.shape==(n,65) and len(np.unique(day))==(11 if cohort=="09B" else 16),
              "cohort population/date count")
         own["SWALLOW_V2"]=p_v2
-        groups=[np.flatnonzero(day==d) for d in np.unique(day)]
-        scores={k:metrics(y,v) for k,v in own.items()}
+        # Reuse the already validated S5/S6 daily sufficient-statistic
+        # implementation: no 2500x full-packet sorting/reprocessing.
+        from scripts.sota.compare_all_seven_with_original_ltd_s5_s6_v1 import evidence,values
+        dates=np.unique(day)
+        day_count=np.array([int(np.sum(day==d)) for d in dates],dtype=np.float64)
         rng=np.random.default_rng(20261113)
-        samples={}
+        draws=rng.multinomial(len(dates),[1/len(dates)]*len(dates),size=2500)
+        scores={};samples={}
         for k,v in own.items():
-            blocks=[]
-            for g in groups:
-                blocks.append((y[g],v[g]))
-            sample=[]
-            for draw in range(2500):
-                ix=rng.integers(0,len(blocks),size=len(blocks))
-                rows=np.concatenate([groups[j] for j in ix])
-                sample.append(metrics(y[rows],v[rows]))
-            samples[k]=np.array(sample)
-            rng=np.random.default_rng(20261113)  # paired identical draws
+            valid_days,agg=evidence(y,day,v)
+            must(np.array_equal(valid_days,dates),"daily S5/S6 mismatch")
+            scores[k]=np.array(values(np.ones(len(dates)),day_count,agg))
+            samples[k]=np.array([values(w,day_count,agg) for w in draws])
         diffs={}
         for ours in ("LTD_MICRO","LTD_MACRO","LTD_HYBRID"):
             dif=scores[ours]-scores["SWALLOW_V2"]
@@ -100,7 +98,7 @@ def main():
             diffs[ours]={m:{"delta":float(dif[j]),
                 "paired_bootstrap_ci95":np.quantile(replicates[:,j],[.025,.975]).tolist()}
                 for j,m in enumerate(names)}
-        out["cohorts"][cohort]={"n":n,"dates":len(groups),
+        out["cohorts"][cohort]={"n":n,"dates":len(dates),
             "accuracy":{k:float(v[0]) for k,v in scores.items()},
             "paired_differences":diffs,"new_sota_scores_sha256":digest(score)}
     a.output.parent.mkdir(parents=True,exist_ok=True)
