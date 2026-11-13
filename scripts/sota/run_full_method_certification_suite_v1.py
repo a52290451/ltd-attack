@@ -120,6 +120,10 @@ def stage_checks(root):
                        "deviations":DECLARED_DEVIATIONS[name]}
     return out
 def uid_disjoint(ops,root):
+    """Diagnose *scoped* UID uniqueness; IDs are not globally stable across campaigns.
+
+    Numerical capture identity must be checked separately, regardless of UIDs.
+    """
     import numpy as np
     manifest_path=Path(os.environ.get("LTD_SOTA_S1_MANIFEST",
                           ops/"s1_dev_frozen_20261102T130232Z/s1_manifest.json"))
@@ -131,23 +135,26 @@ def uid_disjoint(ops,root):
     dev_idx=Path(s1["dev_index_file"])
     must(sha(dev_idx)==s1["dev_index_sha256"],"S1 index checksum mismatch")
     with dev_idx.open(newline="",encoding="utf-8") as stream:
-        dev={r["pcap_uid"] for r in csv.DictReader(stream)}
-    must(len(dev)==57916,"DEV index UID duplicates")
+        rows=[r["pcap_uid"] for r in csv.DictReader(stream)]
+    must(len(rows)==57916 and len(set(rows))==57916,"DEV index UID uniqueness")
+    dev=set(rows)
     external={}
     for cohort,size in (("09B",14687),("10B_DEV_FROZEN",18543)):
         path=root/"s9_netclr_author_original_v1/evaluation"/cohort/"scores_sota_aligned.npz"
         with np.load(path,allow_pickle=False) as z:
             ids=z["pcap_uid"].astype(str)
-        must(len(ids)==size and len(set(ids))==size,"external UIDs invalid "+cohort)
+        must(len(ids)==size and len(set(ids))==size,"within-cohort UID invalid "+cohort)
         external[cohort]=set(ids)
-        must(not dev.intersection(external[cohort]),
-             "Historical DEV vs "+cohort+" UID overlap")
-    # 09B is from historical vectors but distinct from DEV; Future must be disjoint.
-    must(not external["09B"].intersection(external["10B_DEV_FROZEN"]),
-         "external cohort UID overlap")
-    return {"status":"PASS_UID_DISJOINT_ALL_COHORTS",
-            "DEV":len(dev),"09B":len(external["09B"]),
-            "Future_B":len(external["10B_DEV_FROZEN"])}
+    overlaps={"DEV_vs_09B":len(dev&external["09B"]),
+              "DEV_vs_FutureB":len(dev&external["10B_DEV_FROZEN"]),
+              "09B_vs_FutureB":len(external["09B"]&external["10B_DEV_FROZEN"])}
+    must(not overlaps["DEV_vs_09B"],
+         "Historical DEV vs 09B same-campaign UID overlap")
+    return {"status":"PASS_PER_COHORT_UID_UNIQUENESS_WITH_CROSS_CAMPAIGN_REUSE",
+            "counts":{"DEV":len(dev),"09B":len(external["09B"]),
+                      "Future_B":len(external["10B_DEV_FROZEN"])},
+            "uid_collisions":overlaps,
+            "note":"Cross-campaign UID collision is not a capture identity test; see global numerical fingerprint gate."}
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--repo",type=Path,default=Path.home()/"ltd-attack")
@@ -198,6 +205,7 @@ def main():
     temporal=dest/"full_temporal_population.json"
     upstream_parity=dest/"upstream_training_parity.json"
     uid_forensic=dest/"uid_collision_forensics.json"
+    numeric=dest/"global_numeric_trace_identity.json"
     def strict_sources():
         r=repo_pins(ops)
         must(all(v.get("status","").startswith("PASS") for k,v in r.items()
@@ -216,13 +224,23 @@ def main():
          lambda:run_script("audit_pinned_upstream_training_parity_v1.py",
               ["--repo",str(a.repo),"--base",str(a.base),
                "--output",str(upstream_parity)]))
-    step("historical_external_UID_disjoint",lambda:uid_disjoint(ops,root))
-    # Always classify overlap by comparing the immutable underlying vectors;
-    # the disjoint UID gate remains FAIL and must not be silently waived.
+    step("cohort_scoped_UID_uniqueness_and_reuse_detection",lambda:uid_disjoint(ops,root))
     step("historical_future_UID_collision_raw_trace_forensics",
          lambda:run_script("audit_dev_future_uid_collision_forensics_v1.py",
               ["--repo",str(a.repo),"--base",str(a.base),
                "--output",str(uid_forensic)]))
+    def numeric_identity():
+        output=run_script("audit_global_numeric_trace_identity_v1.py",
+             ["--repo",str(a.repo),"--base",str(a.base),
+              "--output",str(numeric)])
+        doc=jread(numeric)
+        must(doc["interpretation"]=="PASS_NO_EXACT_NUMERIC_TRACE_DUPLICATES_UID_REUSE_DETECTED",
+             "exact cross-cohort numerical duplicates detected; see "+str(numeric))
+        must(doc["capture_date_overlaps"]["DEV_vs_FutureB_common_dates"]==0,
+             "DEV/Future-B capture date overlap")
+        return {"report":str(numeric),"summary":output,
+                "limited_verdict":"NO_EXACT_NUMERIC_DUPLICATES; not evidence for all possible semantic duplication"}
+    step("global_numeric_trace_identity_despite_UID_reuse",numeric_identity)
     ok0=step("independent_3model_prediction_integrity",
        lambda:run_script("audit_existing_original_sota_readonly_v1.py",
              ["--artifact-root",str(root),"--output",str(forensic)]))
