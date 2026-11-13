@@ -170,8 +170,9 @@ def main():
         comparisons=[]
         for own in LTD_FIELDS:
             for base in SOTA_FOLDERS:
-                delta=np.asarray(summaries[own]["metrics"][m]-
-                    summaries[base]["metrics"][m] for m in METRICS,dtype=np.float64)
+                delta=np.asarray([
+                    summaries[own]["metrics"][m]-summaries[base]["metrics"][m]
+                    for m in METRICS],dtype=np.float64)
                 samples=boot[own]-boot[base]
                 comparisons.append({
                    "own":own,"sota":base,
