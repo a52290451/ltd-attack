@@ -61,10 +61,32 @@ def stage_integrity(root,model):
                 m.get("dataset_c_opened") is False,
                 model+" "+tag+" external access declaration")
         expected=39258 if tag=="B" else 57916
-        require(m["training_n"]==expected,model+" "+tag+" population")
+        # Original author adapters use either training_n (Keras, NetCLR,
+        # Swallow) or train_n (WFCAT). Never silently default missing counts.
+        declared={k:int(m[k]) for k in ("training_n","train_n") if k in m}
+        require(declared and len(set(declared.values()))==1,
+                model+" "+tag+" missing/conflicting training population keys")
+        count=next(iter(declared.values()))
+        require(count==expected,model+" "+tag+" population: "+repr(declared))
+        epoch=m.get("selected_epoch",m.get("refit_epochs"))
+        require(type(epoch) is int and 1<=epoch<=100,
+                model+" "+tag+" selected epoch missing/invalid")
+        if tag=="B":
+            history=m.get("history",[])
+            require(isinstance(history,list) and history,
+                    model+" B validation history missing")
+            vals=[(int(item["epoch"]),float(item.get("val_macro_f1",
+                           item.get("validation_macro_f1"))))
+                  for item in history
+                  if isinstance(item,dict) and
+                     ("val_macro_f1" in item or "validation_macro_f1" in item)]
+            require(vals,model+" B validation macro-F1 history unavailable")
+            highest=max(v for _,v in vals)
+            earliest=min(e for e,v in vals if v==highest)
+            require(epoch==earliest,model+" B selected epoch not first best macro-F1")
         outputs[tag]={"manifest_sha256":sha(mpath),"checkpoint_sha256":sha(ck),
-                      "epoch":m.get("selected_epoch",m.get("refit_epochs")),
-                      "training_n":m["training_n"]}
+                      "epoch":epoch,"training_n":count,
+                      "population_manifest_field":next(iter(declared))}
     require(outputs["B"]["epoch"]==outputs["C"]["epoch"],
             model+" B/C epoch mismatch")
     return outputs
