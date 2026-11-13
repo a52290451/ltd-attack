@@ -210,8 +210,7 @@ def main():
       if all(v["status"] in ("PASS_AUTHOR_SOURCE_ADAPTED_FUNCTIONAL_SMOKE",
                             "FAIL_COLLAPSED_BYOL_REQUIRES_NEW_RUN")
              for v in report["models"].values())
-         and report["supplementary"]["WFCAT_raw_author_IAT_numerical_parity"]["status"].
-                 startswith("PASS")
+         and report["supplementary"]["WFCAT_raw_author_IAT_numerical_parity"]["status"].startswith("PASS")
       else "FUNCTIONAL_SOURCE_GATES_INCOMPLETE")
     (a.output_dir/"certificate.json").write_text(json.dumps(report,indent=2)+"\n")
     print("SOURCE_FIDELITY_SUITE_STATUS",report["status"])
