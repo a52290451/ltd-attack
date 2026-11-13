@@ -203,6 +203,7 @@ def main():
     trajectory=dest/"swallow_trajectory.json"
     seven=dest/"seven_date_bootstrap.json"
     temporal=dest/"full_temporal_population.json"
+    original_ltd_comparison=dest/"canonical_original_LTD_vs_seven_SOTA.json"
     upstream_parity=dest/"upstream_training_parity.json"
     uid_forensic=dest/"uid_collision_forensics.json"
     numeric=dest/"global_numeric_trace_identity.json"
@@ -266,15 +267,19 @@ def main():
          lambda:run_script("audit_full_external_temporal_population_v1.py",
               ["--repo",str(a.repo),"--base",str(a.base),
                "--output",str(temporal)]))
+    # Reuse canonical Original LTD S5/S6 frozen score sources by default:
+    # own models are already available, so do not demand manually exported NPZs.
+    step("existing_original_LTD_Micro_Macro_Hybrid_vs_all_seven_SOTA_S5_S6_crosswalk",
+         lambda:run_script("compare_all_seven_with_original_ltd_s5_s6_v1.py",
+              ["--repo",str(a.repo),"--base",str(a.base),
+               "--output",str(original_ltd_comparison),
+               "--bootstrap","2500"]))
     if a.own_09b is not None:
-        step("own_model_canonical_score_alignment",
+        step("additional_custom_own_model_NPZ_alignment",
              lambda:run_script("audit_own_model_alignment_v1.py",
               ["--base",str(a.base),"--own-09b",str(a.own_09b),
                "--own-future-b",str(a.own_future_b),
-               "--output",str(dest/"own_model_alignment.json")]))
-    else:
-        out["steps"]["own_model_canonical_score_alignment"]={
-            "status":"PENDING","reason":"No own-model aligned NPZ files were supplied"}
+               "--output",str(dest/"additional_custom_own_model_alignment.json")]))
     out["fidelity"]={
         "paper_exact_status":"NOT_DEMONSTRATED",
         "scope":"authors-source-adapted seven-model benchmark; VarCNN direction branch only",
@@ -300,7 +305,7 @@ def main():
         "WFCAT: validate IAT timestamp units and feature-shift diagnostics using original reference traces; no adjustment chosen using Future-B.",
         "All 7: independent source-to-adapter architecture/feature/loss/optimizer/augment parity certification and versioned deviation matrix.",
         "No leakage: independently audit cohort source dates and UID, selection paths and checkpoint dependency graph.",
-        "Own-model comparison: enforce canonical UID/date/candidate_labels, same scores schema, identical frozen cohorts and preregistered metrics/CI. Do not compare directly to original paper numbers."]
+        "Own-model comparison: reuse original SHA-frozen 09B/Future-B canonical LTD Micro/Macro/Hybrid scores through S5/S6, same label order, dates and metrics; do not compare directly to original paper numbers."]
     failed=[k for k,x in out["steps"].items() if x["status"]=="FAIL"]
     pending=[k for k,x in out["steps"].items() if x["status"]=="PENDING"]
     out["status"]=("AUDIT_FAILURES_REQUIRE_CORRECTION" if failed else
