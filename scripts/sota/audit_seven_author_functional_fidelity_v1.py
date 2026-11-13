@@ -72,13 +72,17 @@ def canonical_results(root,name):
                      "score_sha256":data["score_sha256"]}
     return out
 
-def integration(name,repo,base,timeout):
+def integration(name,repo,base,timeout,keras_python):
     script=repo/"scripts/sota"/("s3_s4_s8_authors_keras_v1.py" if name in
                          ("DF","VarCNN","TikTok","RoFiRe") else
                          "s11_swallow_authors_v1.py" if name=="Swallow" else
                          "s12_wfcat_authors_v1.py" if name=="WFCAT" else
                          "s9_netclr_authors_pretrain_b_v1.py")
-    args=([sys.executable,str(script),"--model",name,"--stage","integration-smoke"]
+    python=(str(keras_python) if name in ("DF","VarCNN","TikTok","RoFiRe") else sys.executable)
+    if name in ("DF","VarCNN","TikTok","RoFiRe"):
+        require(keras_python.is_file() and os.access(keras_python,os.X_OK),
+                "AUTHORS_KERAS_RUNTIME_MISSING: "+str(keras_python))
+    args=([python,str(script),"--model",name,"--stage","integration-smoke"]
           if name in ("DF","VarCNN","TikTok","RoFiRe") else
           [sys.executable,str(script),"--stage",
            "smoke" if name=="NetCLR" else "integration-smoke"])
@@ -152,6 +156,10 @@ def main():
     p.add_argument("--comparison",required=True,type=Path)
     p.add_argument("--output-dir",required=True,type=Path)
     p.add_argument("--timeout",type=int,default=1500)
+    p.add_argument("--keras-python",type=Path,
+        default=Path(os.environ.get("LTD_SOTA_KERAS_PY",
+                                  "/data/ltd-sota-bsierra/venv-keras-authors/bin/python")),
+        help="Existing pinned Keras/TensorFlow interpreter used for DF/VarCNN/TikTok/RoFiRe. Never install or alter it.")
     a=p.parse_args()
     require(not a.output_dir.exists(),"output directory already exists")
     a.output_dir.mkdir(parents=True)
@@ -171,7 +179,7 @@ def main():
                 "paper_exact":False}
         try:
             record["artifact_integrity"]=canonical_results(root,model)
-            record["integration_smoke"]=integration(model,a.repo,a.base,a.timeout)
+            record["integration_smoke"]=integration(model,a.repo,a.base,a.timeout,a.keras_python)
             learned=record["artifact_integrity"]["09B"]["predicted_classes"]
             if model=="Swallow":
                 require(learned==1,"Swallow collapse changed; verify new evidence")
