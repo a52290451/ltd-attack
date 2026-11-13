@@ -359,7 +359,7 @@ def main():
       r"The 95\% uncertainty intervals for paired differences were "
       r"estimated from 2,500 bootstrap resamples of date clusters. "
       r"The 14 focused LTD-Hybrid accuracy comparisons additionally "
-      "r"underwent exact two-sided sign-reversal tests over $2^D$ "
+      r"underwent exact two-sided sign-reversal tests over $2^D$ "
       r"possible swaps of whole-day paired outcomes (D=11 and 16). "
       r"Family-wise error was adjusted by Holm over these 14 contrasts.",
       r"\input{table_accuracy_inference.tex}",
