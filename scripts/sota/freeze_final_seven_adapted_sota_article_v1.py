@@ -104,11 +104,20 @@ def main():
             "best_adapted_SOTA":best,
             "best_adapted_SOTA_accuracy":data[best]["accuracy"],
             "hybrid_highest_accuracy":data["LTD_HYBRID"]["accuracy"]>data[best]["accuracy"]}
-    must(len(records)==22 and len(pairs)==168,
-         "expected 11 methods x 2 and 3x7x4x2 comparisons")
+    for cohort in ("09B","10B_DEV_FROZEN"):
+        cohort_rows=[r for r in records if r["cohort"]==cohort]
+        cohort_pairs=[r for r in pairs if r["cohort"]==cohort]
+        must(len(cohort_rows)==10 and
+             len({r["method"] for r in cohort_rows})==10,
+             "expected 3 LTD + 7 SOTA unique rows in "+cohort)
+        must(len(cohort_pairs)==84 and
+             len({(r["own"],r["baseline"],r["metric"]) for r in cohort_pairs})==84,
+             "expected 3x7x4 distinct paired results in "+cohort)
+    must(len(records)==20 and len(pairs)==168,
+         "expected 10 methods x 2 cohorts and 3x7x4x2 comparisons")
     report={"classification":"LTD_FINAL_SEVEN_ADAPTED_SOTA_ARTICLE_V1",
         "status":"FINAL_RETROSPECTIVE_ADAPTED_METHODS_COMPARISON_PASS",
-        "models_per_cohort":11,"adapted_baselines_per_cohort":7,
+        "models_per_cohort":10,"adapted_baselines_per_cohort":7,
         "paired_metric_ci_count":168,"cohorts":cohorts,
         "inputs_sha256":{name:digest(p) for name,p in (
              ("original",a.original),("matrix",a.six_matrix),
@@ -124,7 +133,7 @@ def main():
         with (a.output_dir/name).open("x",newline="") as f:
             w=csv.DictWriter(f,fieldnames=list(rows[0]))
             w.writeheader();w.writerows(rows)
-    write("article_metrics_11models.csv",records)
+    write("article_metrics_10models.csv",records)
     write("article_paired_168_ci95.csv",pairs)
     (a.output_dir/"article_certificate.json").write_text(json.dumps(report,indent=2)+"\n")
     lines=["# LTD vs seven valid adapted SOTA baselines",
