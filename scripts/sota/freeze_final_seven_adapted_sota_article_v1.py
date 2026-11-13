@@ -6,9 +6,10 @@ release and independent paired stats. Writes a standalone 11-model x two-cohort
 table and 168 paired metric confidence intervals. No fit or score mutation.
 """
 from __future__ import annotations
-import argparse,csv,hashlib,json
+import argparse,csv,hashlib,json,sys
 from pathlib import Path
 import numpy as np
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from scripts.sota.compare_all_seven_with_original_ltd_s5_s6_v1 import evidence,values
 
 METRICS=("accuracy","macro_f1","top5","mrr")
